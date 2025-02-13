@@ -4,8 +4,8 @@
             <h2 class="signup-title">WELCOME BACK!</h2>
             <form @submit.prevent="logIn">
                 <div class="mb-3">
-                    <label class="form-label custom-label">Username</label>
-                    <input type="text" v-model="username" class="form-control" placeholder="Enter your username" required />
+                    <label class="form-label custom-label">Email</label>
+                    <input type="text" v-model="email" class="form-control" placeholder="Enter your email" required />
                 </div>
 
                 <!-- Sign Up Link -->
@@ -21,7 +21,6 @@
                 <!-- Forgot Password Link -->
                 <div class="mt-3 text-start mb-3 ms-4">
                     <router-link to="/forgot-password" class="mt-3 text-start"> Forgot Password? </router-link>
-
                 </div>
 
                 <!-- Buttons Section -->
@@ -53,7 +52,7 @@ export default {
         };
     },
     methods: {
-        async login() {
+        async logIn() {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: this.email,
                 password: this.password,

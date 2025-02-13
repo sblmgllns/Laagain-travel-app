@@ -26,7 +26,7 @@
                 <button type="submit" class="btn btn-primary w-100 mb-3">Sign Up</button>
             </form>
             <p class="mt-3 text-start">
-                has an account? &nbsp; <router-link to="/login" class="text-primary"> Log In</router-link>
+                Already Have an Account? &nbsp; <router-link to="/login" class="text-primary"> Log In</router-link>
             </p>
             <p v-if="errorMessage" class="text-danger text-start">{{ errorMessage }}</p>
         </div>
