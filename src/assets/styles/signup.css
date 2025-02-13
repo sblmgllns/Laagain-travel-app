@@ -1,0 +1,144 @@
+
+html, body {
+    height: 100vh; /* Full viewport height */
+    width: 100vw; /* Full viewport width */
+    margin: 0;
+    padding: 0;
+    background-color: #03AED2 !important; /* Force background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Prevent scrolling */
+    
+}
+
+.card {
+    border-radius: 46px !important; 
+    background: #FFF;
+    padding: 32px !important; /* Adjust padding for spacing */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Soft shadow */
+    width: 350px !important;
+}
+
+
+
+/* Full-screen centering */
+.full-page-container {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: #03AED2; /* Blue background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Custom style for Sign Up title */
+.signup-title {
+    color: #FDDE55;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: 1.44px;
+    text-align: left;
+    
+    margin-top: 40px !important; /* Space above the title */
+    margin-bottom: 35px !important; /* Space below the title */
+    padding-left: 10px !important;
+}
+
+
+
+.custom-label {
+    color: #03AED2;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 520; /* Make labels bold */
+    line-height: 20px;
+    text-align: left; /* Ensure alignment to the left */
+    display: block; /* Ensure it doesn't interfere with Bootstrap styles */
+    margin-left: 25px;
+    margin-bottom: 2px !important;
+}
+
+.form-control {
+    max-width: 250px !important; /* Adjust input field length */
+    margin: 0 auto !important; /* Center align the inputs */
+    display: block !important;
+    margin-bottom: -6px !important; /* Reduce space between input fields */
+}
+/* Placeholder Styling */
+::placeholder {
+    overflow: hidden;
+    color: rgba(0, 0, 0, 0.50) !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; /* 142.857% */
+}
+
+.btn-primary {
+    margin-top: 20px !important;
+    border-radius: 8px !important;
+    background: #03AED2 !important;
+    border: 2px solid #03AED2 !important; /* Border same as background */
+    color: #FFF !important; /* Text color */
+    font-family: 'Roboto', sans-serif !important;
+    font-size: 14px !important;
+    font-style: normal !important;
+    font-weight: 500 !important;
+    line-height: 22px !important; /* 137.5% */
+    text-align: center !important;
+    padding: 10px 16px !important; /* Slightly increase padding */
+    height: 44px !important;  /* Set a fixed smaller height */
+    transition: background 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    max-width: 250px !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: #FDDE55 !important; /* Changes background on hover */
+    border-color: #FDDE55 !important; /* Ensures border also changes */
+    color: #FFF  !important; /* Optional: Adjust text color for contrast */
+}
+
+p.mt-3.text-start {
+    overflow: hidden;
+    color: rgba(0, 0, 0, 0.50) !important;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 20px; /* 142.857% */
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Ensures it takes up full height of the container */
+}
+
+.text-primary {
+    color: rgba(0, 0, 0, 0.50) !important; /* Override Bootstrap */
+    text-decoration: none; /* Optional: Remove underline */
+}
+
+.text-primary:hover {
+    color: #FDDE55 !important; /* Optional: Change color on hover */
+}
+
+input, button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+}
+.error {
+    color: red;
+}
