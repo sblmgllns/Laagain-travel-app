@@ -28,7 +28,7 @@
             <p class="mt-3 text-start">
                 Already Have an Account? &nbsp; <router-link to="/login" class="text-primary"> Log In</router-link>
             </p>
-            <p v-if="errorMessage" class="text-danger text-start">{{ errorMessage }}</p>
+            <p v-if="errorMessage" class="text-danger text-start mt-3">{{ errorMessage }}</p>
         </div>
     </div>
 </template>
@@ -83,6 +83,19 @@ export default {
     },
     methods: {
         async signUp() {
+            //does email/account already exist?
+            const { data: existingUser, error: fetchError } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("email", this.email)
+                .single();
+
+            if (existingUser) {
+                console.log("duplicate!");
+                this.errorMessage = "This email is already registered.";
+                return;
+            }
+
             if (this.password !== this.confirmPassword) {
                 this.errorMessage = "Passwords do not match!";
                 return;
@@ -101,6 +114,7 @@ export default {
 
             if (error) {
                 this.errorMessage = error.message;
+                console.error("Signup error:", error.message);
             } else {
                 console.log("Sign-up successful! Check Email to Confirm Account");
                 this.$router.push("/login"); // Redirect to login page

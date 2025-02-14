@@ -11,7 +11,7 @@
                 <!-- Sign Up Link -->
                 <div class="mt-3 text-start mb-3 ms-4">
                     <span class="mt-3 text-start">Don't have an account? &nbsp;</span>
-                    <router-link to="/signup" class="mt-3 text-start">Sign up here</router-link>
+                    <router-link to="/signup" class="mt-3 text-start text-primary">Sign up here</router-link>
                 </div>
                 <div class="mb-3">
                     <label class="form-label custom-label">Password</label>
@@ -24,17 +24,19 @@
                 </div>
 
                 <!-- Buttons Section -->
-                <!-- Buttons Section -->
-                <div class="d-flex justify-content-between gap-1 mb-5 mt-4"> 
+                <!-- <div class="d-flex justify-content-between gap-1 mb-5 mt-4"> 
                     <router-link to="/signup">
                         <button class="btn custom-signup-btn">Sign Up</button>
                     </router-link>
+                    <button type="submit" class="btn custom-login-btn">Log In</button>
+                </div> -->
+                <div class="d-flex justify-content-center">
                     <button type="submit" class="btn custom-login-btn">Log In</button>
                 </div>
 
 
             </form>
-            <p v-if="errorMessage" class="text-danger text-start mt-3">{{ errorMessage }}</p>
+            <p v-if="errorMessage" class="text-danger text-center mt-3">{{ errorMessage }}</p>
         </div>
     </div>
 </template>
@@ -110,7 +112,7 @@ export default {
             }
 
             // Redirect user to home page
-            this.$router.push("/");
+            //this.$router.push("/");
         },
     },
 };

@@ -142,3 +142,7 @@ input, button {
 .error {
     color: red;
 }
+
+p.mt-3.text-start.text-danger {
+    color: #dc3545 !important; /* Override your default gray color */
+}
