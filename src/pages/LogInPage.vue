@@ -53,6 +53,7 @@ export default {
     },
     methods: {
         async logIn() {
+            // Attempt login
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: this.email,
                 password: this.password,
@@ -60,13 +61,61 @@ export default {
 
             if (error) {
                 this.errorMessage = error.message;
-            } else {
-                console.log("Logged in successfully", data);
-                this.$router.push("/");
+                return;
             }
+
+            console.log("Logged in successfully", data);
+
+            // Ensure session is fully loaded before fetching user data
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) {
+                console.error("Error fetching session:", sessionError.message);
+                return;
+            }
+
+            const user = sessionData?.session?.user;
+            if (!user) {
+                console.error("User not found in session.");
+                return;
+            }
+
+            // Check if user profile exists
+            const { data: existingProfile, error: profileCheckError } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("id", user.id)
+                .single();
+
+            if (profileCheckError && profileCheckError.code !== "PGRST116") { // Ignore "No rows found"
+                console.error("Error checking profile:", profileCheckError.message);
+                return;
+            }
+
+            // Insert profile if it doesn't exist
+            if (!existingProfile) {
+                const { error: profileError } = await supabase.from("profiles").insert([
+                    {
+                        id: user.id, // Foreign key to Auth user
+                        full_name: user.user_metadata.full_name || "",
+                        username: user.user_metadata.username || "",
+                        email: user.email,
+                    },
+                ]);
+
+                if (profileError) {
+                    console.error("Error inserting profile:", profileError.message);
+                } else {
+                    console.log("Profile created successfully");
+                }
+            }
+
+            // Redirect user to home page
+            this.$router.push("/");
         },
     },
 };
+
+
 </script>
 
 <style>

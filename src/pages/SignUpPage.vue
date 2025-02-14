@@ -33,6 +33,40 @@
     </div>
 </template>
 
+// import { supabase } from "../supabase";
+
+// export default {
+//     data() {
+//         return {
+//             fullName: "",
+//             username: "",
+//             email: "",
+//             password: "",
+//             confirmPassword: "",
+//             errorMessage: "",
+//         };
+//     },
+//     methods: {
+//         async signUp() {
+//             if (this.password !== this.confirmPassword) {
+//                 this.errorMessage = "Passwords do not match!";
+//                 return;
+//             }
+
+//             const { data, error } = await supabase.auth.signUp({
+//                 email: this.email,
+//                 password: this.password,
+//             });
+
+//             if (error) {
+//                 this.errorMessage = error.message;
+//             } else {
+//                 console.log("Sign-up successful", data);
+//                 this.$router.push("/login");
+//             }
+//         },
+//     },
+// };
 <script>
 import { supabase } from "../supabase";
 
@@ -54,21 +88,28 @@ export default {
                 return;
             }
 
-            const { data, error } = await supabase.auth.signUp({
+            const { error } = await supabase.auth.signUp({
                 email: this.email,
                 password: this.password,
+                options: {
+                    data: {  // Store metadata
+                        full_name: this.fullName,
+                        username: this.username,
+                    },
+                },
             });
 
             if (error) {
                 this.errorMessage = error.message;
             } else {
-                console.log("Sign-up successful", data);
-                this.$router.push("/login");
+                console.log("Sign-up successful! Check Email to Confirm Account");
+                this.$router.push("/login"); // Redirect to login page
             }
         },
     },
 };
 </script>
+
 
 <style>
 @import "../assets/styles/signup.css"; /* Import external CSS file */
