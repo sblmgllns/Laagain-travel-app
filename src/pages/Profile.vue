@@ -8,7 +8,9 @@
         <nav class="navbar navbar-light bg-light d-flex align-items-center">
 
             <!-- Left Icon (Settings) -->
-            <a class="nav-link ms-3" href="#"> <i class="bi bi-gear fs-3"></i> </a>
+            <router-link to="/ProfileSettings" class="nav-link ms-3">
+                <i class="bi bi-gear fs-3"></i>
+            </router-link>
 
             <!-- Center Brand (Laagain) -->
             <a class="navbar-brand mx-auto" href="#"></a> 
