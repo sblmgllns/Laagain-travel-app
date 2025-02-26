@@ -1,5 +1,5 @@
 <template>
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100" id="maincontainer">
         <div class="card p-4 shadow-lg" style="width: 350px;">
             <h2 class="signup-title">SIGN UP</h2>
             <form @submit.prevent="signUp">
@@ -125,6 +125,6 @@ export default {
 </script>
 
 
-<style>
+<style scoped>
 @import "../assets/styles/signup.css"; /* Import external CSS file */
 </style>

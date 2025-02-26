@@ -9,7 +9,7 @@ html, body {
     justify-content: center;
     align-items: center;
     overflow: hidden; /* Prevent scrolling */
-    
+    background-color: #03AED2;
 }
 
 .card {

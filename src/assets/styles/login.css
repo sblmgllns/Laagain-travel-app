@@ -6,12 +6,13 @@ html, body {
     width: 100vw; /* Full viewport width */
     margin: 0;
     padding: 0;
-    background: url('logolaagian.png') no-repeat center center;
-    background-size: cover;
+    /*background: url('logolaagian.png') no-repeat center center;
+    background-size: cover;*/
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: scroll; /* Prevent scrolling */
+    background-color: #03AED2;
 }
 
 
@@ -23,17 +24,22 @@ html, body {
     width: 350px !important;
 }
 
-
+#maincontainer{
+    background-color: #03AED2;
+    height: 100vh;
+    width: 100vw;
+}
 
 /* Full-screen centering */
 .full-page-container {
     min-height: 100vh;
     width: 100vw;
-    background: url('logolaagian.png') no-repeat center center;
-    background-size: cover;
+    /*background: url('logolaagian.png') no-repeat center center;
+    background-size: cover;*/
     display: flex;
     justify-content: center;
     align-items: center;
+    background-color: #03AED2;
 }
 
 /* Custom style for Sign Up title */

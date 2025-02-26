@@ -1,9 +1,9 @@
 <template>
-    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container-fluid d-flex justify-content-center align-items-center" id="maincontainer">
         <div class="card p-4 shadow-lg" style="width: 350px;">
             <h2 class="signup-title">WELCOME BACK!</h2>
             <form @submit.prevent="logIn">
-                <div class="mb-3">
+                <div class="mb-5">
                     <label class="form-label custom-label">Email</label>
                     <input type="text" v-model="email" class="form-control" placeholder="Enter your email" required />
                 </div>
@@ -19,7 +19,7 @@
                 </div>
 
                 <!-- Forgot Password Link -->
-                <div class="mt-3 text-start mb-3 ms-4">
+                <div class="mt-5 text-start mb-3 ms-4">
                     <router-link to="/forgot-password" class="mt-3 text-start"> Forgot Password? </router-link>
                 </div>
 
@@ -112,7 +112,7 @@ export default {
             }
 
             // Redirect user to home page
-            //this.$router.push("/");
+            this.$router.push("/profile");
         },
     },
 };

@@ -2,12 +2,14 @@ import { createRouter, createWebHistory } from "vue-router";
 import LogInPage from "../pages/LogInPage.vue";
 import SignUpPage from "../pages/SignUpPage.vue";
 import HomePage from "../pages/HomePage.vue";
+import Profile from "../pages/Profile.vue";
 
 const routes = [
-  { path: "/", redirect: "/login" }, // Redirect "/" to login
-  { path: "/login", component: LogInPage },
-  { path: "/signup", component: SignUpPage },
+  { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
+  { path: "/login", component: LogInPage, meta: {title: "Laagain - Log In"} },
+  { path: "/signup", component: SignUpPage, meta: {title: "Laagain - Sign Up"} },
   { path: "/home", component: HomePage },
+  { path: "/profile", component: Profile },
 ];
 
 const router = createRouter({
