@@ -146,11 +146,27 @@ html, body {
     height: 100%; /* Ensures it takes up full height of the container */
 }
 
-.error {
-    color: red;
+.mt-error.text-center {
+    text-align: center;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; /* Ensures it takes up full height of the container */
 }
 
-.text-primary{
-    text-decoration: none;
-    color: blue !important;
+.text-primary {
+    color: rgba(0, 0, 0, 0.50) !important;
+    text-decoration: none; /* Optional: Remove underline */
+}
+
+.text-primary:hover {
+    color: #FDDE55 !important; /* Optional: Change color on hover */
+}
+
+.error {
+    color: red;
 }

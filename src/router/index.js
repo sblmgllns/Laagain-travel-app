@@ -4,6 +4,8 @@ import SignUpPage from "../pages/SignUpPage.vue";
 import HomePage from "../pages/HomePage.vue";
 import Profile from "../pages/Profile.vue";
 import ProfileSettings from "../pages/ProfileSettings.vue";
+import ForgotPassword from "../pages/ForgotPassword.vue";
+import ResetPassword from "../pages/ResetPassword.vue";
 
 const routes = [
   { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
@@ -12,6 +14,8 @@ const routes = [
   { path: "/home", component: HomePage },
   { path: "/profile", component: Profile },
   { path: "/ProfileSettings", component: ProfileSettings},
+  { path: "/forgot-password", component: ForgotPassword },
+  { path: "/reset-password", component: ResetPassword }
 ];
 
 const router = createRouter({

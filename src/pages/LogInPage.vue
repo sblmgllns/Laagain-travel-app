@@ -20,7 +20,7 @@
 
                 <!-- Forgot Password Link -->
                 <div class="mt-5 text-start mb-3 ms-4">
-                    <router-link to="/forgot-password" class="mt-3 text-start"> Forgot Password? </router-link>
+                    <router-link to="/forgot-password" class=" mt-3 text-start text-primary"> Forgot Password? </router-link>
                 </div>
 
                 <!-- Buttons Section -->
@@ -35,8 +35,9 @@
                 </div>
 
 
+
             </form>
-            <p v-if="errorMessage" class="text-danger text-center mt-3">{{ errorMessage }}</p>
+            <p v-if="errorMessage" class="text-danger text-center mt-error mt-3">{{ errorMessage }}</p>
         </div>
     </div>
 </template>
@@ -116,7 +117,6 @@ export default {
         },
     },
 };
-
 
 </script>
 

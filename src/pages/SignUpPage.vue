@@ -23,12 +23,14 @@
                     <label class="form-label custom-label">Confirm Password</label>
                     <input type="password" v-model="confirmPassword" class="form-control" placeholder="Confirm your password" required />
                 </div>
-                <button type="submit" class="btn btn-primary w-100 mb-3">Sign Up</button>
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                </div>
             </form>
             <p class="mt-3 text-start">
                 Already Have an Account? &nbsp; <router-link to="/login" class="text-primary"> Log In</router-link>
             </p>
-            <p v-if="errorMessage" class="text-danger text-start mt-3">{{ errorMessage }}</p>
+            <p v-if="errorMessage" class="text-danger text-center mt-error mt-3">{{ errorMessage }}</p>
         </div>
     </div>
 </template>
