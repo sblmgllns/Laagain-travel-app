@@ -82,7 +82,6 @@ html, body {
 }
 
 .btn-primary {
-    margin-top: 20px !important;
     border-radius: 8px !important;
     background: #03AED2 !important;
     border: 2px solid #03AED2 !important; /* Border same as background */
@@ -93,7 +92,6 @@ html, body {
     font-weight: 500 !important;
     line-height: 22px !important; /* 137.5% */
     text-align: center !important;
-    padding: 10px 16px !important; /* Slightly increase padding */
     height: 44px !important;  /* Set a fixed smaller height */
     transition: background 0.3s ease-in-out, border-color 0.3s ease-in-out;
     max-width: 250px !important;
@@ -123,7 +121,50 @@ p.mt-3.text-start {
     align-items: center;
     height: 100%; /* Ensures it takes up full height of the container */
 }
-
+/* Small Checkbox and Alignment */
+.custom-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #007bff; /* Match the theme color */
+    cursor: pointer;
+  }
+  
+  /* Ensure Label Aligns Properly */
+  label[for="termsCheckbox"] {
+    font-size: 14px;
+    cursor: pointer;
+  }
+  
+  /* Modal Styling */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    text-align: center;
+  }
+  
+  .close {
+    float: right;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  
 p.mt-error.text-center {
     text-align: center;
     font-family: 'Roboto', sans-serif;
