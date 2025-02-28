@@ -82,10 +82,10 @@ export default {
                 return;
             }
 
-            // Check if user profile exists
+            // Check if user profile exists and fetch status
             const { data: existingProfile, error: profileCheckError } = await supabase
                 .from("profiles")
-                .select("id")
+                .select("id, status, deactivated_at, deleted") // Include deleted column
                 .eq("id", user.id)
                 .single();
 
@@ -94,7 +94,14 @@ export default {
                 return;
             }
 
-            // Insert profile if it doesn't exist
+            // Prevent login if account is deleted
+            if (existingProfile?.deleted) {
+                this.errorMessage = "This account has been deleted and cannot be recovered.";
+                await supabase.auth.signOut(); // Log out user
+                return;
+            }
+
+            // If profile doesn't exist, create it
             if (!existingProfile) {
                 const { error: profileError } = await supabase.from("profiles").insert([
                     {
@@ -102,6 +109,9 @@ export default {
                         full_name: user.user_metadata.full_name || "",
                         username: user.user_metadata.username || "",
                         email: user.email,
+                        status: "active",
+                        deleted: false, // Ensure deleted status is false
+                        deactivated_at: null, // Ensure it's active
                     },
                 ]);
 
@@ -110,11 +120,27 @@ export default {
                 } else {
                     console.log("Profile created successfully");
                 }
+            } else {
+                // If the account is deactivated, reactivate it
+                if (existingProfile.status === "inactive") {
+                    const { error: reactivationError } = await supabase
+                        .from("profiles")
+                        .update({ status: "active", deactivated_at: null }) // Reactivate account
+                        .eq("id", user.id);
+
+                    if (reactivationError) {
+                        console.error("Error reactivating account:", reactivationError.message);
+                        return;
+                    }
+
+                    console.log("Account reactivated successfully.");
+                }
             }
 
             // Redirect user to home page
             this.$router.push("/profile");
         },
+
     },
 };
 
