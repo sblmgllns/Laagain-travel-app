@@ -251,7 +251,7 @@ export default {
     },
     async deletePost(itinerary_id) {
       if (confirm("Are you sure you want to delete this post?")) {
-        alert("Post deleted! (Replace this with actual delete logic)");
+        alert("Post deleted!");
         const { error } = await supabase
           .from("itineraries") // Your table name
           .delete()

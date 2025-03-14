@@ -118,6 +118,13 @@ export default {
     }
   },
   methods: {
+    timeAgo(date) {
+      const diff = (Date.now() - new Date(date)) / 1000;
+      if (diff < 60) return "just now";
+      if (diff < 3600) return Math.floor(diff / 60) + " minutes ago";
+      if (diff < 86400) return Math.floor(diff / 3600) + " hours ago";
+      return Math.floor(diff / 86400) + " days ago";
+    },
     async saveChanges() {
       const { error } = await supabase
         .from("profiles")
@@ -135,56 +142,56 @@ export default {
     },
 
     async uploadImage(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+      const file = event.target.files[0];
+      if (!file) return;
 
-  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-  if (!allowedTypes.includes(file.type)) {
-    console.error("Invalid file type. Please upload a JPG or PNG.");
-    return;
-  }
+      const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!allowedTypes.includes(file.type)) {
+        console.error("Invalid file type. Please upload a JPG or PNG.");
+        return;
+      }
 
-  const fileExt = file.name.split(".").pop();
-  const filePath = `profile-pictures/${this.user.id}-${Date.now()}.${fileExt}`;
+      const fileExt = file.name.split(".").pop();
+      const filePath = `profile-pictures/${this.user.id}-${Date.now()}.${fileExt}`;
 
-  // Upload the file
-  const { error: uploadError } = await supabase.storage
-    .from("profile-pictures")
-    .upload(filePath, file, { upsert: true, contentType: file.type });
+      // Upload the file
+      const { error: uploadError } = await supabase.storage
+        .from("profile-pictures")
+        .upload(filePath, file, { upsert: true, contentType: file.type });
 
-  if (uploadError) {
-    console.error("Error uploading image:", uploadError.message);
-    return;
-  }
+      if (uploadError) {
+        console.error("Error uploading image:", uploadError.message);
+        return;
+      }
 
-  // Get Public URL
-  const { data } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
-  const publicUrl = data?.publicUrl;
+      // Get Public URL
+      const { data } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
+      const publicUrl = data?.publicUrl;
 
-  if (!publicUrl) {
-    console.error("Failed to retrieve public URL.");
-    return;
-  }
+      if (!publicUrl) {
+        console.error("Failed to retrieve public URL.");
+        return;
+      }
 
-  // Update profile in the database
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ profile_pic_url: publicUrl })
-    .eq("id", this.user.id);
+      // Update profile in the database
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ profile_pic_url: publicUrl })
+        .eq("id", this.user.id);
 
-  if (updateError) {
-    console.error("Error updating profile picture URL:", updateError.message);
-    return;
-  }
+      if (updateError) {
+        console.error("Error updating profile picture URL:", updateError.message);
+        return;
+      }
 
-  console.log("Profile picture updated successfully!");
+      console.log("Profile picture updated successfully!");
 
-  // Wait before fetching updated profile (to avoid stale cache)
-  setTimeout(async () => {
-    await this.fetchUserProfile();
-    this.$forceUpdate(); // Ensure Vue re-renders
-  }, 100); // Delay of 500ms
-},
+      // Wait before fetching updated profile (to avoid stale cache)
+      setTimeout(async () => {
+        await this.fetchUserProfile();
+        this.$forceUpdate(); // Ensure Vue re-renders
+      }, 100); // Delay of 500ms
+    },
 
 
   async fetchUserProfile() {

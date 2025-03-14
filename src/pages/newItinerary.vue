@@ -1,10 +1,12 @@
 <template>
-<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100" id="maincontainer">
+<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 h-100" id="maincontainer">
+  
   <form @submit.prevent="saveTrip" class="trip-form">
+    <div class="form-title">NEW TRIP</div>
     <!-- Cover Image -->
     <div class="text-center" id="coverPhotoContainer">
-        <div class="cover-image-display"> <img :src="coverImage" alt="" class="image"> </div>
-      <input type="file" id="coverImage" class="" @change="handleImageUpload">
+      <div class="cover-image-display"> <img :src="coverImage" id="displayedCover" alt="" class="image"> </div>
+      <input type="file" id="coverImage" @change="handleImageUpload">
     </div>
 
     <!-- Trip Name -->
@@ -12,7 +14,7 @@
       <label class="form-label inputLabels">Trip Name</label>
       <div class="input-group w-100">
         <span class="input-group-text"><i class="bi bi-pencil"></i></span>
-        <input type="text" v-model="tripName" class="form-control h-100" placeholder="Enter trip name" required>
+        <input type="text" v-model="tripName" class="formcontrol h-100" placeholder="Enter trip name" required>
       </div>
     </div>
 
@@ -21,25 +23,25 @@
       <label class="form-label inputLabels">Place</label>
       <div class="input-group w-100">
         <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input type="text" v-model="place" class="form-control h-100" placeholder="Enter place" required>
+        <input type="text" v-model="place" class="formcontrol h-100" placeholder="Enter place" required>
       </div>
     </div>
 
-    <!-- Dates -->
+    <!-- Start Date -->
     <div class="mb-3 inputG">
       <label class="form-label inputLabels">Start Date</label>
       <div class="input-group w-100">
         <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-        <input type="date" v-model="startDate" class="form-control h-100" required>
+        <input type="date" v-model="startDate" class="formcontrol h-100" required>
       </div>
     </div>
 
-    <!-- Dates -->
+    <!-- End Date -->
     <div class="mb-3 inputG">
       <label class="form-label inputLabels">End Date</label>
       <div class="input-group w-100">
         <span class="input-group-text"><i class="bi bi-calendar"></i></span>
-        <input type="date" v-model="endDate" class="form-control h-100" required>
+        <input type="date" v-model="endDate" class="formcontrol h-100" required>
       </div>
     </div>
 
@@ -48,16 +50,16 @@
       <label class="form-label inputLabels">Trip Members</label>
       <div class="input-group w-100">
         <span class="input-group-text"><i class="bi bi-person-plus"></i></span>
-        <input type="email" v-model="tripMembers" class="form-control h-100" placeholder="Add trip members">
+        <input type="email" v-model="tripMembers" class="formcontrol h-100" placeholder="Add trip members">
       </div>
     </div>
 
     <!-- Privacy -->
     <div class="privacy">
-      <label class="form-label inputLabels" id="privacyLabel">Privacy</label>
+      <!-- <label class="form-label inputLabels" id="privacyLabel">Privacy</label> -->
       <div class="form-check">
         <input type="radio" id="private" v-model="privacy" value="private" class="form-check-input" checked>
-        <label for="private" class="form-check-label">Private (including trip members)</label>
+        <label for="private" class="form-check-label">Private</label>
       </div>
       <div class="form-check">
         <input type="radio" id="public" v-model="privacy" value="public" class="form-check-input">
@@ -67,8 +69,8 @@
 
     <!-- Buttons -->
     <div class="button-group">
-      <button type="button" class="btn btn-warning" @click="cancel">Cancel</button>
-      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <button type="button" class="btn" id="cancelButton" @click="cancel">Cancel</button>
+      <button type="submit" class="btn" id="saveChangesButton">Save Changes</button>
     </div>
   </form>
 </div>

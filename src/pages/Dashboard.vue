@@ -277,21 +277,6 @@
   import { supabase } from "../supabase";
   
   export default {
-    methods: {
-        timeAgo(date) {
-            const now = new Date();
-            const past = new Date(date);
-            const diff = Math.floor((now - past) / 1000); // Difference in seconds
-
-            if (diff < 60) return "Just now"; // Less than a minute
-            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`; // Less than an hour
-            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`; // Less than a day
-            if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`; // Less than a month
-            if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`; // Less than a year
-            return `${Math.floor(diff / 31536000)} years ago`; // More than a year
-        }
-    },
-
     data() {
       return {
         user: null,
@@ -301,11 +286,11 @@
         trip: "5",
         activeTab: "active",
         activeNowTasks: [
-            { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
-            { title: "Singapore", date: "January - December", content: "This is an example post.", image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/542000/542607-singapore.jpg" },
-            { title: "Rizal Family Reunion", date: "January - December", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
-            { title: "IAO GIRLS TRIP!", date: "January - December", content: "This is an example post.", image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9H6Ak0OUlv42bOs9_YwkU7JnLS74Tz0OcIQ&s" },
-            { title: "Home", date: "January - December", content: "This is an example post.", image: "https://minamiresidences.com.ph/wp-content/uploads/2023/07/image-1-53-1.png" }
+            // { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
+            // { title: "Singapore", date: "January - December", content: "This is an example post.", image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/542000/542607-singapore.jpg" },
+            // { title: "Rizal Family Reunion", date: "January - December", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
+            // { title: "IAO GIRLS TRIP!", date: "January - December", content: "This is an example post.", image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9H6Ak0OUlv42bOs9_YwkU7JnLS74Tz0OcIQ&s" },
+            // { title: "Home", date: "January - December", content: "This is an example post.", image: "https://minamiresidences.com.ph/wp-content/uploads/2023/07/image-1-53-1.png" }
         ],
         activeUpcomingTasks: [
         ],
@@ -350,6 +335,18 @@
     }
   },
   methods: {
+    timeAgo(date) {
+            const now = new Date();
+            const past = new Date(date);
+            const diff = Math.floor((now - past) / 1000); // Difference in seconds
+
+            if (diff < 60) return "Just now"; // Less than a minute
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`; // Less than an hour
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`; // Less than a day
+            if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`; // Less than a month
+            if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`; // Less than a year
+            return `${Math.floor(diff / 31536000)} years ago`; // More than a year
+        },
     async fetchTasks() {
       try {
         const { data, error } = await supabase
