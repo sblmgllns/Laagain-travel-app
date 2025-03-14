@@ -117,7 +117,7 @@ export default {
       //   return;
       // }
 
-        if (new Date(this.startDate) >= new Date(this.endDate)){
+        if (new Date(this.startDate) > new Date(this.endDate)){
           alert("Invalid Dates!");
           return;
         }

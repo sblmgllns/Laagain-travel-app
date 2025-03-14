@@ -250,8 +250,8 @@ export default {
       this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
     },
     async deletePost(itinerary_id) {
-      if (confirm("Are you sure you want to delete this post?")) {
-        alert("Post deleted!");
+      if (confirm("Are you sure you want to delete this itinerary?")) {
+        alert("Itinerary deleted!");
         const { error } = await supabase
           .from("itineraries") // Your table name
           .delete()

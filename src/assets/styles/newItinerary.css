@@ -92,7 +92,9 @@ html,body{
   }
 
   #displayedCover{
-    object-fit: contain;
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
   }
   input[type="file"] {
     font-size: 14px;
