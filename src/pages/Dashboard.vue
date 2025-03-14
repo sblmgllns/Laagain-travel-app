@@ -64,7 +64,7 @@
   
           <!-- Active Trips List -->
           <div v-if="activeTab === 'active'" class="row justify-content-start">
-            <div v-for="(task, index) in activeTasks" :key="index" class="col-lg-4 col-md-6 col-12">
+            <div v-for="(task, index) in activeNowTasks" :key="index" class="col-lg-4 col-md-6 col-12">
               <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
                 :style="{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
@@ -93,17 +93,17 @@
           </div>
           
           <!-- Upcoming Trips Section (Centered) -->
-          <div v-if="activeTab === 'active' && activeTasks.length > 3" class="d-flex justify-content-center mt-5">
+          <div v-if="activeTab === 'active'" class="d-flex justify-content-center mt-5">
                 <div class="upcoming-trips d-flex align-items-center justify-content-center rounded-pill shadow-sm py-2 px-4 mb-3"
                     style="background-color: #adb5bd; min-width: 180px; max-width: 100%;">
                     <div class="circle bg-white rounded-circle me-2" style="width: 12px; height: 12px;"></div>
                     <h6 class="fw-bold text-white m-0">Upcoming Trips</h6>
                 </div>
-            </div>
+          </div>
         
             <!-- Active Trips List -->
-          <div v-if="activeTab === 'active'" class="row justify-content-start">
-            <div v-for="(task, index) in activeTasks" :key="index" class="col-lg-4 col-md-6 col-12">
+            <div v-if="activeTab === 'active'" class="row justify-content-start">
+            <div v-for="(task, index) in activeUpcomingTasks" :key="index" class="col-lg-4 col-md-6 col-12">
               <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
                 :style="{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
@@ -239,7 +239,7 @@
             style="width: 60px; height: 60px; top: -5px; background-color: #03AED2; 
                 box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);">
 
-            <router-link to="/add" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
+            <router-link to="/new-itinerary" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
                 <i class="bi bi-plus-lg" 
                 style="font-size: 2.5rem; /* Make it bigger */
                         font-weight: bold; 
@@ -300,12 +300,14 @@
         fullname: "",
         trip: "5",
         activeTab: "active",
-        activeTasks: [
+        activeNowTasks: [
             { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
             { title: "Singapore", date: "January - December", content: "This is an example post.", image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/542000/542607-singapore.jpg" },
             { title: "Rizal Family Reunion", date: "January - December", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
             { title: "IAO GIRLS TRIP!", date: "January - December", content: "This is an example post.", image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9H6Ak0OUlv42bOs9_YwkU7JnLS74Tz0OcIQ&s" },
             { title: "Home", date: "January - December", content: "This is an example post.", image: "https://minamiresidences.com.ph/wp-content/uploads/2023/07/image-1-53-1.png" }
+        ],
+        activeUpcomingTasks: [
         ],
         completedTasks: [
             { title: "JAPAN", date: "April - May", content: "This is an example post.", image: "https://lp-cms-production.imgix.net/2020-11/GettyRF_1179891725.jpg?auto=format&fit=crop&sharp=10&vib=20&ixlib=react-8.6.4&w=850&q=20&dpr=5" },
@@ -313,7 +315,7 @@
             { title: "Manila Summer", date: "July - November", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
             ],
         invitedTasks: [
-            { title: "Upcoming Event", content: "isabella.lobitana invited you to join the “SUMMER 2023” trip plan", date: "2023-02-20T12:00:00Z" },
+            { title: "Upcoming Event", content: "isabela.lobitana invited you to join the “SUMMER 2023” trip plan", date: "2023-02-20T12:00:00Z" },
             { title: "Project Meeting", content: "marcs_pel invited you to join the “SIARGAO WE COMING” trip plan", date: "2022-03-10T08:30:00Z" }
         ]
 
@@ -338,11 +340,74 @@
         this.fullname = profile.full_name;
         this.username = profile.username;
         this.profilePic = profile.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg"; // Fallback image
+      
+        await this.fetchTasks();
       }
     }
     else{
         console.error("User not found in session.");
         return;
+    }
+  },
+  methods: {
+    async fetchTasks() {
+      try {
+        const { data, error } = await supabase
+          .from("itineraries")
+          .select("name, start_date, end_date, cover_pic_url, place")
+          .eq("owner_id", this.user.id);
+
+        if (error) {
+          console.error("Error fetching trips:", error);
+          this.errorMessage = "Failed to load trips.";
+          return;
+        }
+
+        // Get today's date without time
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Reset the task lists
+        this.activeNowTasks = [];
+        this.activeUpcomingTasks = [];
+        this.completedTasks = [];
+
+        // Categorize trips based on date
+        data.forEach(trip => {
+          const startDate = new Date(trip.start_date);
+          const endDate = new Date(trip.end_date);
+
+          // Normalize times to ignore time portion
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999); // Ensure whole end date counts
+
+          const task = {
+            title: trip.name,
+            date: `${trip.start_date} - ${trip.end_date}`,
+            content: trip.place,
+            image: trip.cover_pic_url || ""
+          };
+
+          if (today >= startDate && today <= endDate) {
+            // Trip is ongoing
+            this.activeNowTasks.push(task);
+          } else if (today < startDate) {
+            // Trip is in the future
+            this.activeUpcomingTasks.push(task);
+          } else {
+            // Trip is completed (today > endDate)
+            this.completedTasks.push(task);
+          }
+        });
+
+        console.log("Active Trips:", this.activeNowTasks);
+        console.log("Upcoming Trips:", this.activeUpcomingTasks);
+        console.log("Completed Trips:", this.completedTasks);
+
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        this.errorMessage = "Something went wrong.";
+      }
     }
   }
   };

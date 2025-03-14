@@ -1,0 +1,89 @@
+body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
+    font-family: 'Sarabun', sans-serif;
+  }
+.profile-pic {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.text-gray {
+    color: #b0b0b0; /* Default gray color */
+    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.nav-item:hover i,
+.nav-item:hover p {
+    color: #03AED2 !important; /* Blue when hovered */
+    transform: scale(1.1); /* Slight zoom effect */
+}
+
+
+.bottom-navbar{
+    width: 75%;
+    margin: 0 auto;
+}
+
+.tab-content{
+    max-height: 80vh;
+    padding-bottom: 25vh;
+}
+#contentSection{
+    background-color: #f2f3f5;
+}
+
+.nav-link{
+    color: #808080;
+}
+
+.nav-link:hover{
+    color: #03AED2;
+}
+
+.nav-link.active{
+    border-bottom: 4px solid #03AED2 !important;
+    color: #089dcf !important;
+}
+
+.tripCard{
+    height: 300px;
+}
+
+.card-body{
+    color: white;
+    text-align: left;
+}
+
+#tripCount{
+    border: 2px solid #FDDE55;
+    width: 110px;
+}
+
+.trip-menu {
+  position: relative;
+  cursor: pointer;
+}
+
+.menu-options {
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  z-index: 10;
+}
+
+.menu-options a {
+  display: block;
+  padding: 5px 10px;
+  color: red;
+  text-decoration: none;
+}
+
+.menu-options a:hover {
+  background: #f8d7da;
+}

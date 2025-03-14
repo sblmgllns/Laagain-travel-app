@@ -8,6 +8,7 @@ import ForgotPassword from "../pages/ForgotPassword.vue";
 import ResetPassword from "../pages/ResetPassword.vue";
 import DeactivateAccount from "../pages/DeactivateAccount.vue";
 import Dashboard from "../pages/Dashboard.vue";
+import newItinerary from "../pages/newItinerary.vue";
 
 const routes = [
   { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
@@ -20,6 +21,7 @@ const routes = [
   { path: "/reset-password", component: ResetPassword },
   { path: "/deactivate-account", component: DeactivateAccount },
   { path: "/dashboard", component: Dashboard },
+  { path: "/new-itinerary", component: newItinerary },
 ];
 
 const router = createRouter({

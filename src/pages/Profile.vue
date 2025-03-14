@@ -61,7 +61,12 @@
                 <!-- Upper section (Date and Three-dot menu) -->
                 <div class="d-flex justify-content-between">
                   <span class="trip-date px-2 py-1">{{ post.date }}</span>
-                  <span class="trip-menu"><i class="bi bi-three-dots"></i></span>
+                  <span class="trip-menu" @click="toggleMenu(index)">
+                    <i class="bi bi-three-dots"></i>
+                    <div v-if="showMenus[index]" class="menu-options">
+                      <a href="#" @click.stop="deletePost(post.id)">Delete</a>
+                    </div>
+                  </span>
                 </div>
 
                 <!-- Lower section (Title & Content) -->
@@ -115,7 +120,7 @@
             style="width: 60px; height: 60px; top: -5px; background-color: #03AED2; 
                 box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);">
 
-            <router-link to="/add" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
+            <router-link to="/new-itinerary" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
                 <i class="bi bi-plus-lg" 
                 style="font-size: 2.5rem; /* Make it bigger */
                         font-weight: bold; 
@@ -152,19 +157,16 @@ import { supabase } from "../supabase";
 export default {
   data() {
     return {
+      showMenus: {},
       user: null, // Store the logged-in user
       profilePic: "",
       username: "",
       fullname: "",
-      trip: "5",
+      trip: "",
       activeTab: "trips",
       trips: [
-        { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
-        { title: "Singapore", date: "January - December", content: "This is an example post.", image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/542000/542607-singapore.jpg" },
-        { title: "Rizal Family Reunion", date: "January - December", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
-        { title: "IAO GIRLS TRIP!", date: "January - December", content: "This is an example post.", image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9H6Ak0OUlv42bOs9_YwkU7JnLS74Tz0OcIQ&s" },
-        { title: "Home", date: "January - December", content: "This is an example post.", image: "https://minamiresidences.com.ph/wp-content/uploads/2023/07/image-1-53-1.png" }
-      ],
+        // { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
+        ],
       guides: [
         { title: "Liked Item 1", content: "This is something you liked." },
         { title: "Liked Item 2", content: "Another liked item." }
@@ -174,6 +176,7 @@ export default {
   async mounted() {
     const { data: sessionData } = await supabase.auth.getSession();
     this.user = sessionData?.session?.user;
+    document.addEventListener("click", this.handleClickOutside);
 
     // If a user is logged in, update username & fullname accordingly
     if (this.user) {
@@ -189,11 +192,83 @@ export default {
         this.fullname = profile.full_name;
         this.username = profile.username;
         this.profilePic = profile.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg"; // Fallback image
+        
+        const { count, error } = await supabase
+          .from("itineraries")
+          .select("*", { count: "exact", head: true }) // `head: true` prevents fetching actual data
+          .eq("owner_id", this.user.id);
+
+        if (error) {
+          console.error("Error fetching itinerary count:", error);
+          return;
+        }
+
+        this.trip = count; 
+
+        await this.fetchTrips();
       }
     }
     else{
         console.error("User not found in session.");
         return;
+    }
+  },
+  beforeUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
+  },
+  methods: {
+    async fetchTrips() {
+      try {
+        const { data, error } = await supabase
+          .from("itineraries")
+          .select("id, name, start_date, end_date, cover_pic_url, place")
+          .eq("owner_id", this.user.id);
+
+        if (error) {
+          console.error("Error fetching trips:", error);
+          this.errorMessage = "Failed to load trips.";
+          return;
+        }
+
+        // Map data from Supabase to match your component's structure
+        this.trips = data.map(trip => ({
+          id: trip.id,
+          title: trip.name,
+          date: `${trip.start_date} - ${trip.end_date}`,
+          content: trip.place, // Modify if there's a description column
+          image: trip.cover_pic_url || "" // Fallback image
+        }));
+
+        console.log("Fetched trips:", this.trips);
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        this.errorMessage = "Something went wrong.";
+      }
+    },
+    toggleMenu(index) {
+      // Close other menus and toggle only the clicked one
+      this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
+    },
+    async deletePost(itinerary_id) {
+      if (confirm("Are you sure you want to delete this post?")) {
+        alert("Post deleted! (Replace this with actual delete logic)");
+        const { error } = await supabase
+          .from("itineraries") // Your table name
+          .delete()
+          .eq("id", itinerary_id); // Match the row by its ID
+
+        if (error) {
+          console.error("Error deleting itinerary:", error);
+          return;
+        }
+        this.showMenu = false;
+        window.location.reload();
+      }
+    },
+    handleClickOutside(event) {
+      if (!this.$el.contains(event.target)) {
+        this.showMenu = false;
+      }
     }
   }
 };
@@ -201,67 +276,5 @@ export default {
 
 
 <style scoped>
-body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
-    font-family: 'Sarabun', sans-serif;
-  }
-.profile-pic {
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-.text-gray {
-    color: #b0b0b0; /* Default gray color */
-    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.nav-item:hover i,
-.nav-item:hover p {
-    color: #03AED2 !important; /* Blue when hovered */
-    transform: scale(1.1); /* Slight zoom effect */
-}
-
-
-.bottom-navbar{
-    width: 75%;
-    margin: 0 auto;
-}
-
-.tab-content{
-    max-height: 80vh;
-    padding-bottom: 25vh;
-}
-#contentSection{
-    background-color: #f2f3f5;
-}
-
-.nav-link{
-    color: #808080;
-}
-
-.nav-link:hover{
-    color: #03AED2;
-}
-
-.nav-link.active{
-    border-bottom: 4px solid #03AED2 !important;
-    color: #089dcf !important;
-}
-
-.tripCard{
-    height: 300px;
-}
-
-.card-body{
-    color: white;
-    text-align: left;
-}
-
-#tripCount{
-    border: 2px solid #FDDE55;
-    width: 110px;
-}
-
+@import "../assets/styles/profile.css"; /* Import external CSS file */
 </style>

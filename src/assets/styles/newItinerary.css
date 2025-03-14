@@ -1,0 +1,130 @@
+html,body{
+    background-color: #03AED2 !important; /* Force background */
+    background-color: #03AED2 ;
+  }
+  
+  .trip-form {
+    max-width: 500px;
+    margin: auto;
+    margin-top: 2%;
+    height: 90vh;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .input-group{
+    height: 100%;
+    width: 100%;
+    margin-left: 0px;
+  }
+  .input-group-text {
+    background-color: #f8f9fa;
+    border-right: none;
+    width: 20%;
+  }
+  
+  .form-control {
+    border-left: none;
+  }
+  
+  .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    margin-top: 10px !important;
+  }
+  
+  .cover-image-display {
+    width: 100%;
+    max-width: 400px; /* Adjust as needed */
+    margin: 0 auto;
+    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 200px;
+    border: 2px dashed gray;
+  }
+  
+  .inputG {
+    height: 7%;
+    margin-bottom:45px !important;
+  }
+  
+  .inputLabels{
+    color: #03AED2;
+      font-family: 'Roboto', sans-serif;
+      font-size: 20px;
+      font-weight: 520; /* Make labels bold */
+      text-align: center; /* Ensure alignment to the left */
+    margin-bottom: 5px;
+  }
+  
+  #coverPhotoContainer{
+    margin-bottom: 0%;
+    height: 25%;
+  }
+  
+  #privacyLabel{
+    margin-top: 30px;
+  }
+  
+  .privacy{
+    margin-bottom: 25px;
+    margin-left: 15%;
+    width: 90%;
+  }
+  
+  .form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between radio and label */
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+  }
+  
+  .form-check:hover {
+    background: rgba(3, 174, 210, 0.1); /* Light highlight on hover */
+  }
+  
+  .form-check-input {
+    appearance: none; /* Hide default radio button */
+    width: 20px;
+    height: 20px;
+    border: 2px solid #03AED2;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .form-check-input:checked {
+    background-color: #03AED2;
+    border-color: #03AED2;
+  }
+  
+  .form-check-input:checked::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: white;
+    display: block;
+  }
+  
+  .form-check-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+  
+  .form-check-input:checked + .form-check-label {
+    color: #03AED2;
+  }
+  
