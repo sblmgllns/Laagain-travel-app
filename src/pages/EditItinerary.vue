@@ -66,15 +66,22 @@ const calendarApp = createCalendar({
     <!-- Main Content (Left & Right sections) -->
     <div class="main-content">
       <!-- Left Section -->
-      <div class="left-section">
+        <div class="left-section">
+        <!-- Create Button -->
+        <button class="create-btn">Create</button>
+
+        <!-- Divider Line -->
+        <hr class="divider" />
+
         <!-- Search Bar -->
         <div class="search-bar">
-          <input type="text" placeholder="Search events..." />
-          <button>🔍</button>
+            <input type="text" placeholder="Search events..." />
+            <button>🔍</button>
         </div>
+
         <h2>Additional Content</h2>
         <p>Place your buttons, forms, or any other content here.</p>
-      </div>
+        </div>
 
       <!-- Right Section -->
       <div class="right-section">
@@ -187,18 +194,43 @@ const calendarApp = createCalendar({
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.create-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    background: #03AED2 !important;
+    border: 2px solid #03AED2 !important; /* Border same as background */
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .create-btn:hover {
+    background: #FDDE55 !important; /* Changes background on hover */
+    border-color: #FDDE55 !important; /* Ensures border also changes */
+    color: #FFF  !important; /* Optional: Adjust text color for contrast */
+  }
+
+  .divider {
+    border: none;
+    height: 1px;
+    background-color: #ccc;
+    margin: 10px 0;
+  }
+
 /* Search Bar */
 .search-bar {
   display: flex;
   align-items: center;
-  width: 90%;
-  max-width: 400px;
-  margin-bottom: 15px;
+  width: 100%;
   background-color: #f0f2f5;
   padding: 8px;
   border-radius: 10px;
+  margin-bottom: 15px;
 }
 
+/* Input Field */
 .search-bar input {
   flex: 1;
   border: none;
@@ -206,7 +238,16 @@ const calendarApp = createCalendar({
   outline: none;
   padding: 8px;
   font-size: 16px;
+  border-radius: 5px;
+  color: gray; /* Set input text color to gray */
 }
+
+/* Placeholder Text */
+.search-bar input::placeholder {
+  color: lightgray; /* Lighter gray for placeholder */
+}
+
+
 
 .search-bar button {
   background: none;
