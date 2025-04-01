@@ -47,6 +47,7 @@
 import { supabase } from "../supabase";
 
 export default {
+    
     data() {
         return {
             email: "",

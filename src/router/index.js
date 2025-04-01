@@ -9,9 +9,11 @@ import ResetPassword from "../pages/ResetPassword.vue";
 import DeactivateAccount from "../pages/DeactivateAccount.vue";
 import Dashboard from "../pages/Dashboard.vue";
 import newItinerary from "../pages/newItinerary.vue";
+import EditItinerary from "../pages/EditItinerary.vue";
 
 const routes = [
-  { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
+  //{ path: "/", redirect: "/edit-itinerary", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
+  { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  },
   { path: "/login", component: LogInPage, meta: {title: "Laagain - Log In"} },
   { path: "/signup", component: SignUpPage, meta: {title: "Laagain - Sign Up"} },
   { path: "/home", component: HomePage },
@@ -22,6 +24,7 @@ const routes = [
   { path: "/deactivate-account", component: DeactivateAccount },
   { path: "/dashboard", component: Dashboard },
   { path: "/new-itinerary", component: newItinerary },
+  { path: "/edit-itinerary", component: EditItinerary},
 ];
 
 const router = createRouter({

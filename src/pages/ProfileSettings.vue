@@ -83,6 +83,7 @@
   </div>
 </template>
   
+//should add profile pic delete option
 <script>
 import DeactivateAccount from "./DeactivateAccount.vue";
 import { supabase } from "../supabase";
@@ -193,7 +194,7 @@ export default {
       }, 100); // Delay of 500ms
     },
 
-
+    
   async fetchUserProfile() {
     if (!this.user || !this.user.id) {
       console.warn("User ID is missing.");

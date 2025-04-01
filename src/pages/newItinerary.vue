@@ -49,7 +49,7 @@
     <div class="mb-3 inputG">
       <label class="form-label inputLabels">Trip Members</label>
       <div class="input-group w-100">
-        <span class="input-group-text"><i class="bi bi-person-plus"></i></span>
+        <span class="input-group-text" @click="addMember"><i class="bi bi-person-plus"></i></span>
         <input type="email" v-model="tripMembers" class="formcontrol h-100" placeholder="Add trip members">
       </div>
     </div>
@@ -87,7 +87,8 @@ export default {
       place: "",
       startDate: "",
       endDate: "",
-      tripMembers: "",
+      tripMembersInput: '', // Stores the input field value (current email to add)
+      tripMembers: [], // Array to store the added members
       privacy: "",
       coverImage: null,
       errorMessage: "",
@@ -110,6 +111,7 @@ export default {
             }
             this.user = user;
   },
+
   methods: {
     async saveTrip() {
       // if (!this.tripName || !this.place || !this.endDate || this.startDate) {
@@ -131,17 +133,80 @@ export default {
             cover_pic_url: this.coverImage,
             privacy: this.privacy,
           },
-        ]);
-        console.log("done trying to insert");
+        ]). select("*");
         if (error) {
           this.errorMessage = error.message;
           console.error("Error saving trip:", error.message);
         } else {
           console.log("Trip saved successfully:", data);
-          this.$router.push("/dashboard");
         }
-    },
+        // Get the trip ID from the inserted data
+        const tripId = data && data.length > 0 ? data[0].id : null;
+        if (!tripId) {
+          console.error("Failed to retrieve trip ID.");
+          return;
+        } else {
+          console.log("Trip ID Retrieved:", tripId);
+        }
 
+        // Send Invitations
+        if (this.tripMembers) {
+          const membersArray = this.tripMembers.split(",").map((email) => email.trim());
+          
+          let allInvitesSent = true; // Flag to track if all invites are successfully sent
+
+          for (const email of membersArray) {
+            if (email) {
+              // Check if the email matches the current user's email
+              if (email === this.user.email) {
+                alert("You cannot invite yourself.");
+                allInvitesSent = false; // Set the flag to false because we skipped inviting this email
+                continue; // Skip the rest of the loop if it's the user's own email
+              }
+
+              // Check if the email is registered in the users table
+              const { data: userData, error: userError } = await supabase
+                .from("profiles") // Assuming the registered users are in the "profiles" table
+                .select("email")
+                .eq("email", email)
+                .single();
+
+              if (userError || !userData) {
+                // If the email is not registered or there is an error
+                alert(`The email ${email} is not registered. Please invite a registered user.`);
+                allInvitesSent = false; // Set the flag to false because we cannot invite an unregistered email
+                continue; // Skip inviting this email
+              }
+
+              // Send the invitation if the email is valid and registered
+              const { error: inviteError } = await supabase.from("trip_invites").insert([
+                {
+                  trip_id: tripId,
+                  invited_email: email,
+                  inviter_id: this.user.id,
+                  status: "pending",
+                  time_stamp: new Date().toISOString(),
+                },
+              ]);
+
+              if (inviteError) {
+                console.error(`Error inviting ${email}:`, inviteError.message);
+                allInvitesSent = false; // Set the flag to false if there was an error
+              } else {
+                console.log(`Invitation sent to ${email}`);
+              }
+            }
+          }
+
+        // Only redirect if all invitations were sent successfully
+        if (allInvitesSent) {
+          this.$router.push("/dashboard");
+        } else {
+          console.log("Some invitations were not sent due to errors or invalid emails.");
+        }
+      }
+    },
+    
     async handleImageUpload(event) {
       this.coverImage = event.target.files[0];
       console.log("Selected file:", this.coverImage);
@@ -188,6 +253,7 @@ export default {
     },
   },
 };
+
 </script>
 
 <style scoped>

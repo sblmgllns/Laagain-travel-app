@@ -26,10 +26,28 @@ body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
     margin: 0 auto;
 }
 
-.tab-content{
-    max-height: 80vh;
-    padding-bottom: 25vh;
+.trip-icon {
+  position: absolute;
+  bottom: 35px; /* Adjust the vertical position of the icon */
+  right: 40px; /* Adjust the horizontal position of the icon */
+  font-size: 24px; /* Adjust the icon size */
+  color: white; /* Icon color */
+  z-index: 2; /* Make sure the icon appears above the card */
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
 }
+
+.trip-icon:hover {
+  transform: scale(1.2);
+}
+
+.tab-content {
+  background-color: #f7f7f7; /* Gray background only for tab content */
+  min-height: 100vh; /* Use full viewport height */
+  padding-bottom: 15vh;
+  box-sizing: border-box; /* Ensure padding is inside the element */
+}
+
 #contentSection{
     background-color: #f2f3f5;
 }
@@ -61,10 +79,16 @@ body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
     width: 110px;
 }
 
-.trip-menu {
-  position: relative;
+.trip-menu i {
   cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+  display: inline-block; /* Ensures the element can scale */
 }
+
+.trip-menu i:hover {
+  transform: scale(1.4); /* Enlarges the icon */
+}
+
 
 .menu-options {
   position: absolute;

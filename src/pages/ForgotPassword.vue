@@ -50,10 +50,15 @@ export default {
       try {
         // Check if the email exists in Supabase Auth
         const { data: existingUser, error: userCheckError } = await supabase
-          .from("profiles") // Ensure "profiles" table is linked to Auth users
+          .from("profiles")
           .select("id")
           .eq("email", this.email)
-          .single();
+          .single({
+            headers: {
+              "Accept": "application/json"
+            }
+          });
+
 
         if (userCheckError && userCheckError.code !== "PGRST116") {
           console.error("Error checking email existence:", userCheckError.message);
