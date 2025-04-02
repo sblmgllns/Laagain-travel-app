@@ -305,15 +305,16 @@
             </div>
 
             <!-- Gray Rectangular Element Below -->
-            <div style="width: 95%; height: 50px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 30px; margin-left: auto; margin-right: auto; display: flex; justify-content: left; align-items: center; padding: 0 20px;">
+            <div style="width: 95%; height: 50px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 30px; margin-left: auto; margin-right: auto; display: flex; align-items: center; padding: 0 20px;">
+              
               <!-- Person Icon on the Left -->
-              <i class="bi bi-person" style="font-size: 24px; color: white;"></i>
+              <i class="bi bi-person" style="font-size: 24px; color: gray;"></i>
 
-              <!-- Text in the Center -->
-              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; color: #A8A6A6; font-size: 13px; text-align: left; margin-left: 20px">
-                Allow your friends and family to plan your trip together
-              </span>
+              <!-- Input Field -->
+              <input type="text" placeholder="Allow your friends and family to plan your trip together"
+                    style="border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-weight: 800; color: #A8A6A6; font-size: 13px; margin-left: 20px; outline: none; flex: 1;">
             </div>
+
 
             <!-- Slider/Tab for Email/Username Switch -->
             <div style="width: 30%; height: 25px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 15px; margin-left: auto; margin-right: auto; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; position: relative;">
@@ -550,7 +551,7 @@
           // Fetch trips where the user is the owner
           const { data: ownedTrips, error: ownedError } = await supabase
             .from("itineraries")
-            .select("id, name, start_date, end_date, cover_pic_url, place")
+            .select("id, owner_id, name, start_date, end_date, cover_pic_url, place")
             .eq("owner_id", this.user.id);
 
           if (ownedError) {
