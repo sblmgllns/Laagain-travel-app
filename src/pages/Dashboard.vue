@@ -66,7 +66,8 @@
           <div v-if="activeTab === 'active'" class="row justify-content-start">
             <div v-for="(task, index) in activeNowTasks" :key="index" class="col-lg-4 col-md-6 col-12">
               <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
-                :style="{
+              @click="navigateToEditItinerary(task.id)"
+              :style="{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -105,6 +106,7 @@
             <div v-if="activeTab === 'active'" class="row justify-content-start">
             <div v-for="(task, index) in activeUpcomingTasks" :key="index" class="col-lg-4 col-md-6 col-12">
               <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
+                @click="navigateToEditItinerary(task.id)"
                 :style="{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
                   backgroundSize: 'cover',
@@ -135,7 +137,8 @@
           <div v-if="activeTab === 'completed'" class="row mt-4">
             <div v-for="(task, index) in completedTasks" :key="index" class="col-lg-4 col-md-6 col-12">
               <div class="tripCard card mb-2 mt-2 rounded-5 w-100"
-                :style="{
+              @click="navigateToEditItinerary(task.id)"
+              :style="{
                   backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -394,8 +397,20 @@
   
   <script>
   import { supabase } from "../supabase";
-  
+  import { useRouter } from "vue-router";
+
+
   export default {
+    setup() {
+    const router = useRouter();
+
+    const navigateToEditItinerary = (tripId) => {
+      router.push({ path: "/edit-itinerary", query: { id: tripId } });
+    };
+
+    return { navigateToEditItinerary };
+    },
+    
     data() {
       return {
         user: null,
@@ -437,7 +452,7 @@
             { title: "Project Meeting", content: "marcs_pel invited you to join the “SIARGAO WE COMING” trip plan", date: "2022-03-10T08:30:00Z" }
         ]
 
-      };
+      }
     },
     
   async mounted() {
