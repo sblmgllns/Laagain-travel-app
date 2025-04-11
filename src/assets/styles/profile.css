@@ -14,6 +14,11 @@ body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
     transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
 }
 
+.invite-btn:hover {
+  background-color: #03AED2; /* slightly darker yellow */
+  cursor: pointer;
+}
+
 .nav-item:hover i,
 .nav-item:hover p {
     color: #03AED2 !important; /* Blue when hovered */

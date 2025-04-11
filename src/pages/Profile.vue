@@ -194,14 +194,14 @@
             </div>
 
             <!-- Gray Rectangular Element Below -->
-            <div style="width: 95%; height: 50px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 30px; margin-left: auto; margin-right: auto; display: flex; justify-content: left; align-items: center; padding: 0 20px;">
+            <div style="width: 95%; height: 50px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 30px; margin-left: auto; margin-right: auto; display: flex; align-items: center; padding: 0 20px;">
+              
               <!-- Person Icon on the Left -->
-              <i class="bi bi-person" style="font-size: 24px; color: white;"></i>
+              <i class="bi bi-person" style="font-size: 24px; color: gray;"></i>
 
-              <!-- Text in the Center -->
-              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; color: #A8A6A6; font-size: 13px; text-align: left; margin-left: 20px">
-                Allow your friends and family to plan your trip together
-              </span>
+              <!-- Input Field -->
+              <input type="text" v-model="tripMembers" placeholder="Allow your friends and family to plan your trip together"
+                    style="border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-weight: 800; color: #A8A6A6; font-size: 13px; margin-left: 20px; outline: none; flex: 1;">
             </div>
 
             <!-- Slider/Tab for Email/Username Switch -->
@@ -260,13 +260,11 @@
           </div>
           <div class="modal-footer" style="display: flex; justify-content: center; width: 100%;">
             <button type="button" 
-                    class="btn" 
-                    @click="sendInvite" 
-                    style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin-bottom: 20px;">
-              <!-- Person Icon on the left -->
+              class="btn invite-btn" 
+              @click="sendInvite"
+              style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin-bottom: 20px;">
+              
               <i class="bi bi-person-plus" style="font-size: 18px; margin-right: 10px; color: white;"></i>
-
-              <!-- Text Centered -->
               <span style="font-size: 16px;">Invite trip members</span>
             </button>
           </div>
@@ -454,12 +452,65 @@ export default {
       this.inviteEmail = "";
     },
 
-    sendInvite() {
-      if (this.inviteEmail) {
-        alert(`Invitation sent to ${this.inviteEmail} for ${this.selectedItem.title}!`);
-        this.closeInviteModal();
-      } else {
-        alert("Please enter an email address.");
+    async sendInvite() {
+        
+
+        if (this.tripMembers) {
+          const membersArray = this.tripMembers.split(",").map((email) => email.trim());
+          
+
+          let allInvitesSent = true; // Flag to track if all invites are successfully sent
+          for (const email of membersArray) {
+            console.log("here in send invite", email);
+            if (email) {
+              // Check if the email matches the current user's email
+              if (email === this.user.email) {
+                alert("You cannot invite yourself.");
+                allInvitesSent = false; // Set the flag to false because we skipped inviting this email
+                continue; // Skip the rest of the loop if it's the user's own email
+              }
+
+              //Check if the email is registered in the users table
+              const { data: userData, error: userError } = await supabase
+                .from("profiles") // Assuming the registered users are in the "profiles" table
+                .select("email")
+                .eq("email", email)
+                .single(); 
+
+              if (userError || !userData) {
+                // If the email is not registered or there is an error
+                alert(`The email ${email} is not registered. Please invite a registered user.`);
+                allInvitesSent = false; // Set the flag to false because we cannot invite an unregistered email
+                continue; // Skip inviting this email
+              }
+
+              // Send the invitation if the email is valid and registered
+              const { error: inviteError } = await supabase.from("trip_invites").insert([
+                {
+                  trip_id: this.selectedItem.id,
+                  invited_email: email,
+                  inviter_id: this.user.id,
+                  status: "pending",
+                  time_stamp: new Date().toISOString(),
+                },
+              ]);
+
+              if (inviteError) {
+                console.error(`Error inviting ${email}:`, inviteError.message);
+                allInvitesSent = false; // Set the flag to false if there was an error
+              } else {
+                console.log(`Invitation sent to ${email}`);
+              }
+           }
+          }
+
+        // Only redirect if all invitations were sent successfully
+        if (allInvitesSent) {
+          this.showInviteModal = false;
+          this.$router.push("/dashboard");
+        } else {
+          console.log("Some invitations were not sent due to errors or invalid emails.");
+        }
       }
     },
 

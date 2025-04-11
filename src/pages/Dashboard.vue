@@ -314,7 +314,7 @@
               <i class="bi bi-person" style="font-size: 24px; color: gray;"></i>
 
               <!-- Input Field -->
-              <input type="text" placeholder="Allow your friends and family to plan your trip together"
+              <input type="text" v-model="tripMembers" placeholder="Allow your friends and family to plan your trip together"
                     style="border: none; background: transparent; font-family: 'Sarabun', sans-serif; font-weight: 800; color: #A8A6A6; font-size: 13px; margin-left: 20px; outline: none; flex: 1;">
             </div>
 
@@ -432,6 +432,7 @@
         members: [],
         inviteEmail: "",
         newMemberEmail: "",
+        tripMembersInput: '', // Stores the input field value (current email to add)
         tripMembers: [],
         activeNowTasks: [
             // { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
@@ -725,12 +726,65 @@
       this.inviteEmail = "";
     },
 
-    sendInvite() {
-      if (this.inviteEmail) {
-        alert(`Invitation sent to ${this.inviteEmail} for ${this.selectedItem.title}!`);
-        this.closeInviteModal();
-      } else {
-        alert("Please enter an email address.");
+    async sendInvite() {
+        
+
+        if (this.tripMembers) {
+          const membersArray = this.tripMembers.split(",").map((email) => email.trim());
+          
+
+          let allInvitesSent = true; // Flag to track if all invites are successfully sent
+          for (const email of membersArray) {
+            console.log("here in send invite", email);
+            if (email) {
+              // Check if the email matches the current user's email
+              if (email === this.user.email) {
+                alert("You cannot invite yourself.");
+                allInvitesSent = false; // Set the flag to false because we skipped inviting this email
+                continue; // Skip the rest of the loop if it's the user's own email
+              }
+
+              //Check if the email is registered in the users table
+              const { data: userData, error: userError } = await supabase
+                .from("profiles") // Assuming the registered users are in the "profiles" table
+                .select("email")
+                .eq("email", email)
+                .single(); 
+
+              if (userError || !userData) {
+                // If the email is not registered or there is an error
+                alert(`The email ${email} is not registered. Please invite a registered user.`);
+                allInvitesSent = false; // Set the flag to false because we cannot invite an unregistered email
+                continue; // Skip inviting this email
+              }
+
+              // Send the invitation if the email is valid and registered
+              const { error: inviteError } = await supabase.from("trip_invites").insert([
+                {
+                  trip_id: this.selectedItem.id,
+                  invited_email: email,
+                  inviter_id: this.user.id,
+                  status: "pending",
+                  time_stamp: new Date().toISOString(),
+                },
+              ]);
+
+              if (inviteError) {
+                console.error(`Error inviting ${email}:`, inviteError.message);
+                allInvitesSent = false; // Set the flag to false if there was an error
+              } else {
+                console.log(`Invitation sent to ${email}`);
+              }
+           }
+          }
+
+        // Only redirect if all invitations were sent successfully
+        if (allInvitesSent) {
+          this.showInviteModal = false;
+          this.$router.push("/dashboard");
+        } else {
+          console.log("Some invitations were not sent due to errors or invalid emails.");
+        }
       }
     },
 
