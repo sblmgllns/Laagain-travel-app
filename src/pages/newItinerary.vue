@@ -214,6 +214,7 @@ export default {
 
         // Only redirect if all invitations were sent successfully
         if (allInvitesSent) {
+          alert("Invites have been sent!"); // Show popup
           this.$router.push("/dashboard");
         } else {
           console.log("Some invitations were not sent due to errors or invalid emails.");

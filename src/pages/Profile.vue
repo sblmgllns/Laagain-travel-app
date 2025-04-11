@@ -157,14 +157,14 @@
 
     <div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="height: 80vh;">
+        <div class="modal-content" style="height: 80vh; overflow: hidden;">
           <div class="modal-header">
             <h5 class="modal-title" style="font-family: 'Sarabun', sans-serif; font-weight: 800; color: #03AED2; line-height: 1.04; letter-spacing: 0.04em;">
               Invite your friends to {{ selectedItem?.title }}.
             </h5>
             <button type="button" class="btn-close" @click="closeInviteModal"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body" style="overflow-y: auto;">
             <!-- Colored Circles -->
             <div style="display: flex; justify-content: center; gap: 0px; align-items: center; margin-top: -20px">
               <!-- First Circle (left circle closer to center) -->
@@ -223,37 +223,53 @@
               </div>
             </div>
 
-            <div v-if="!loading" class="modal-body">
-              <!-- Profile Picture and Owner Info -->
-              <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 5px;">
-                <!-- Profile Picture -->
-                <img :src="ownerProfile.picture" alt="Owner's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
-                
-                <!-- Name and Username (Full Name on top, Username below) -->
-                <div>
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ ownerProfile.name }}</span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ ownerProfile.username }}</span>
+            <div v-if="!loading" class="modal-body" style="overflow-y: auto;">
+            <!-- Owner Info -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+              <!-- Left side (profile pic + text) -->
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
+                    style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                    {{ ownerProfile.name }}
+                  </span>
+                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                    @{{ ownerProfile.username }}
+                  </span>
                 </div>
-
-                <!-- Owner Indication -->
-                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800; margin-left: auto; margin-right: 20px;">Owner</span>
               </div>
 
-              <!-- Displaying Members -->
-              <div v-for="member in members" :key="member.username" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 10px;">
-                <!-- Member Profile Picture -->
-                <img :src="member.profile_pic_url" alt="Member's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
-                
-                <!-- Member Name and Username (Full Name on top, Username below) -->
-                <div>
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ member.full_name }}</span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ member.username }}</span>
-                </div>
-
-                <!-- Member Indication -->
-                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6; margin-left: auto; margin-right: 20px;">Member</span>
-              </div>
+              <!-- Role -->
+              <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
+                Owner
+              </span>
             </div>
+
+            <!-- Members -->
+            <div v-for="member in members" :key="member.username"
+                style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+              <!-- Left side (profile pic + text) -->
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <img :src="member.profile_pic_url" alt="Member's Profile Picture"
+                    style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                    {{ member.full_name }}
+                  </span>
+                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                    @{{ member.username }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Role -->
+              <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
+                Member
+              </span>
+            </div>
+          </div>
+
 
             <!-- Show Loading Spinner while loading -->
             <div v-if="loading" class="modal-body">
@@ -261,16 +277,16 @@
             </div>
 
           </div>
-          <div class="modal-footer" style="display: flex; justify-content: center; width: 100%;">
+          <!-- Sticky Footer with Yellow Button -->
+          <div class="modal-footer" style="padding-top: 10px; background-color: white; position: sticky; bottom: 0; z-index: 10;">
             <button type="button" 
-              class="btn invite-btn" 
-              @click="sendInvite"
-              style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin-bottom: 20px;">
-              
+                    class="btn" 
+                    @click="sendInvite" 
+                    style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin: 0 auto 5px;">
               <i class="bi bi-person-plus" style="font-size: 18px; margin-right: 10px; color: white;"></i>
               <span style="font-size: 16px;">Invite trip members</span>
             </button>
-          </div>
+        </div>
         </div>
       </div>
     </div>
@@ -596,7 +612,7 @@ export default {
         console.error("Error sending invites:", inviteInsertError.message);
         alert("There was an error sending the invites. Please try again.");
       } else {
-        console.log(`Invites sent successfully!`);
+        alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
         this.$router.push("/dashboard");
       }
@@ -667,7 +683,7 @@ export default {
 
     async fetchOwnerProfile() {
       try {
-        console.log("Fetching profile for owner:", this.selectedItem.ownerId);
+        console.log("Fetching profile for owner:", this.selectedItem.id);
 
         // Fetch owner data from Supabase
         const { data, error } = await supabase
@@ -697,6 +713,7 @@ export default {
             .select('user_id')
             .eq('itinerary_id', this.selectedItem.id);
 
+          console.log("ID:", memberIds);
           if (memberIdsError) throw memberIdsError;
 
           const userIds = memberIds.map(member => member.user_id);
@@ -708,7 +725,16 @@ export default {
 
           if (membersError) throw membersError;
 
-          this.members = membersData;
+          this.members = membersData.map(member => ({
+            username: member.username,
+            full_name: member.full_name,
+            profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing
+          }));
+
+          console.log("Fetched Members Info:");
+          this.members.forEach(member => {
+            console.log(`Full Name: ${member.full_name}, Username: ${member.username}`);
+          });
 
       } catch (error) {
         console.error('Error:', error);

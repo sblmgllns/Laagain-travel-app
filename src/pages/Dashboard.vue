@@ -298,7 +298,7 @@
         </div>
       </div>
       </div>
-      <div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+      <<div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="height: 80vh;">
           <div class="modal-header">
@@ -307,7 +307,7 @@
             </h5>
             <button type="button" class="btn-close" @click="closeInviteModal"></button>
           </div>
-          <div class="modal-body">
+          <div class="modal-body" style="overflow-y: auto;">
             <!-- Colored Circles -->
             <div style="display: flex; justify-content: center; gap: 0px; align-items: center; margin-top: -20px">
               <!-- First Circle (left circle closer to center) -->
@@ -367,7 +367,7 @@
               </div>
             </div>
 
-            <div v-if="!loading" class="modal-body">
+            <div v-if="!loading" class="modal-body" style="overflow-y: auto;">
               <!-- Profile Picture and Owner Info -->
               <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 5px;">
                 <!-- Profile Picture -->
@@ -384,19 +384,24 @@
               </div>
 
               <!-- Displaying Members -->
-              <div v-for="member in members" :key="member.username" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 10px;">
-                <!-- Member Profile Picture -->
-                <img :src="member.profile_pic_url" alt="Member's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
-                
-                <!-- Member Name and Username (Full Name on top, Username below) -->
-                <div>
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ member.full_name }}</span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ member.username }}</span>
-                </div>
+              <div style="max-height: 300px;">
+                <div v-for="member in members" :key="member.username" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 10px;">
+                  <!-- Member Profile Picture -->
+                  <img
+  :src="member.profile_pic_url"
+     alt="Member's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
+                  
+                  <!-- Member Name and Username -->
+                  <div>
+                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ member.full_name }}</span>
+                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ member.username }}</span>
+                  </div>
 
-                <!-- Member Indication -->
-                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6; margin-left: auto; margin-right: 20px;">Member</span>
+                  <!-- Member Indication -->
+                  <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6; margin-left: auto; margin-right: 20px;">Member</span>
+                </div>
               </div>
+
             </div>
 
             <!-- Show Loading Spinner while loading -->
@@ -405,18 +410,16 @@
             </div>
 
           </div>
-          <div class="modal-footer" style="display: flex; justify-content: center; width: 100%;">
+          <!-- Sticky Footer with Yellow Button -->
+          <div class="modal-footer" style="padding-top: 10px; background-color: white; position: sticky; bottom: 0; z-index: 10;">
             <button type="button" 
                     class="btn" 
                     @click="sendInvite" 
-                    style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin-bottom: 20px;">
-              <!-- Person Icon on the left -->
+                    style="width: 90%; height: 34px; border-radius: 30px; background-color: #FFD90C; color: white; display: flex; align-items: center; justify-content: center; font-family: 'Sarabun', sans-serif; font-weight: 800; padding: 12px 0; margin: 0 auto 5px;">
               <i class="bi bi-person-plus" style="font-size: 18px; margin-right: 10px; color: white;"></i>
-
-              <!-- Text Centered -->
               <span style="font-size: 16px;">Invite trip members</span>
             </button>
-          </div>
+        </div>
         </div>
       </div>
     </div>
@@ -462,7 +465,7 @@
           name: '',
           username: '',
         },
-        members: [],
+        members: {},
         inviteEmail: "",
         newMemberEmail: "",
         tripMembersInput: '', // Stores the input field value (current email to add)
@@ -742,18 +745,19 @@
               title: "Trip Invitation",
               content: `${inviterProfile?.username} invited you to join "<strong>${tripData?.name}</strong>"`,
               date: invite.time_stamp,
-              profilePic: inviterProfile?.profile_pic_url || "https://via.placeholder.com/50",
+              profilePic: inviterProfile?.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
               id: invite.id,
             };
           })
         );
 
-        this.invitedTasks = invitesWithDetails;
+        this.invitedTasks = invitesWithDetails.sort((a, b) => new Date(b.date) - new Date(a.date));
         console.log("Fetched Invites:", this.invitedTasks);
       } catch (err) {
         console.error("Unexpected error fetching invites:", err);
       }
     },
+
     openInviteModal(item) {
       this.selectedItem = item;
       this.showInviteModal = true;
@@ -903,7 +907,7 @@
         console.error("Error sending invites:", inviteInsertError.message);
         alert("There was an error sending the invites. Please try again.");
       } else {
-        console.log(`Invites sent successfully!`);
+        alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
         this.$router.push("/dashboard");
       }
@@ -933,7 +937,7 @@
 
         // Update the ownerProfile with the fetched data
         this.ownerProfile = {
-          picture: data.profile_pic_url,
+          picture: data.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
           name: data.full_name,
           username: data.username,
         };
@@ -957,8 +961,12 @@
 
           if (membersError) throw membersError;
 
-          this.members = membersData;
-
+          this.members = membersData.map(member => ({
+            username: member.username,
+            full_name: member.full_name,
+            profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing
+          }));
+          console.log("Fetched Members:", this.members);
       } catch (error) {
         console.error('Error:', error);
       } finally {
