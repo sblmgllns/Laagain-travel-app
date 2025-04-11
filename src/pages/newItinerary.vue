@@ -49,10 +49,18 @@
     <div class="mb-3 inputG">
       <label class="form-label inputLabels">Trip Members</label>
       <div class="input-group w-100">
-        <span class="input-group-text" @click="addMember"><i class="bi bi-person-plus"></i></span>
-        <input type="email" v-model="tripMembers" class="formcontrol h-100" placeholder="Add trip members">
+        <span class="input-group-text" @click="addMember">
+          <i class="bi bi-person-plus"></i>
+        </span>
+        <input
+          type="text"
+          v-model="tripMembers"
+          class="formcontrol h-100"
+          placeholder="Add trip members"
+        >
       </div>
     </div>
+
 
     <!-- Privacy -->
     <div class="privacy">
@@ -156,6 +164,12 @@ export default {
           let allInvitesSent = true; // Flag to track if all invites are successfully sent
 
           for (const email of membersArray) {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+              alert(`"${email}" is not a valid email address.`);
+              allInvitesSent = false;
+              continue; // Skip invalid emails
+            }
             if (email) {
               // Check if the email matches the current user's email
               if (email === this.user.email) {

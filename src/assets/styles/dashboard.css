@@ -85,6 +85,28 @@ body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
   transform: scale(1.4); /* Enlarges the icon */
 }
 
+.menu-options {
+  position: absolute;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  z-index: 10;
+}
+
+.menu-options a {
+  display: block;
+  padding: 5px 10px;
+  color: red;
+  text-decoration: none;
+}
+
+.menu-options a:hover {
+  background: #f8d7da;
+}
+
   .icon-container {
     display: flex;
     justify-content: center;

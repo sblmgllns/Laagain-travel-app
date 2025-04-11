@@ -80,15 +80,25 @@
                 </div>
   
                 <div class="card-body d-flex flex-column justify-content-between h-100">
-                  <div class="d-flex justify-content-between">
-                    <span class="trip-date px-2 py-1">{{ task.date }}</span>
-                    <span class="trip-menu"><i class="bi bi-three-dots"></i></span>
-                  </div>
-                  <div>
-                    <h5 class="card-title">{{ task.title }}</h5>
-                    <p class="card-text">{{ task.content }}</p>
-                  </div>
+                <!-- Top: Date and Menu -->
+                <div class="d-flex justify-content-between align-items-start">
+                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
+
+                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                    <i class="bi bi-three-dots"></i>
+                    <div v-if="showMenus[index]" class="menu-options">
+                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    </div>
+                  </span>
                 </div>
+
+                <!-- Title & Content -->
+                <div>
+                  <h5 class="card-title">{{ task.title }}</h5>
+                  <p class="card-text">{{ task.content }}</p>
+                </div>
+              </div>
+
               </div>
             </div>
           </div>
@@ -120,15 +130,25 @@
                 </div>
   
                 <div class="card-body d-flex flex-column justify-content-between h-100">
-                  <div class="d-flex justify-content-between">
-                    <span class="trip-date px-2 py-1">{{ task.date }}</span>
-                    <span class="trip-menu"><i class="bi bi-three-dots"></i></span>
-                  </div>
-                  <div>
-                    <h5 class="card-title">{{ task.title }}</h5>
-                    <p class="card-text">{{ task.content }}</p>
-                  </div>
+                <!-- Top: Date and Menu -->
+                <div class="d-flex justify-content-between align-items-start">
+                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
+
+                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                    <i class="bi bi-three-dots"></i>
+                    <div v-if="showMenus[index]" class="menu-options">
+                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    </div>
+                  </span>
                 </div>
+
+                <!-- Title & Content -->
+                <div>
+                  <h5 class="card-title">{{ task.title }}</h5>
+                  <p class="card-text">{{ task.content }}</p>
+                </div>
+              </div>
+
               </div>
             </div>
           </div>
@@ -150,16 +170,25 @@
                     <i class="bi bi-person-plus"></i>
                   </div>
   
-                <div class="card-body d-flex flex-column justify-content-between h-100">
-                  <div class="d-flex justify-content-between">
-                    <span class="trip-date px-2 py-1">{{ task.date }}</span>
-                    <span class="trip-menu"><i class="bi bi-three-dots"></i></span>
-                  </div>
-                  <div>
-                    <h5 class="card-title">{{ task.title }}</h5>
-                    <p class="card-text">{{ task.content }}</p>
-                  </div>
+                  <div class="card-body d-flex flex-column justify-content-between h-100">
+                <!-- Top: Date and Menu -->
+                <div class="d-flex justify-content-between align-items-start">
+                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
+
+                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                    <i class="bi bi-three-dots"></i>
+                    <div v-if="showMenus[index]" class="menu-options">
+                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    </div>
+                  </span>
                 </div>
+
+                <!-- Title & Content -->
+                <div>
+                  <h5 class="card-title">{{ task.title }}</h5>
+                  <p class="card-text">{{ task.content }}</p>
+                </div>
+              </div>
               </div>
             </div>
           </div>
@@ -322,7 +351,10 @@
             <!-- Slider/Tab for Email/Username Switch -->
             <div style="width: 30%; height: 25px; background-color: #EDE9E9; opacity: 1; border-radius: 5px; margin-top: 15px; margin-left: auto; margin-right: auto; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; position: relative;">
               <!-- Slider background -->
-              <div style="position: absolute; top: 4px; height: 70%; background-color: white; border-radius: 3px; transition: all 0.3s ease;" :style="{ left: isEmailSelected ? '5%' : '50%', width: '46%' }"></div>
+              <div
+                style="position: absolute; top: 4px; height: 70%; background-color: white; border-radius: 3px; transition: all 0.3s ease; pointer-events: none;"
+                :style="{ left: isEmailSelected ? '5%' : '50%', width: '46%' }"
+              ></div>
 
               <!-- Email Tab -->
               <div @click="switchTab('email')" style="cursor: pointer; padding: 3px; width: 48%; text-align: center; z-index: 1; margin-bottom: 4px;">
@@ -424,6 +456,7 @@
         isEmailSelected: true,
         showMenus: {},
         selectedItem: null,
+        selectedTab: 'email',
         ownerProfile: {
           picture: '',
           name: '',
@@ -455,6 +488,10 @@
 
       }
     },
+
+  beforeUnmount() {
+    document.removeEventListener("click", this.handleClickOutside);
+  },
     
   async mounted() {
     this.fetchOwnerProfile();
@@ -489,9 +526,13 @@
   methods: {
     switchTab(type) {
       if (type === 'email') {
-          this.isEmailSelected = true;
+        console.log("Switched to email");
+        this.isEmailSelected = true;
+        this.selectedTab = 'email'; // Use a reactive variable
       } else {
-          this.isEmailSelected = false;
+        console.log("Switched to username");
+        this.isEmailSelected = false;
+        this.selectedTab = 'username';
       }
     },
 
@@ -581,7 +622,7 @@
 
           const { data: joinedTrips, error: joinedError } = await supabase
             .from("itinerary_members")
-            .select("itinerary_id, itineraries(*)")  // Fetch all related itinerary details
+            .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(*)")  // Fetch all related itinerary details
             .eq("user_id", this.user.id);  // Only trips for the current user
 
           console.log("Joined Trips Data:", joinedTrips);
@@ -722,76 +763,156 @@
     },
 
     closeInviteModal() {
+      this.tripMembers = ""; 
       this.showInviteModal = false;
       this.inviteEmail = "";
     },
 
     async sendInvite() {
-        
+    if (!this.tripMembers) return;
 
-        if (this.tripMembers) {
-          const membersArray = this.tripMembers.split(",").map((email) => email.trim());
-          
+    const membersArray = this.tripMembers.split(",").map((item) => item.trim());
+    let allInvitesValid = true; // Flag to check if all invites are valid
+    let validInvites = []; // To store valid invite data that will be sent later
+    let invalidItems = []; // To track invalid items for the alert message
 
-          let allInvitesSent = true; // Flag to track if all invites are successfully sent
-          for (const email of membersArray) {
-            console.log("here in send invite", email);
-            if (email) {
-              // Check if the email matches the current user's email
-              if (email === this.user.email) {
-                alert("You cannot invite yourself.");
-                allInvitesSent = false; // Set the flag to false because we skipped inviting this email
-                continue; // Skip the rest of the loop if it's the user's own email
-              }
+    for (const item of membersArray) {
+      if (!item) continue;
 
-              //Check if the email is registered in the users table
-              const { data: userData, error: userError } = await supabase
-                .from("profiles") // Assuming the registered users are in the "profiles" table
-                .select("email")
-                .eq("email", email)
-                .single(); 
-
-              if (userError || !userData) {
-                // If the email is not registered or there is an error
-                alert(`The email ${email} is not registered. Please invite a registered user.`);
-                allInvitesSent = false; // Set the flag to false because we cannot invite an unregistered email
-                continue; // Skip inviting this email
-              }
-
-              // Send the invitation if the email is valid and registered
-              const { error: inviteError } = await supabase.from("trip_invites").insert([
-                {
-                  trip_id: this.selectedItem.id,
-                  invited_email: email,
-                  inviter_id: this.user.id,
-                  status: "pending",
-                  time_stamp: new Date().toISOString(),
-                },
-              ]);
-
-              if (inviteError) {
-                console.error(`Error inviting ${email}:`, inviteError.message);
-                allInvitesSent = false; // Set the flag to false if there was an error
-              } else {
-                console.log(`Invitation sent to ${email}`);
-              }
-           }
-          }
-
-        // Only redirect if all invitations were sent successfully
-        if (allInvitesSent) {
-          this.showInviteModal = false;
-          this.$router.push("/dashboard");
-        } else {
-          console.log("Some invitations were not sent due to errors or invalid emails.");
+      // Email mode
+      if (this.selectedTab === 'email') {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(item)) {
+          invalidItems.push(`"${item}" is not a valid email address.`);
+          allInvitesValid = false;
+          continue;
         }
-      }
-    },
 
-    toggleMenu(index) {
-      // Close other menus and toggle only the clicked one
-      this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
-    },
+        if (item === this.user.email) {
+          invalidItems.push("You cannot invite yourself.");
+          allInvitesValid = false;
+          continue;
+        }
+
+        // Check if the user has already been invited (this is the double check part)
+        const { data: existingInviteData, error: inviteError } = await supabase
+          .from("trip_invites")
+          .select("invited_email")
+          .eq("invited_email", item)
+          .eq("trip_id", this.selectedItem.id);
+
+        if (inviteError) {
+          console.error("Error checking if invite exists:", inviteError.message);
+          invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
+          allInvitesValid = false;
+          continue;
+        }
+
+        // If there's already an existing invite for this email and trip_id
+        if (existingInviteData && existingInviteData.length > 0) {
+          invalidItems.push(`"${item}" has already been invited.`);
+          allInvitesValid = false;
+          continue;
+        } else {
+          // No existing invite, proceed with sending invite
+          console.log(`No invite found for "${item}"`);
+        }
+
+        // Check if the email is registered
+        const { data: userData, error: userError } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("email", item)
+          .single();
+
+        if (userError || !userData) {
+          invalidItems.push(`The email "${item}" is not registered.`);
+          allInvitesValid = false;
+          continue;
+        }
+
+        // If all checks pass, add this invite to validInvites
+        validInvites.push({
+          trip_id: this.selectedItem.id,
+          invited_email: item,
+          inviter_id: this.user.id,
+          status: "pending",
+          time_stamp: new Date().toISOString(),
+        });
+      }
+
+      // Username mode
+      else if (this.selectedTab === 'username') {
+        if (item === this.user.username) {
+          invalidItems.push("You cannot invite yourself.");
+          allInvitesValid = false;
+          continue;
+        }
+
+        // Get the user's email from their username
+        const { data: userData, error: userError } = await supabase
+          .from("profiles")
+          .select("username, email")
+          .eq("username", item)
+          .single();
+
+        if (userError || !userData) {
+          invalidItems.push(`The username "${item}" is not registered.`);
+          allInvitesValid = false;
+          continue;
+        }
+
+        const invitedEmail = userData.email;
+
+        // Check if the user has already been invited using their email
+        const { data: existingInviteData, error: inviteError } = await supabase
+          .from("trip_invites")
+          .select("invited_email")
+          .eq("invited_email", invitedEmail)
+          .eq("trip_id", this.selectedItem.id);
+
+        if (inviteError) {
+          console.error("Error checking if invite exists:", inviteError.message);
+          invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
+          allInvitesValid = false;
+          continue;
+        }
+
+        if (existingInviteData && existingInviteData.length > 0) {
+          invalidItems.push(`"${item}" has already been invited.`);
+          allInvitesValid = false;
+          continue;
+        }
+
+        // If all checks pass, add this invite to validInvites
+        validInvites.push({
+          trip_id: this.selectedItem.id,
+          invited_email: invitedEmail, // use their email for the invite
+          inviter_id: this.user.id,
+          status: "pending",
+          time_stamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (allInvitesValid) {
+      // Send all valid invites together
+      const { error: inviteInsertError } = await supabase.from("trip_invites").insert(validInvites);
+
+      if (inviteInsertError) {
+        console.error("Error sending invites:", inviteInsertError.message);
+        alert("There was an error sending the invites. Please try again.");
+      } else {
+        console.log(`Invites sent successfully!`);
+        this.showInviteModal = false;
+        this.$router.push("/dashboard");
+      }
+    } else {
+      // Show all invalid items with appropriate alerts
+      alert(`Some invitations could not be sent:\n\n${invalidItems.join("\n")}`);
+    }
+  },
+
 
     async fetchOwnerProfile() {
       try {
@@ -845,6 +966,64 @@
       }
     },
 
+    toggleMenu(index) {
+      // Close other menus and toggle only the clicked one
+      this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
+    },
+
+    async deletePost(itinerary_id, index) {
+      try {
+        // Fetch the owner_id of the itinerary before deleting
+        const { data, error } = await supabase
+          .from("itineraries")
+          .select("owner_id")
+          .eq("id", itinerary_id)
+          .single();
+
+        if (error || !data) {
+          console.error("Error fetching itinerary owner:", error);
+          alert("Failed to verify ownership. Try again.");
+          this.showMenus[index] = false;
+          return;
+        }
+
+        // Check if the current user is the owner
+        if (data.owner_id !== this.user.id) {
+          alert("You cannot delete this itinerary because you are not the owner.");
+          this.showMenus[index] = false;
+          return;
+        }
+
+        // Ask for confirmation before deleting
+        if (!confirm("Are you sure you want to delete this itinerary?")) {
+          this.showMenus[index] = false;
+          return;
+        }
+
+        // Proceed with deletion if user is the owner
+        const { error: deleteError } = await supabase
+          .from("itineraries")
+          .delete()
+          .eq("id", itinerary_id);
+
+        if (deleteError) {
+          console.error("Error deleting itinerary:", deleteError);
+          alert("Failed to delete itinerary. Try again.");
+          this.showMenus[index] = false;
+          return;
+        }
+
+        alert("Itinerary deleted successfully!");
+        this.showMenu = false;
+        this.showMenus[index] = false;
+        window.location.reload(); // Refresh the page
+
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        this.showMenus[index] = false;
+        alert("Something went wrong.");
+      }
+    },
 
     handleClickOutside(event) {
         if (!this.$el.contains(event.target)) {
