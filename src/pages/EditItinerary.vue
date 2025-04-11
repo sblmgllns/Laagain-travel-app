@@ -14,6 +14,7 @@ import {
 import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop';
 import '@schedule-x/theme-default/dist/index.css';
 
+
 const route = useRoute();
 const tripId = route.query.id;
 
@@ -67,6 +68,35 @@ watch(startDate, async (val) => {
       onEventUpdate(events) {
         // Optionally update Supabase when an event is moved/changed
       },
+        // < -- to show event details when clicked,, we can change the modal  --> 
+        onEventClick(event) {
+        console.log("Clicked event:", event);
+          // Optional: pre-fill modal with event data
+          newActivity.value = {
+            id: event.id, 
+            title: event.title,
+            description: '', // You can fetch or attach this if available
+            location: '', // same here
+            date: event.start.split(' ')[0],
+            startTime: event.start.split(' ')[1],
+            endTime: event.end.split(' ')[1],   
+          };
+
+        showActivityModal.value = true;
+      },
+      // < -- resizing events by dragging their top or bottom edges   --> 
+      onEventDidMount({ event, el }) {
+        const topResizer = document.createElement('div');
+        topResizer.classList.add('resizer', 'top');
+        const bottomResizer = document.createElement('div');
+        bottomResizer.classList.add('resizer', 'bottom');
+
+        el.appendChild(topResizer);
+        el.appendChild(bottomResizer);
+
+        addResizeListeners(topResizer, 'top', event);
+        addResizeListeners(bottomResizer, 'bottom', event);
+      },
     },
     selectedDate: val,
     views: [
@@ -81,6 +111,9 @@ watch(startDate, async (val) => {
 
 
 ///////MODAL PARTS//////////////////////////////////////////
+
+// Modal Visibitlity state for Activity Modal
+const showActivityModal = ref(false)
 
 // Modal visibility state
 const showModal = ref(false)
@@ -110,6 +143,30 @@ const openModal = () => {
 
 const closeModal = () => {
   showModal.value = false
+}
+
+const closeActivityModal = () =>{
+  showActivityModal.value = false
+}
+
+const deleteActivity = async () => {
+  if (!newActivity.value.id) {
+    console.error("No activity selected to delete.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("activities")
+    .delete()
+    .eq("id", newActivity.value.id); // assuming 'id' is the primary key
+
+  if (error) {
+    console.error("Failed to delete activity:", error);
+  } else {
+    console.log("Activity deleted successfully");
+    // Optional: refresh your calendar or event list here
+    showActivityModal.value = false; // Close the modal after deletion
+  }
 }
 
 const saveActivity = async () => {
@@ -381,16 +438,53 @@ const saveItineraryChanges = async () => {
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <h2>New Activity</h2>
-
+        <!-- title -->
+        <div class="container-bar">
         <input v-model="newActivity.title" placeholder="Activity Title" />
+        </div>
+        <!-- description -->
+        <div class="container-bar">
         <textarea v-model="newActivity.description" placeholder="Description"></textarea>
-        <input v-model="newActivity.location" placeholder="Location" />
-        <input type="date" v-model="newActivity.date" />
-        <input type="time" v-model="newActivity.startTime" />
-        <input type="time" v-model="newActivity.endTime" />
+        </div>  
+        <!-- location -->
+        <div class="container-bar">
+          <input v-model="newActivity.location" placeholder="Location" />
+        </div>
+        
+        <!-- start date -->
+        <!-- <div class="start-date">Start</div>
+         -->
+        <!-- Date -->
+        <div class="container-bar">
+          <input type="date" v-model="newActivity.date" />
+        </div>
 
+        <!-- time -->
+        <div class="container-bar">
+          <!-- Label -->
+          <div class="start-date">Start</div>
+          <!-- Time -->
+          <div class="datetime-wrapper">
+            <input type="time" v-model="newActivity.startTime" />
+          </div>
+        </div>
+
+        <!-- End Div -->
+        <div class="container-bar">
+          <!-- text -->
+          <div class="start-date">End</div>
+          <!-- time -->
+          <div class="datetime-wrapper">
+            <input type="time" v-model="newActivity.endTime" />
+          </div>
+        </div>
+      
         <div class="modal-actions">
-          <button @click="saveActivity">Save</button>
+          <button 
+            @click="saveActivity" 
+            :disabled="!newActivity.title || newActivity.title.trim() === ''">
+            Save
+          </button>
           <button @click="closeModal">Cancel</button>
         </div>
       </div>
@@ -400,16 +494,77 @@ const saveItineraryChanges = async () => {
     <div v-if="showEditModal" class="modal-overlay">
       <div class="modal">
         <h2>Edit Itinerary Details</h2>
-
+        <div class="container-bar">
         <input v-model="editItinerary.name" placeholder="Itinerary Name" />
+        </div>
+        <div class="container-bar">
         <input v-model="editItinerary.location" placeholder="Location" />
+        </div>
+        <div class="container-bar">
         <input type="date" v-model="editItinerary.start_date" />
+        </div>
+        <div class="container-bar">
         <input type="date" v-model="editItinerary.end_date" />
-
+          </div>
         <div class="modal-actions">
           <button @click="saveItineraryChanges">Save Changes</button>
           <button @click="closeEditModal">Cancel</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Show Activity Modal -->
+    <div v-if="showActivityModal" class="modal-overlay">
+      <div class="modal">
+        <div> Activity Details </div>
+        <!-- title -->
+        <div class="container-bar">
+          {{ newActivity.title }}
+        </div>
+        <!-- description -->
+        <div class="container-bar">
+          {{ newActivity.description }}
+        </div>  
+        <!-- location -->
+        <div class="container-bar">
+          {{ newActivity.location }}
+        </div>
+        
+        <!-- start date -->
+        <!-- <div class="start-date">Start</div>
+         -->
+        <!-- Date -->
+        <div class="container-bar">
+          {{ newActivity.date }}
+          <input type="date" v-model="newActivity.date" />
+        </div>
+
+        <!-- time -->
+        <div class="container-bar">
+          <!-- Label -->
+          <div class="start-date">Start</div>
+          <!-- Time -->
+          <div class="datetime-wrapper">
+            {{ newActivity.startTime }}
+          </div>
+        </div>
+
+        <!-- End Div -->
+        <div class="container-bar">
+          <!-- text -->
+          <div class="start-date">End</div>
+          <!-- time -->
+          <div class="datetime-wrapper">
+            {{ newActivity.endTime }}
+          </div>
+        </div>
+      
+        <div class="modal-actions">
+          <button @click="deleteActivity"> Delete </button>
+          <button @click="editActivity">Edit</button>
+          <button @click="closeActivityModal">Close</button>
+        </div>
+
       </div>
     </div>
 
