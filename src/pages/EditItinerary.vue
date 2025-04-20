@@ -99,6 +99,8 @@ watch(startDate, async (val) => {
       },
     },
     selectedDate: val,
+    minDate: startDate.value,  //  Apply min date
+    maxDate: endDate.value,    //  Apply max date
     views: [
       createViewDay(),
       createViewWeek(),
@@ -214,9 +216,14 @@ const addActivity = async (index) => {
   const selectedActivity = potentialActivities.value[index];  // Access with `.value`
   console.log("Adding activity:", selectedActivity);
 
-  const startTimestamp = `${selectedActivity.date}T${selectedActivity.start_time}:00`;
-  const endTimestamp = `${selectedActivity.date}T${selectedActivity.end_time}:00`;
+  // Set to null if start or end time is missing
+  const startTimestamp = selectedActivity.start_time
+    ? `${selectedActivity.date}T${selectedActivity.start_time}:00`
+    : null;
 
+  const endTimestamp = selectedActivity.end_time
+    ? `${selectedActivity.date}T${selectedActivity.end_time}:00`
+    : null;
 
   const { error } = await supabase
     .from("activities")
@@ -295,12 +302,24 @@ const fetchActivities = async () => {
     return;
   }
 
-  calendarEvents.value = data.map((a) => ({
-    id: a.id,
-    title: a.name,
-    start: `${a.date} ${a.start_time.slice(11, 16)}`,
-    end: `${a.date} ${a.end_time.slice(11, 16)}`,
-  }));
+  calendarEvents.value = data.map((a) => {
+    if (!a.start_time && !a.end_time) { // if no stat and end time,, automatic all day  
+      return {
+        id: a.id,
+        title: a.name,
+        start: `${a.date}`,
+        end: `${a.date}`,
+      };
+    } else {
+      return { // with specific start time and end time 
+        id: a.id,
+        title: a.name,
+        start: `${a.date} ${a.start_time?.slice(11, 16)}`,
+        end: `${a.date} ${a.end_time?.slice(11, 16)}`,
+      };
+    }
+  });
+
 };
 
 const setupRealtime = () => {
@@ -334,6 +353,7 @@ const editItinerary = ref({
   start_date: '',
   end_date: '',
 })
+
 
 const openEditModal = () => {
   showEditModal.value = true
@@ -434,7 +454,8 @@ const saveItineraryChanges = async () => {
       </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modal  -->
+    <!-- create activity modal -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <h2>New Activity</h2>
@@ -456,7 +477,7 @@ const saveItineraryChanges = async () => {
          -->
         <!-- Date -->
         <div class="container-bar">
-          <input type="date" v-model="newActivity.date" />
+          <input type="date" v-model="newActivity.date"/>
         </div>
 
         <!-- time -->
@@ -501,15 +522,22 @@ const saveItineraryChanges = async () => {
         <input v-model="editItinerary.location" placeholder="Location" />
         </div>
         <div class="container-bar">
-        <input type="date" v-model="editItinerary.start_date" />
+          <input
+            type="date"
+            v-model="editItinerary.start_date"
+          />
         </div>
         <div class="container-bar">
-        <input type="date" v-model="editItinerary.end_date" />
-          </div>
-        <div class="modal-actions">
-          <button @click="saveItineraryChanges">Save Changes</button>
-          <button @click="closeEditModal">Cancel</button>
+            <input
+              type="date"
+              v-model="editItinerary.end_date"
+              :min="editItinerary.start_date"
+            />
         </div>
+        <div class="modal-actions">
+          <button @click="saveItineraryChanges" >Save Changes</button>
+          <button @click="closeEditModal">Cancel</button>
+        </div>``
       </div>
     </div>
 
