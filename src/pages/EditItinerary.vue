@@ -52,6 +52,9 @@ const fetchItineraryData = async () => {
 onMounted(() => {
   fetchItineraryData();
   fetchPotentialActivities();
+  if (tripId) {
+    fetchOwnerProfile();  // Fetch the data for the trip
+  }
 });
 
 // Watch for startDate and create calendar once ready
@@ -75,8 +78,8 @@ watch(startDate, async (val) => {
           newActivity.value = {
             id: event.id, 
             title: event.title,
-            description: '', // You can fetch or attach this if available
-            location: '', // same here
+            description: event.description, // You can fetch or attach this if available
+            location: event.location, // same here
             date: event.start.split(' ')[0],
             startTime: event.start.split(' ')[1],
             endTime: event.end.split(' ')[1],   
@@ -116,7 +119,7 @@ watch(startDate, async (val) => {
 
 // Modal Visibitlity state for Activity Modal
 const showActivityModal = ref(false)
-
+const isEditMode = ref(false)
 // Modal visibility state
 const showModal = ref(false)
 
@@ -151,10 +154,19 @@ const closeActivityModal = () =>{
   showActivityModal.value = false
 }
 
+const editActivity = async () => {
+  isEditMode.value = true
+}
+
 const deleteActivity = async () => {
   if (!newActivity.value.id) {
     console.error("No activity selected to delete.");
     return;
+  }
+
+  const confirmed = window.confirm("Are you sure you want to delete this activity?");
+  if (!confirmed) {
+    return; // Exit if the user cancels
   }
 
   const { error } = await supabase
@@ -166,10 +178,11 @@ const deleteActivity = async () => {
     console.error("Failed to delete activity:", error);
   } else {
     console.log("Activity deleted successfully");
-    // Optional: refresh your calendar or event list here
     showActivityModal.value = false; // Close the modal after deletion
+    window.location.reload();
   }
-}
+};
+
 
 const saveActivity = async () => {
   const { error } = await supabase
@@ -193,6 +206,7 @@ const saveActivity = async () => {
 
   await fetchPotentialActivities(); // Refresh list
   closeModal();
+  window.location.reload();
 };
 
 const potentialActivities = ref([]);
@@ -243,6 +257,7 @@ const addActivity = async (index) => {
     console.error("Failed to insert activity:", error);
   } else {
     console.log("Activity successfully inserted!");
+    
   }
 
   // Remove from potential_activities
@@ -257,10 +272,12 @@ const addActivity = async (index) => {
   }
 
   // Refresh potential list & calendar
+  window.location.reload();
   await fetchPotentialActivities();
   await fetchActivities();
   calendarApp.value?.setEvents([...calendarEvents.value]);
   // calendarApp.value?.setEvents([...calendarEvents.value]);
+  
 }
 
 const activities = ref([
@@ -294,7 +311,7 @@ const activities = ref([
 const fetchActivities = async () => {
   const { data, error } = await supabase
     .from('activities')
-    .select('id, name, date, start_time, end_time')
+    .select('id, name, date, start_time, end_time, description, location')
     .eq('itinerary_id', tripId);
 
   if (error) {
@@ -309,11 +326,15 @@ const fetchActivities = async () => {
         title: a.name,
         start: `${a.date}`,
         end: `${a.date}`,
+        description: a.description,
+        location: a.location,
       };
     } else {
       return { // with specific start time and end time 
         id: a.id,
         title: a.name,
+        description: a.description,
+        location: a.location,
         start: `${a.date} ${a.start_time?.slice(11, 16)}`,
         end: `${a.date} ${a.end_time?.slice(11, 16)}`,
       };
@@ -321,6 +342,43 @@ const fetchActivities = async () => {
   });
 
 };
+
+const isEditingName = ref(false)
+const editableSpan = ref(null)
+
+const startEditingName = () => {
+  isEditingName.value = true
+  // Optional: auto-select the text
+  nextTick(() => {
+    const el = editableSpan.value
+    if (el) {
+      const range = document.createRange()
+      const sel = window.getSelection()
+      range.selectNodeContents(el)
+      sel.removeAllRanges()
+      sel.addRange(range)
+    }
+  })
+}
+
+const updateName = (e) => {
+  itineraryName.value = e.target.innerText.trim()
+}
+
+const saveName = async () => {
+  isEditingName.value = false
+
+  const { error } = await supabase
+    .from('itineraries')
+    .update({ name: itineraryName.value })
+    .eq('id', tripId)
+
+  if (error) {
+    console.error('Error updating itinerary name:', error)
+  } else {
+    console.log('Itinerary name updated successfully')
+  }
+}
 
 const setupRealtime = () => {
   supabase
@@ -393,7 +451,100 @@ const saveItineraryChanges = async () => {
   closeEditModal()
 }
 
+//////MEMBERS PART 
 
+const ownerProfile = ref({ name: '', username: '', picture: '' });
+const members = ref([]);
+const showMembersModal = ref(false);
+
+const openMembersModal = async () => {
+  showMembersModal.value = true;
+  await fetchOwnerProfile();
+};
+
+const closeMembersModal = () => {
+  showMembersModal.value = false;
+};
+
+  const fetchOwnerProfile = async () => {
+  try {
+    console.log("Fetching owner profile for tripId:", tripId);
+
+    // Step 1: Fetch the owner_id from the itineraries table
+    const { data: itineraryData, error: itineraryError } = await supabase
+      .from('itineraries')  // Replace 'itineraries' with your actual table name
+      .select('owner_id')  // Assuming 'owner_id' is the column for the owner's ID
+      .eq('id', tripId)  // Filter by the tripId to get the corresponding itinerary
+      .single();  // Ensure you get a single result
+
+    if (itineraryError) {
+      console.error('Error fetching itinerary data:', itineraryError);
+      return;
+    }
+
+    if (!itineraryData) {
+      console.error('No itinerary data found for tripId:', tripId);
+      return;
+    }
+
+    const ownerId = itineraryData.owner_id;
+    console.log("Fetched owner_id:", ownerId);
+
+    // Step 2: Fetch the owner's profile using the owner_id
+    const { data: ownerData, error: ownerError } = await supabase
+      .from('profiles')  // Replace 'profiles' with your actual profiles table name
+      .select('full_name, username, profile_pic_url')  // Select the required fields
+      .eq('id', ownerId)  // Use the owner_id obtained from the itinerary
+      .single();  // Ensure you get a single result
+
+    if (ownerError) {
+      console.error('Error fetching owner profile:', ownerError);
+      return;
+    }
+
+    if (!ownerData) {
+      console.error('No owner data found for owner_id:', ownerId);
+      return;
+    }
+
+    // Store the owner profile data
+    ownerProfile.value = {
+      picture: ownerData.profile_pic_url,
+      name: ownerData.full_name,
+      username: ownerData.username,
+    };
+
+    console.log("Fetched Owner Profile:", ownerProfile.value);
+
+    // Now fetch members' profiles (if needed)
+    const { data: memberIds, error: memberIdsError } = await supabase
+      .from('itinerary_members')
+      .select('user_id')
+      .eq('itinerary_id', tripId);  // Use tripId to fetch the members for this itinerary
+
+    if (memberIdsError) throw memberIdsError;
+
+    const userIds = memberIds.map(member => member.user_id);
+
+    const { data: membersData, error: membersError } = await supabase
+      .from('profiles')
+      .select('full_name, username, profile_pic_url')
+      .in('id', userIds);
+
+    if (membersError) throw membersError;
+
+    members.value = membersData.map(member => ({
+      username: member.username,
+      full_name: member.full_name,
+      profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg',  // Default if no profile pic
+    }));
+
+    console.log("Fetched Members Info:", members.value);
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
 
 </script>
 
@@ -407,12 +558,20 @@ const saveItineraryChanges = async () => {
         <div class="menu-item">
             <img src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/sign/email-assets/laagain-logo.PNG?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJlbWFpbC1hc3NldHMvbGFhZ2Fpbi1sb2dvLlBORyIsImlhdCI6MTc0MDQ1MDcxMSwiZXhwIjoxNzcxOTg2NzExfQ.jShJl7Z3QdCG-kE9akSg5hIC_Ws6dzu54OCFKMXGkps" 
                 alt="File Icon" class="menu-icon" />
-            <span class="file-name" contenteditable="false" v-text="itineraryName"></span>
+                <span
+                    class="file-name"
+                    :contenteditable="isEditingName"
+                    @click="startEditingName"
+                    @blur="saveName"
+                    @input="updateName"
+                    ref="editableSpan"
+                  >{{ itineraryName }}</span>
+
         </div>
 
       <!-- <div class="menu-item">Edit Details</div> -->
       <div class="menu-item" @click="openEditModal">Edit Details</div>
-      <div class="menu-item">Members</div>
+      <div class="menu-item" @click="openMembersModal">Members</div>
       <!-- <div class="menu-item">Help</div> -->
     </div>
 
@@ -477,7 +636,12 @@ const saveItineraryChanges = async () => {
          -->
         <!-- Date -->
         <div class="container-bar">
-          <input type="date" v-model="newActivity.date"/>
+          <input 
+            type="date" 
+            v-model="newActivity.date" 
+            :min="startDate" 
+            :max="endDate" 
+          />
         </div>
 
         <!-- time -->
@@ -503,7 +667,7 @@ const saveItineraryChanges = async () => {
         <div class="modal-actions">
           <button 
             @click="saveActivity" 
-            :disabled="!newActivity.title || newActivity.title.trim() === ''">
+            :disabled="!newActivity.title || newActivity.title.trim() === '' || !newActivity.location || !newActivity.date || !newActivity.startTime || !newActivity.endTime">
             Save
           </button>
           <button @click="closeModal">Cancel</button>
@@ -541,63 +705,109 @@ const saveItineraryChanges = async () => {
       </div>
     </div>
 
-    <!-- Show Activity Modal -->
-    <div v-if="showActivityModal" class="modal-overlay">
+    <!-- View Members Modal -->
+    <div v-if="showMembersModal" class="modal-overlay">
       <div class="modal">
-        <div> Activity Details </div>
-        <!-- title -->
-        <div class="container-bar">
-          {{ newActivity.title }}
-        </div>
-        <!-- description -->
-        <div class="container-bar">
-          {{ newActivity.description }}
-        </div>  
-        <!-- location -->
-        <div class="container-bar">
-          {{ newActivity.location }}
-        </div>
+        <h2>Members</h2>
         
-        <!-- start date -->
-        <!-- <div class="start-date">Start</div>
-         -->
-        <!-- Date -->
-        <div class="container-bar">
-          {{ newActivity.date }}
-          <input type="date" v-model="newActivity.date" />
+        <!-- Owner Info -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
+                style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                {{ ownerProfile.name }}
+              </span>
+              <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                @{{ ownerProfile.username }}
+              </span>
+            </div>
+          </div>
+          <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
+            Owner
+          </span>
         </div>
 
-        <!-- time -->
-        <div class="container-bar">
-          <!-- Label -->
-          <div class="start-date">Start</div>
-          <!-- Time -->
-          <div class="datetime-wrapper">
-            {{ newActivity.startTime }}
+        <!-- Members List -->
+        <div v-for="member in members" :key="member.username"
+            style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <img :src="member.profile_pic_url" alt="Member's Profile Picture"
+                style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                {{ member.full_name }}
+              </span>
+              <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                @{{ member.username }}
+              </span>
+            </div>
           </div>
+          <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
+            Member
+          </span>
         </div>
 
-        <!-- End Div -->
-        <div class="container-bar">
-          <!-- text -->
-          <div class="start-date">End</div>
-          <!-- time -->
-          <div class="datetime-wrapper">
-            {{ newActivity.endTime }}
-          </div>
-        </div>
-      
         <div class="modal-actions">
-          <button @click="deleteActivity"> Delete </button>
-          <button @click="editActivity">Edit</button>
-          <button @click="closeActivityModal">Close</button>
+          <button @click="closeMembersModal">Close</button>
         </div>
-
       </div>
     </div>
 
-
   </div>
+  
+<!-- Show Activity Modal -->
+<div v-if="showActivityModal" class="activity-modal-overlay">
+  <div class="activity-modal">
+    <!-- Modal Header: Activity Name centered -->
+    <div class="modal-header">
+      <h3 class="modal-title text-center">{{ newActivity.title }}</h3>
+    </div>
+    
+    <!-- Modal Body: Activity Details displayed vertically -->
+    <div class="modal-body">
+      <!-- Details Header -->
+      <div class="details-header">
+        <strong>Details</strong>
+      </div>
+      
+      <div class="detail-item" style="text-align: left;margin-left: 10px;">
+        <strong style="color: #3f3e3e;font-size: 1rem;">Description:</strong> {{ newActivity.description || '-' }}
+      </div>
+      <div class="detail-item" style="text-align: left;margin-left: 10px;">
+        <strong style="color: #3f3e3e;font-size: 1rem;">Location:</strong> {{ newActivity.location}}
+      </div>
+      <div class="detail-item" style="text-align: left;margin-left: 10px;">
+        <strong style="color: #3f3e3e;font-size: 1rem;">Date:</strong> {{ newActivity.date }}
+      </div>
+      <div class="detail-item" style="text-align: left;margin-left: 10px;">
+        <strong style="color: #3f3e3e;font-size: 1rem;">Start Time:</strong> {{ newActivity.startTime }}
+      </div>
+      <div class="detail-item" style="text-align: left;margin-left: 10px;">
+        <strong style="color: #3f3e3e;font-size: 1rem;">End Time:</strong> {{ newActivity.endTime }}
+      </div>
+      <!-- Votes Header -->
+      <div class="details-header" style="margin-top: 1.5rem;">
+        <strong>Votes</strong>
+      </div>
+
+      <!-- Annotation Header -->
+      <div class="details-header" style="margin-top: 1rem;">
+        <strong>Annotation</strong>
+      </div>
+    </div>
+
+    <!-- Modal Footer: Buttons for Delete, Edit, Close -->
+    <div class="modal-footer">
+      <button v-if="isEditMode" class="btn btn-danger" @click="deleteActivity">Delete</button>
+      <button class="btn btn-primary" @click="editActivity">Edit</button>
+      <button class="btn btn-secondary" @click="closeActivityModal">Close</button>
+    </div>
+  </div>
+</div>
+
+
 </template>
 
 <style scoped>
