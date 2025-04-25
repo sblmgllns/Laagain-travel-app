@@ -206,7 +206,7 @@ const saveActivity = async () => {
 
   await fetchPotentialActivities(); // Refresh list
   closeModal();
-  window.location.reload();
+  //window.location.reload();
 };
 
 const potentialActivities = ref([]);
@@ -551,6 +551,8 @@ const closeMembersModal = () => {
 
 
 <template>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
   <div class="app-container">
     <!-- Top Menu Bar inside a rounded box -->
     <div class="menu-bar">
@@ -759,7 +761,7 @@ const closeMembersModal = () => {
   
 <!-- Show Activity Modal -->
 <div v-if="showActivityModal" class="activity-modal-overlay">
-  <div class="activity-modal">
+  <div class="activity-modal" style="max-height: 90vh; overflow-y: auto; padding: 1rem;">
     <!-- Modal Header: Activity Name centered -->
     <div class="modal-header">
       <h3 class="modal-title text-center">{{ newActivity.title }}</h3>
@@ -787,15 +789,81 @@ const closeMembersModal = () => {
       <div class="detail-item" style="text-align: left;margin-left: 10px;">
         <strong style="color: #3f3e3e;font-size: 1rem;">End Time:</strong> {{ newActivity.endTime }}
       </div>
+
       <!-- Votes Header -->
       <div class="details-header" style="margin-top: 1.5rem;">
         <strong>Votes</strong>
       </div>
 
-      <!-- Annotation Header -->
-      <div class="details-header" style="margin-top: 1rem;">
-        <strong>Annotation</strong>
+     <!-- Voting UI Container -->
+      <div class="d-flex justify-content-center mt-3">
+        <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
+          
+          <!-- Vote Bars -->
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+              <span style="width: 50px;" class="text-end pe-2">Yes</span>
+              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+                <div class="bg-success rounded-pill shadow-sm" style="height: 100%; width: 60%; transition: width 0.3s;"></div>
+              </div>
+              <span class="ms-2 text-muted small">6 votes</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <span style="width: 50px;" class="text-end pe-2">No</span>
+              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+                <div class="bg-danger rounded-pill shadow-sm" style="height: 100%; width: 40%; transition: width 0.3s;"></div>
+              </div>
+              <span class="ms-2 text-muted small">4 votes</span>
+            </div>
+          </div>
+
+          <!-- Smaller Voting Buttons -->
+          <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-outline-success btn-sm px-3">Yes</button>
+            <button class="btn btn-outline-danger btn-sm px-3">No</button>
+          </div>
+
+          <!-- Not Voted Message -->
+          <div class="text-center mt-2 text-muted small">
+            You haven't voted yet.
+          </div>
+
+        </div>
       </div>
+      <!-- Annotation Header -->
+      <div class="details-header mt-4">
+        <strong>Notes</strong>
+      </div>
+
+     <!-- Input for Adding Notes -->
+    <div class="mt-3 d-flex" style="width: 100%; max-width: 600px;">
+      <input type="text" id="noteInput" placeholder="Add a note..." 
+            style="flex-grow: 1; height: 40px; padding: 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 14px; margin-left: 25px; width: calc(100% - 60px); box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);"/>
+      <button class="btn btn-outline-primary ms-2" type="submit">
+        <i class="fas fa-pencil-alt"></i> <!-- Pencil Icon -->
+      </button>
+    </div>
+
+    <!-- Notes List (Scrollable) -->
+    <div class="mt-3 d-flex justify-content-center">
+      <div class="note-card shadow-sm" style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0 ; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+        <!-- Flexbox container for profile and text, aligned to the left -->
+        <div class="d-flex align-items-start">
+          <!-- Profile Picture (Placeholder) -->
+          <div class="profile-pic" style="width: 40px; height: 40px; border-radius: 50%; background-color: #ddd; margin-right: 10px;"></div>
+
+          <!-- User Name in the same line as profile pic -->
+          <div>
+            <small class="text-muted">User A</small>
+          </div>
+        </div>
+
+        <!-- Note (directly below the username) -->
+        <div style="margin-top: -18px;margin-left: -100px;">
+          Bring extra water for this activity.
+        </div>
+      </div>
+    </div>
     </div>
 
     <!-- Modal Footer: Buttons for Delete, Edit, Close -->
