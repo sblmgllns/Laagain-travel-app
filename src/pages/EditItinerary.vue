@@ -24,7 +24,7 @@ const startDate = ref('');
 const endDate = ref('');
 const calendarApp = shallowRef(null); // ✅ Use shallowRef!
 const calendarEvents = ref([]);
-
+let eventId = null;
 // Fetch itinerary data including start_date
 const fetchItineraryData = async () => {
   try {
@@ -50,11 +50,14 @@ const fetchItineraryData = async () => {
 };
 
 onMounted(() => {
+  fetchUserVote();
+  fetchVoteCounts();
   fetchItineraryData();
   fetchPotentialActivities();
   if (tripId) {
     fetchOwnerProfile();  // Fetch the data for the trip
   }
+  
 });
 
 // Watch for startDate and create calendar once ready
@@ -84,7 +87,7 @@ watch(startDate, async (val) => {
             startTime: event.start.split(' ')[1],
             endTime: event.end.split(' ')[1],   
           };
-
+        eventId = event.id;
         showActivityModal.value = true;
       },
       // < -- resizing events by dragging their top or bottom edges   --> 
@@ -343,6 +346,7 @@ const fetchActivities = async () => {
 
 };
 
+//////EDIT ITINERARY NAME PART
 const isEditingName = ref(false)
 const editableSpan = ref(null)
 
@@ -466,7 +470,7 @@ const closeMembersModal = () => {
   showMembersModal.value = false;
 };
 
-  const fetchOwnerProfile = async () => {
+const fetchOwnerProfile = async () => {
   try {
     console.log("Fetching owner profile for tripId:", tripId);
 
@@ -545,6 +549,215 @@ const closeMembersModal = () => {
     console.error('Error:', error);
   }
 };
+
+//////VOTING PART
+const yesVotes = ref(0);  // Current "Yes" vote count
+const noVotes = ref(0);   // Current "No" vote count
+const userVoted = ref(false);  // Track if user has voted
+const userVote = ref('');  // Track user's vote ("yes" or "no")
+
+// Function to check if the user has already voted for this event
+const checkUserVote = async () => {
+  const { data: itineraryData, error: itineraryError } = await supabase
+    .from('itineraries')  // Replace 'itineraries' with your actual table name
+    .select('owner_id')  // Assuming 'owner_id' is the column for the owner's ID
+    .eq('id', tripId)  // Filter by the tripId to get the corresponding itinerary
+    .single();  // Ensure you get a single result
+
+  if (itineraryError) {
+    console.error('Error fetching itinerary data:', itineraryError);
+    return;
+  }
+
+  if (!itineraryData) {
+    console.error('No itinerary data found for tripId:', tripId);
+    return;
+  }
+
+  const ownerId = itineraryData.owner_id;
+  console.log(tripId, eventId, ownerId);
+  const { data, error } = await supabase
+    .from('votes')
+    .select('vote')
+    .eq('itinerary_id', tripId)
+    .eq('activity_id', eventId)
+    .eq('user_id', ownerId) // Get the current user's ID
+    .single(); // Fetch a single result if it exists
+
+  if (error) {
+    console.error('Error checking user vote:', error);
+    return null;
+  }
+
+  if (data) {
+    userVoted.value = true;
+    userVote.value = data.vote;  // Set the user's vote (either 'yes' or 'no')
+    return data.vote;  // Return the existing vote of the user
+  }
+
+  return null;  // Return null if no vote is found
+};
+
+// Function to fetch user's existing vote for the event
+const fetchUserVote = async () => {
+  const { data: itineraryData, error: itineraryError } = await supabase
+    .from('itineraries')  // Replace 'itineraries' with your actual table name
+    .select('owner_id')  // Assuming 'owner_id' is the column for the owner's ID
+    .eq('id', tripId)  // Filter by the tripId to get the corresponding itinerary
+    .single();  // Ensure you get a single result
+
+  if (itineraryError) {
+    console.error('Error fetching itinerary data:', itineraryError);
+    return;
+  }
+
+  if (!itineraryData) {
+    console.error('No itinerary data found for tripId:', tripId);
+    return;
+  }
+
+  const ownerId = itineraryData.owner_id;
+
+  const { data, error } = await supabase
+    .from('votes')
+    .select('vote')
+    .eq('itinerary_id', tripId)
+    .eq('activity_id', eventId)
+    .eq('user_id', ownerId) // Get the current user's ID
+    .single(); // Since the user can only have one vote per event
+
+  if (error) {
+    console.error('Error fetching user vote:', error);
+    return;
+  }
+
+  if (data) {
+    userVoted.value = true;
+    userVote.value = data.vote;
+  }
+};
+
+// Voting function that handles both inserting and updating the vote
+const vote = async (voteType) => {
+  // Step 1: Fetch the owner_id from the itineraries table
+  const { data: itineraryData, error: itineraryError } = await supabase
+    .from('itineraries')  // Replace 'itineraries' with your actual table name
+    .select('owner_id')  // Assuming 'owner_id' is the column for the owner's ID
+    .eq('id', tripId)  // Filter by the tripId to get the corresponding itinerary
+    .single();  // Ensure you get a single result
+
+  if (itineraryError) {
+    console.error('Error fetching itinerary data:', itineraryError);
+    return;
+  }
+
+  if (!itineraryData) {
+    console.error('No itinerary data found for tripId:', tripId);
+    return;
+  }
+
+  const ownerId = itineraryData.owner_id;
+
+  const existingVote = await checkUserVote();
+
+  if (existingVote) {
+    // If the user is changing their vote, update the existing vote
+    if (userVote.value !== voteType) {
+      // Update the existing vote in the database
+      const { error: updateError } = await supabase
+        .from('votes')
+        .update({ vote: voteType }) // Update the existing vote
+        .eq('itinerary_id', tripId)
+        .eq('activity_id', eventId)
+        .eq('user_id', ownerId); // Update the vote based on the user ID
+
+      if (updateError) {
+        console.error("Error updating vote:", updateError);
+        return;
+      }
+
+      // Update the UI state after successful vote update
+      userVote.value = voteType;
+
+      // Adjust the vote counts locally for the UI
+      if (voteType === 'yes') {
+        yesVotes.value++;  // Increase the "Yes" vote count
+        noVotes.value--;   // Decrease the "No" vote count if changing from "No" to "Yes"
+      } else if (voteType === 'no') {
+        noVotes.value++;   // Increase the "No" vote count
+        yesVotes.value--;  // Decrease the "Yes" vote count if changing from "Yes" to "No"
+      }
+      yesVotes.value = Math.max(yesVotes.value, 0);
+      noVotes.value = Math.max(noVotes.value, 0);
+    } else {
+      alert(`You already voted '${userVote.value}'`);
+      return;
+    }
+  } else {
+    // If the user hasn't voted yet, submit their vote
+    const { error: insertError } = await supabase
+      .from('votes')
+      .insert([{
+        itinerary_id: tripId,
+        activity_id: eventId,
+        user_id: ownerId,
+        vote: voteType,
+      }]);
+
+    if (insertError) {
+      console.error("Error submitting vote:", insertError);
+      return;
+    }
+
+    // Update the UI state after successful vote submission
+    userVoted.value = true;
+    userVote.value = voteType;
+
+    // Adjust the vote counts locally for the UI
+    if (voteType === 'yes') {
+      yesVotes.value++;  // Increase the "Yes" vote count
+    } else if (voteType === 'no') {
+      noVotes.value++;   // Increase the "No" vote count
+    }
+    yesVotes.value = Math.max(yesVotes.value, 0);
+    noVotes.value = Math.max(noVotes.value, 0);
+  }
+};
+
+const fetchVoteCounts = async () => {
+  const { data, error } = await supabase
+    .from('votes')
+    .select('vote')  // Select only the 'vote' column
+    .eq('itinerary_id', tripId)  // Filter by tripId
+    .eq('activity_id', eventId);  // Filter by eventId
+
+  if (error) {
+    console.error("Error fetching vote counts:", error);
+    return;
+  }
+
+  // Initialize counters for "yes" and "no" votes
+  let yesVotesCount = 0;
+  let noVotesCount = 0;
+
+  // Loop through the data to manually count "yes" and "no" votes
+  if (data) {
+    data.forEach(vote => {
+      if (vote.vote === 'yes') {
+        yesVotesCount++;
+      } else if (vote.vote === 'no') {
+        noVotesCount++;
+      }
+    });
+  }
+
+  // Update the UI state with the fetched vote counts
+  yesVotes.value = yesVotesCount;
+  noVotes.value = noVotesCount;
+};
+
+
+
 
 </script>
 
@@ -760,15 +973,15 @@ const closeMembersModal = () => {
   </div>
   
 <!-- Show Activity Modal -->
-<div v-if="showActivityModal" class="activity-modal-overlay">
-  <div class="activity-modal" style="max-height: 90vh; overflow-y: auto; padding: 1rem;">
+<div v-if="showActivityModal" class="activity-modal-overlay" @click="fetchVoteCounts">
+  <div class="activity-modal" style="max-height: 90vh; padding: 1rem;">
     <!-- Modal Header: Activity Name centered -->
     <div class="modal-header">
       <h3 class="modal-title text-center">{{ newActivity.title }}</h3>
     </div>
     
     <!-- Modal Body: Activity Details displayed vertically -->
-    <div class="modal-body">
+    <div class="modal-body" style="overflow-y: auto; padding: 20px;" >
       <!-- Details Header -->
       <div class="details-header">
         <strong>Details</strong>
@@ -791,45 +1004,58 @@ const closeMembersModal = () => {
       </div>
 
       <!-- Votes Header -->
-      <div class="details-header" style="margin-top: 1.5rem;">
-        <strong>Votes</strong>
-      </div>
+<div class="details-header" style="margin-top: 1.5rem;">
+  <strong>Votes</strong>
+</div>
 
-     <!-- Voting UI Container -->
-      <div class="d-flex justify-content-center mt-3">
-        <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
-          
-          <!-- Vote Bars -->
-          <div class="mb-3">
-            <div class="d-flex align-items-center mb-2">
-              <span style="width: 50px;" class="text-end pe-2">Yes</span>
-              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                <div class="bg-success rounded-pill shadow-sm" style="height: 100%; width: 60%; transition: width 0.3s;"></div>
-              </div>
-              <span class="ms-2 text-muted small">6 votes</span>
-            </div>
-            <div class="d-flex align-items-center">
-              <span style="width: 50px;" class="text-end pe-2">No</span>
-              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                <div class="bg-danger rounded-pill shadow-sm" style="height: 100%; width: 40%; transition: width 0.3s;"></div>
-              </div>
-              <span class="ms-2 text-muted small">4 votes</span>
-            </div>
-          </div>
-
-          <!-- Smaller Voting Buttons -->
-          <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-outline-success btn-sm px-3">Yes</button>
-            <button class="btn btn-outline-danger btn-sm px-3">No</button>
-          </div>
-
-          <!-- Not Voted Message -->
-          <div class="text-center mt-2 text-muted small">
-            You haven't voted yet.
-          </div>
-
+<!-- Voting UI Container -->
+<div class="d-flex justify-content-center mt-3">
+  <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
+    
+    <!-- Vote Bars -->
+    <div class="mb-3">
+      <div class="d-flex align-items-center mb-2">
+        <span style="width: 50px;" class="text-end pe-2">Yes</span>
+        <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+          <div class="bg-success rounded-pill shadow-sm" 
+           :style="{
+             height: '100%',
+             width: yesPercentage + '%',
+             transition: 'width 0.3s'
+           }"></div>
         </div>
+        <span class="ms-2 text-muted small">{{ yesVotes }} votes</span>
       </div>
+      <div class="d-flex align-items-center">
+        <span style="width: 50px;" class="text-end pe-2">No</span>
+        <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+          <div class="bg-danger rounded-pill shadow-sm" 
+           :style="{
+             height: '100%',
+             width: noPercentage + '%',
+             transition: 'width 0.3s'
+           }"></div>
+        </div>
+        <span class="ms-2 text-muted small">{{ noVotes }} votes</span>
+      </div>
+    </div>
+
+    <!-- Smaller Voting Buttons -->
+    <div class="d-flex justify-content-center gap-2">
+      <button class="btn btn-outline-success btn-sm px-3" @click="vote('yes')">Yes</button>
+      <button class="btn btn-outline-danger btn-sm px-3" @click="vote('no')">No</button>
+    </div>
+
+    <!-- Not Voted Message -->
+    <div class="text-center mt-2 text-muted small" v-if="!userVoted">
+      You haven't voted yet.
+    </div>
+    <div class="text-center mt-2 text-muted small" v-else>
+      You voted: {{ userVote }}.
+    </div>
+  </div>
+</div>
+
       <!-- Annotation Header -->
       <div class="details-header mt-4">
         <strong>Notes</strong>
@@ -859,7 +1085,7 @@ const closeMembersModal = () => {
         </div>
 
         <!-- Note (directly below the username) -->
-        <div style="margin-top: -18px;margin-left: -100px;">
+        <div style="margin-top: -18px;margin-left: -70px;">
           Bring extra water for this activity.
         </div>
       </div>
