@@ -14,6 +14,7 @@ import {
 import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop';
 import '@schedule-x/theme-default/dist/index.css';
 
+import VueToggles from "vue-toggles";
 
 const route = useRoute();
 const tripId = route.query.id;
@@ -756,6 +757,7 @@ const fetchVoteCounts = async () => {
   noVotes.value = noVotesCount;
 };
 
+const isChecked = ref(false); // Starts unchecked
 
 
 
@@ -769,10 +771,17 @@ const fetchVoteCounts = async () => {
   <div class="app-container">
     <!-- Top Menu Bar inside a rounded box -->
     <div class="menu-bar">
-    
+
         <div class="menu-item">
-            <img src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/sign/email-assets/laagain-logo.PNG?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJlbWFpbC1hc3NldHMvbGFhZ2Fpbi1sb2dvLlBORyIsImlhdCI6MTc0MDQ1MDcxMSwiZXhwIjoxNzcxOTg2NzExfQ.jShJl7Z3QdCG-kE9akSg5hIC_Ws6dzu54OCFKMXGkps" 
-                alt="File Icon" class="menu-icon" />
+          <router-link to="/dashboard">
+            <div class="menu-item">
+              <img 
+                src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/sign/email-assets/laagain-logo.PNG?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJlbWFpbC1hc3NldHMvbGFhZ2Fpbi1sb2dvLlBORyIsImlhdCI6MTc0MDQ1MDcxMSwiZXhwIjoxNzcxOTg2NzExfQ.jShJl7Z3QdCG-kE9akSg5hIC_Ws6dzu54OCFKMXGkps" 
+                alt="File Icon" 
+                class="menu-icon" 
+              />
+            </div>
+          </router-link>
                 <span
                     class="file-name"
                     :contenteditable="isEditingName"
@@ -858,31 +867,48 @@ const fetchVoteCounts = async () => {
             :max="endDate" 
           />
         </div>
-
-        <!-- time -->
-        <div class="container-bar">
+        <!-- all day option -->
+        <div class = "container-bar">
           <!-- Label -->
-          <div class="start-date">Start</div>
-          <!-- Time -->
-          <div class="datetime-wrapper">
-            <input type="time" v-model="newActivity.startTime" />
-          </div>
+          <div class="start-date">All day</div>
+          <!-- Toggle -->
+          <VueToggles v-model="isChecked" />
         </div>
 
-        <!-- End Div -->
-        <div class="container-bar">
-          <!-- text -->
-          <div class="start-date">End</div>
+        <!-- Only show the time inputs if NOT "All Day" -->
+        <div v-if="!isChecked">
           <!-- time -->
-          <div class="datetime-wrapper">
-            <input type="time" v-model="newActivity.endTime" />
+          <div class="container-bar">
+            <!-- Label -->
+            <div class="start-date">Start</div>
+            <!-- Time -->
+            <div class="datetime-wrapper">
+              <input type="time" v-model="newActivity.startTime" />
+            </div>
+          </div>
+
+          <!-- End Div -->
+          <div class="container-bar">
+            <!-- text -->
+            <div class="start-date">End</div>
+            <!-- time -->
+            <div class="datetime-wrapper">
+              <input type="time" v-model="newActivity.endTime" />
+            </div>
           </div>
         </div>
       
         <div class="modal-actions">
           <button 
             @click="saveActivity" 
-            :disabled="!newActivity.title || newActivity.title.trim() === '' || !newActivity.location || !newActivity.date || !newActivity.startTime || !newActivity.endTime">
+            :disabled="
+              !newActivity.title || 
+              newActivity.title.trim() === '' || 
+              !newActivity.location || 
+              !newActivity.date || 
+              (!isChecked && (!newActivity.startTime || !newActivity.endTime))
+            "
+          >
             Save
           </button>
           <button @click="closeModal">Cancel</button>
