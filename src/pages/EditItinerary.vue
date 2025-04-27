@@ -284,33 +284,6 @@ const addActivity = async (index) => {
   
 }
 
-const activities = ref([
-  {
-    name: "Hiking Adventure",
-    description: "Join us for an exciting and scenic hiking adventure through the lush trails of the mountains.",
-    location: "Mt. Pulag, Benguet",
-    date: "2025-04-25",
-    startTime: "07:00",
-    endTime: "15:30"
-  },
-  {
-    name: "Beach Cleanup",
-    description: "Help us clean up the beach and protect marine life.",
-    location: "Boracay, Aklan",
-    date: "2025-04-24",
-    startTime: "07:00",
-    endTime: "15:30"
-  },
-  {
-    name: "Beach Cleanup",
-    description: "Help us clean up the beach and protect marine life.",
-    location: "Boracay, Aklan",
-    date: "2025-04-26",
-    startTime: "07:00",
-    endTime: "15:30"
-  }
-]);
-
 //for getting exisiting activities from supabase, for calendar reflection
 const fetchActivities = async () => {
   const { data, error } = await supabase
