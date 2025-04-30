@@ -15,6 +15,7 @@ import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop';
 import '@schedule-x/theme-default/dist/index.css';
 
 import VueToggles from "vue-toggles";
+import { formatDistanceToNow, format } from 'date-fns';
 
 const route = useRoute();
 const tripId = route.query.id;
@@ -26,6 +27,7 @@ const endDate = ref('');
 const calendarApp = shallowRef(null); // ✅ Use shallowRef!
 const calendarEvents = ref([]);
 let eventId = null;
+const currentUser = ref(null)
 // Fetch itinerary data including start_date
 const fetchItineraryData = async () => {
   try {
@@ -50,15 +52,24 @@ const fetchItineraryData = async () => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
   fetchUserVote();
   fetchVoteCounts();
   fetchItineraryData();
   fetchPotentialActivities();
+
   if (tripId) {
-    fetchOwnerProfile();  // Fetch the data for the trip
+    fetchOwnerProfile(); // Fetch the data for the trip
   }
-  
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error('Failed to get user:', error.message);
+  } else {
+    currentUser.value = user;
+    console.log('User:', user);
+  }
 });
 
 // Watch for startDate and create calendar once ready
@@ -72,8 +83,24 @@ watch(startDate, async (val) => {
   calendarApp.value = createCalendar({
     plugins: [createDragAndDropPlugin()],
     callbacks: {
-      onEventUpdate(events) {
+      onEventUpdate(event) {
         // Optionally update Supabase when an event is moved/changed
+        console.log('Event updated:', event);
+        // Example Supabase update
+        supabase
+          .from('activities')
+          .update({
+            start_time: event.start,
+            end_time: event.end
+          })
+          .eq('id', event.id)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error updating event:', error);
+            } else {
+              console.log('Successfully updated event:', event.id);
+            }
+          });
       },
         // < -- to show event details when clicked,, we can change the modal  --> 
         onEventClick(event) {
@@ -89,6 +116,7 @@ watch(startDate, async (val) => {
             endTime: event.end.split(' ')[1],   
           };
         eventId = event.id;
+        fetchComments(eventId);
         showActivityModal.value = true;
       },
       // < -- resizing events by dragging their top or bottom edges   --> 
@@ -301,8 +329,8 @@ const fetchActivities = async () => {
       return {
         id: a.id,
         title: a.name,
-        start: `${a.date}`,
-        end: `${a.date}`,
+        start: `${a.date} 00:00`,
+        end: `${a.date} 23:59`,
         description: a.description,
         location: a.location,
       };
@@ -389,7 +417,6 @@ const editItinerary = ref({
   start_date: '',
   end_date: '',
 })
-
 
 const openEditModal = () => {
   showEditModal.value = true
@@ -732,7 +759,87 @@ const fetchVoteCounts = async () => {
 
 const isChecked = ref(false); // Starts unchecked
 
+//////COMMENTS PART
+const comments = ref([])
+const newComment = ref('') // Reactive variable to bind the input
 
+const fetchComments = async (activityId) => {
+  // Step 1: Fetch comments
+  const { data: commentsData, error: commentsError } = await supabase
+    .from('comments')
+    .select('*')
+    .eq('activity_id', activityId)
+    .order('created_at', { ascending: true });
+
+  if (commentsError) {
+    console.error('Error fetching comments:', commentsError.message);
+    return [];
+  }
+
+  // Step 2: Extract unique commenter IDs
+  const commenterIds = [...new Set(commentsData.map(comment => comment.commenter_id))];
+
+  // Step 3: Fetch profiles manually
+  const { data: profilesData, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, username, profile_pic_url')
+    .in('id', commenterIds);
+
+  if (profilesError) {
+    console.error('Error fetching commenter profiles:', profilesError.message);
+    return [];
+  }
+
+  // Step 4: Create a map of profiles
+  const profileMap = Object.fromEntries(profilesData.map(profile => [profile.id, profile]));
+
+  // Step 5: Merge comments with corresponding profile
+  const enrichedComments = commentsData.map(comment => ({
+    ...comment,
+    commenter: profileMap[comment.commenter_id] || null,
+  }));
+
+  // Step 6: Assign to reactive variable or return
+  comments.value = enrichedComments;
+  console.log("Here are the comments:");
+  console.log(comments.value);
+};
+
+// Function to add comment to Supabase
+const addComment = async () => {
+  if (!newComment.value.trim()) return // Prevent submitting empty comments
+
+  const commentText = newComment.value.trim()
+
+  const { data, error } = await supabase
+    .from('comments')
+    .insert([
+      { 
+        activity_id: eventId, 
+        commenter_id: currentUser.value.id, 
+        comment: commentText 
+      }
+    ])
+
+  if (error) {
+    console.error('Error adding comment:', error.message)
+  } else {
+    console.log('Comment added:', data)
+    newComment.value = '' // Clear the input after success
+  }
+
+  fetchComments(eventId)
+}
+
+const formatTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const diff = Date.now() - date.getTime();
+
+  return diff < 1000 * 60 * 60 * 24
+    ? formatDistanceToNow(date, { addSuffix: true }) // e.g. "5 minutes ago"
+    : format(date, 'MMM d'); // e.g. "Apr 30"
+};
 
 </script>
 
@@ -1062,33 +1169,54 @@ const isChecked = ref(false); // Starts unchecked
 
      <!-- Input for Adding Notes -->
     <div class="mt-3 d-flex" style="width: 100%; max-width: 600px;">
-      <input type="text" id="noteInput" placeholder="Add a note..." 
+      <input v-model="newComment" type="text" id="noteInput" placeholder="Add a comment..." 
             style="flex-grow: 1; height: 40px; padding: 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 14px; margin-left: 25px; width: calc(100% - 60px); box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);"/>
-      <button class="btn btn-outline-primary ms-2" type="submit">
+      <button class="btn btn-outline-primary ms-2" @click="addComment" type="submit">
         <i class="fas fa-pencil-alt"></i> <!-- Pencil Icon -->
       </button>
     </div>
 
-    <!-- Notes List (Scrollable) -->
-    <div class="mt-3 d-flex justify-content-center">
-      <div class="note-card shadow-sm" style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0 ; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
-        <!-- Flexbox container for profile and text, aligned to the left -->
-        <div class="d-flex align-items-start">
-          <!-- Profile Picture (Placeholder) -->
-          <div class="profile-pic" style="width: 40px; height: 40px; border-radius: 50%; background-color: #ddd; margin-right: 10px;"></div>
+<!-- Notes List (Scrollable) -->
+<div class="mt-3 d-flex flex-column align-items-center" v-if="comments.length">
+  <div
+    v-for="comment in comments"
+    :key="comment.id"
+    class="note-card shadow-sm mb-3"
+    style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+  >
+    <!-- Flex container for profile + content -->
+    <div class="d-flex align-items-start">
+      <!-- Profile Picture -->
+      <img
+        :src="comment.commenter?.profile_pic_url || 'default-avatar.png'"
+        alt="Profile Picture"
+        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
+      />
 
-          <!-- User Name in the same line as profile pic -->
-          <div>
-            <small class="text-muted">User A</small>
-          </div>
+      <!-- Content block -->
+      <div style="flex: 1;">
+        <!-- Name and timestamp -->
+        <div class="d-flex justify-content-between">
+          <small class="text-muted">
+            {{ comment.commenter?.username || 'Anonymous' }}
+          </small>
+          <small class="text-muted">
+            {{ formatTime(comment.created_at) }}
+          </small>
         </div>
 
-        <!-- Note (directly below the username) -->
-        <div style="margin-top: -18px;margin-left: -70px;">
-          Bring extra water for this activity.
+        <!-- Comment text -->
+        <div class="mt-1" style="text-align: left;">
+          {{ comment.comment }}
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+
+
+
     </div>
 
     <!-- Modal Footer: Buttons for Delete, Edit, Close -->
