@@ -158,7 +158,7 @@ export default {
         }
 
         // Send Invitations
-        if (this.tripMembers) {
+        if (this.tripMembers && typeof this.tripMembers === 'string' && this.tripMembers.trim() !== "") {
           const membersArray = this.tripMembers.split(",").map((email) => email.trim());
           
           let allInvitesSent = true; // Flag to track if all invites are successfully sent
@@ -220,6 +220,7 @@ export default {
           console.log("Some invitations were not sent due to errors or invalid emails.");
         }
       }
+      this.$router.push("/dashboard");
     },
     
     async handleImageUpload(event) {
