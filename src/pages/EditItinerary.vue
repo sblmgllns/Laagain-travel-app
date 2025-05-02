@@ -29,6 +29,8 @@ const calendarEvents = ref([]);
 let eventId = null;
 const currentUser = ref(null)
 const totalMembers = ref(1);
+const isEditingActivity = ref(false);
+
 // Fetch itinerary data including start_date
 const fetchItineraryData = async () => {
   try {
@@ -91,7 +93,8 @@ watch(startDate, async (val) => {
           .from('activities')
           .update({
             start_time: event.start,
-            end_time: event.end
+            end_time: event.end,
+            date: event.start.split(' ')[0]
           })
           .eq('id', event.id)
           .then(({ error }) => {
@@ -199,20 +202,43 @@ const deleteActivity = async () => {
   }
 
   const confirmed = window.confirm("Are you sure you want to delete this activity?");
-  if (!confirmed) {
-    return; // Exit if the user cancels
+  if (!confirmed) return;
+
+  const activityId = newActivity.value.id;
+
+  // 1. Delete related votes
+  const { error: voteError } = await supabase
+    .from("votes")
+    .delete()
+    .eq("activity_id", activityId);
+
+  if (voteError) {
+    console.error("Failed to delete votes:", voteError);
+    return;
   }
 
-  const { error } = await supabase
+  // 2. Delete related comments
+  const { error: commentError } = await supabase
+    .from("comments")
+    .delete()
+    .eq("activity_id", activityId);
+
+  if (commentError) {
+    console.error("Failed to delete comments:", commentError);
+    return;
+  }
+
+  // 3. Now delete the activity
+  const { error: activityError } = await supabase
     .from("activities")
     .delete()
-    .eq("id", newActivity.value.id); // assuming 'id' is the primary key
+    .eq("id", activityId);
 
-  if (error) {
-    console.error("Failed to delete activity:", error);
+  if (activityError) {
+    console.error("Failed to delete activity:", activityError);
   } else {
-    console.log("Activity deleted successfully");
-    showActivityModal.value = false; // Close the modal after deletion
+    console.log("Activity, votes, and comments deleted successfully");
+    showActivityModal.value = false;
     window.location.reload();
   }
 };
@@ -701,7 +727,6 @@ const vote = async (voteType) => {
   }
 };
 
-
 const fetchVoteCounts = async (eventId) => {
   const { data, error } = await supabase
     .from('votes')
@@ -833,6 +858,44 @@ const formatTime = (timestamp) => {
     ? formatDistanceToNow(date, { addSuffix: true }) // e.g. "5 minutes ago"
     : format(date, 'MMM d'); // e.g. "Apr 30"
 };
+
+const startEditingActivity = () => {
+  isEditingActivity.value = true;
+};
+
+const cancelEditingActivity = () => {
+  isEditingActivity.value = false;
+};
+
+const saveEditedActivity = async () => {
+  // Combine date and time to make valid timestamp strings
+  const startTimestamp = `${newActivity.value.date}T${newActivity.value.startTime}:00`;
+  const endTimestamp = `${newActivity.value.date}T${newActivity.value.endTime}:00`;
+
+  const { error } = await supabase
+    .from("activities")
+    .update({
+      name: newActivity.value.title,
+      description: newActivity.value.description,
+      location: newActivity.value.location,
+      date: newActivity.value.date,
+      start_time: startTimestamp,
+      end_time: endTimestamp,
+    })
+    .eq("id", newActivity.value.id);
+
+  if (error) {
+    console.error("Error saving activity:", error);
+  } else {
+    console.log("Activity updated successfully!");
+    isEditingActivity.value = false;
+    await fetchActivities(); // Refresh the calendar
+    showActivityModal.value = false;
+    window.location.reload();
+  }
+};
+
+
 
 </script>
 
@@ -1070,157 +1133,214 @@ const formatTime = (timestamp) => {
     </div>
 
   </div>
-  
-      <!-- Show Activity Modal -->
-      <div v-if="showActivityModal" class="activity-modal-overlay">
-        <div class="activity-modal" style="max-height: 90vh; padding: 1rem;">
-          <!-- Modal Header: Activity Name centered -->
-          <div class="modal-header">
-            <h3 class="modal-title text-center">{{ newActivity.title }}</h3>
-          </div>
-          
-          <!-- Modal Body: Activity Details displayed vertically -->
-          <div class="modal-body" style="overflow-y: auto; padding: 20px;" >
-            <!-- Details Header -->
-            <div class="details-header">
-              <strong>Details</strong>
-            </div>
+
+  <!-- Show Activity Modal -->
+  <div v-if="showActivityModal" class="activity-modal-overlay">
+    <div class="activity-modal" style="max-height: 90vh; padding: 1rem;">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="modal-title text-center">
+          <template v-if="!isEditingActivity">{{ newActivity.title }}</template>
+          <input
+            v-else
+            v-model="newActivity.title"
+            class="form-control"
+            placeholder="Enter activity title"
+          />
+        </h3>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body" style="overflow-y: auto; padding: 20px;">
+        
+        <!-- Details -->
+        <div class="details-header">
+          <strong>Details</strong>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-item" style="text-align: left; margin-left: 10px;">
+          <strong style="color: #3f3e3e; font-size: 1rem;">Description:</strong>
+          <template v-if="!isEditingActivity">
+            {{ newActivity.description || '-' }}
+          </template>
+          <textarea
+            v-else
+            v-model="newActivity.description"
+            class="form-control"
+            rows="2"
+            placeholder="Enter description"
+          ></textarea>
+        </div>
+
+        <!-- Location -->
+        <div class="detail-item" style="text-align: left; margin-left: 10px;">
+          <strong style="color: #3f3e3e; font-size: 1rem;">Location:</strong>
+          <template v-if="!isEditingActivity">
+            {{ newActivity.location || '-' }}
+          </template>
+          <input
+            v-else
+            v-model="newActivity.location"
+            class="form-control"
+            placeholder="Enter location"
+          />
+        </div>
+
+        <!-- Date -->
+        <div class="detail-item" style="text-align: left; margin-left: 10px;">
+          <strong style="color: #3f3e3e; font-size: 1rem;">Date:</strong>
+          <template v-if="!isEditingActivity">
+            {{ newActivity.date || '-' }}
+          </template>
+          <input
+            v-else
+            v-model="newActivity.date"
+            type="date"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Start Time -->
+        <div class="detail-item" style="text-align: left; margin-left: 10px;">
+          <strong style="color: #3f3e3e; font-size: 1rem;">Start Time:</strong>
+          <template v-if="!isEditingActivity">
+            {{ newActivity.startTime || '-' }}
+          </template>
+          <input
+            v-else
+            v-model="newActivity.startTime"
+            type="time"
+            class="form-control"
+          />
+        </div>
+
+        <!-- End Time -->
+        <div class="detail-item" style="text-align: left; margin-left: 10px;">
+          <strong style="color: #3f3e3e; font-size: 1rem;">End Time:</strong>
+          <template v-if="!isEditingActivity">
+            {{ newActivity.endTime || '-' }}
+          </template>
+          <input
+            v-else
+            v-model="newActivity.endTime"
+            type="time"
+            class="form-control"
+          />
+        </div>
+
+        <!-- Votes -->
+        <div class="details-header" style="margin-top: 1.5rem;">
+          <strong>Votes</strong>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3">
+          <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
             
-            <div class="detail-item" style="text-align: left;margin-left: 10px;">
-              <strong style="color: #3f3e3e;font-size: 1rem;">Description:</strong> {{ newActivity.description || '-' }}
-            </div>
-            <div class="detail-item" style="text-align: left;margin-left: 10px;">
-              <strong style="color: #3f3e3e;font-size: 1rem;">Location:</strong> {{ newActivity.location}}
-            </div>
-            <div class="detail-item" style="text-align: left;margin-left: 10px;">
-              <strong style="color: #3f3e3e;font-size: 1rem;">Date:</strong> {{ newActivity.date }}
-            </div>
-            <div class="detail-item" style="text-align: left;margin-left: 10px;">
-              <strong style="color: #3f3e3e;font-size: 1rem;">Start Time:</strong> {{ newActivity.startTime }}
-            </div>
-            <div class="detail-item" style="text-align: left;margin-left: 10px;">
-              <strong style="color: #3f3e3e;font-size: 1rem;">End Time:</strong> {{ newActivity.endTime }}
-            </div>
-
-            <!-- Votes Header -->
-      <div class="details-header" style="margin-top: 1.5rem;">
-        <strong>Votes</strong>
-      </div>
-
-      <!-- Voting UI Container -->
-      <div class="d-flex justify-content-center mt-3">
-        <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
-          
-          <!-- Vote Bars -->
-          <div class="mb-3">
-            <div class="d-flex align-items-center mb-2">
-              <span style="width: 50px;" class="text-end pe-2">Yes</span>
-              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                <div class="bg-success rounded-pill shadow-sm" 
-                :style="{
-                  height: '100%',
-                  width: yesPercentage + '%',
-                  transition: 'width 0.3s'
-                }"></div>
+            <!-- Vote Bars -->
+            <div class="mb-3">
+              <div class="d-flex align-items-center mb-2">
+                <span style="width: 50px;" class="text-end pe-2">Yes</span>
+                <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+                  <div class="bg-success rounded-pill shadow-sm" 
+                    :style="{ height: '100%', width: yesPercentage + '%', transition: 'width 0.3s' }"
+                  ></div>
+                </div>
+                <span class="ms-2 text-muted small">{{ yesVotes }} votes</span>
               </div>
-              <span class="ms-2 text-muted small">{{ yesVotes }} votes</span>
-            </div>
-            <div class="d-flex align-items-center">
-              <span style="width: 50px;" class="text-end pe-2">No</span>
-              <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                <div class="bg-danger rounded-pill shadow-sm" 
-                :style="{
-                  height: '100%',
-                  width: noPercentage + '%',
-                  transition: 'width 0.3s'
-                }"></div>
+              <div class="d-flex align-items-center">
+                <span style="width: 50px;" class="text-end pe-2">No</span>
+                <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
+                  <div class="bg-danger rounded-pill shadow-sm" 
+                    :style="{ height: '100%', width: noPercentage + '%', transition: 'width 0.3s' }"
+                  ></div>
+                </div>
+                <span class="ms-2 text-muted small">{{ noVotes }} votes</span>
               </div>
-              <span class="ms-2 text-muted small">{{ noVotes }} votes</span>
+            </div>
+
+            <!-- Voting Buttons -->
+            <div class="d-flex justify-content-center gap-2">
+              <button class="btn btn-outline-success btn-sm px-3" @click="vote('yes')">Yes</button>
+              <button class="btn btn-outline-danger btn-sm px-3" @click="vote('no')">No</button>
+            </div>
+
+            <!-- Vote Status -->
+            <div class="text-center mt-2 text-muted small" v-if="!userVoted">
+              You haven't voted yet.
+            </div>
+            <div class="text-center mt-2 text-muted small" v-else>
+              You voted: {{ userVote }}.
             </div>
           </div>
-
-          <!-- Smaller Voting Buttons -->
-          <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-outline-success btn-sm px-3" @click="vote('yes')">Yes</button>
-            <button class="btn btn-outline-danger btn-sm px-3" @click="vote('no')">No</button>
-          </div>
-
-          <!-- Not Voted Message -->
-          <div class="text-center mt-2 text-muted small" v-if="!userVoted">
-            You haven't voted yet.
-          </div>
-          <div class="text-center mt-2 text-muted small" v-else>
-            You voted: {{ userVote }}.
-          </div>
-        </div>
-      </div>
-
-      <!-- Annotation Header -->
-      <div class="details-header mt-4">
-        <strong>Notes</strong>
-      </div>
-
-     <!-- Input for Adding Notes -->
-    <div class="mt-3 d-flex" style="width: 100%; max-width: 600px;">
-      <input v-model="newComment" type="text" id="noteInput" placeholder="Add a comment..." 
-            style="flex-grow: 1; height: 40px; padding: 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 14px; margin-left: 25px; width: calc(100% - 60px); box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);"/>
-      <button class="btn btn-outline-primary ms-2" @click="addComment" type="submit">
-        <i class="fas fa-pencil-alt"></i> <!-- Pencil Icon -->
-      </button>
-    </div>
-
-<!-- Notes List (Scrollable) -->
-<div class="mt-3 d-flex flex-column align-items-center" v-if="comments.length">
-  <div
-    v-for="comment in comments"
-    :key="comment.id"
-    class="note-card shadow-sm mb-3"
-    style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
-  >
-    <!-- Flex container for profile + content -->
-    <div class="d-flex align-items-start">
-      <!-- Profile Picture -->
-      <img
-        :src="comment.commenter?.profile_pic_url || 'default-avatar.png'"
-        alt="Profile Picture"
-        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
-      />
-
-      <!-- Content block -->
-      <div style="flex: 1;">
-        <!-- Name and timestamp -->
-        <div class="d-flex justify-content-between">
-          <small class="text-muted">
-            {{ comment.commenter?.username || 'Anonymous' }}
-          </small>
-          <small class="text-muted">
-            {{ formatTime(comment.created_at) }}
-          </small>
         </div>
 
-        <!-- Comment text -->
-        <div class="mt-1" style="text-align: left;">
-          {{ comment.comment }}
+        <!-- Comments -->
+        <div class="details-header mt-4">
+          <strong>Notes</strong>
         </div>
+
+        <div class="mt-3 d-flex" style="width: 100%; max-width: 600px;">
+          <input
+            v-model="newComment"
+            type="text"
+            id="noteInput"
+            placeholder="Add a comment..."
+            style="flex-grow: 1; height: 40px; padding: 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 14px; margin-left: 25px; width: calc(100% - 60px); box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);"
+          />
+          <button class="btn btn-outline-primary ms-2" @click="addComment" type="submit">
+            <i class="fas fa-pencil-alt"></i>
+          </button>
+        </div>
+
+        <!-- Comment List -->
+        <div class="mt-3 d-flex flex-column align-items-center" v-if="comments.length">
+          <div
+            v-for="comment in comments"
+            :key="comment.id"
+            class="note-card shadow-sm mb-3"
+            style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+          >
+            <div class="d-flex align-items-start">
+              <img
+                :src="comment.commenter?.profile_pic_url || 'default-avatar.png'"
+                alt="Profile Picture"
+                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
+              />
+              <div style="flex: 1;">
+                <div class="d-flex justify-content-between">
+                  <small class="text-muted">
+                    {{ comment.commenter?.username || 'Anonymous' }}
+                  </small>
+                  <small class="text-muted">
+                    {{ formatTime(comment.created_at) }}
+                  </small>
+                </div>
+                <div class="mt-1" style="text-align: left;">
+                  {{ comment.comment }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- end modal-body -->
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button v-if="isEditingActivity" class="btn btn-danger" @click="deleteActivity">Delete</button>
+        <button v-if="!isEditingActivity" class="btn btn-primary" @click="startEditingActivity">Edit</button>
+        <button v-if="isEditingActivity" class="btn btn-success" @click="saveEditedActivity">Save</button>
+        <button v-if="isEditingActivity" class="btn btn-warning" @click="cancelEditingActivity">Cancel</button>
+        <button class="btn btn-secondary" @click="closeActivityModal">Close</button>
       </div>
-    </div>
-  </div>
-</div>
+
+    </div> <!-- end .activity-modal -->
+  </div> <!-- end .activity-modal-overlay -->
 
 
-
-
-    </div>
-
-    <!-- Modal Footer: Buttons for Delete, Edit, Close -->
-    <div class="modal-footer">
-      <button v-if="isEditMode" class="btn btn-danger" @click="deleteActivity">Delete</button>
-      <button class="btn btn-primary" @click="editActivity">Edit</button>
-      <button class="btn btn-secondary" @click="closeActivityModal">Close</button>
-    </div>
-  </div>
-</div>
-
+  
 
 </template>
 
