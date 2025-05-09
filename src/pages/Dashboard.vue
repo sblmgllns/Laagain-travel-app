@@ -297,6 +297,7 @@
           </router-link>
         </div>
       </div>
+
       </div>
       <<div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -427,10 +428,10 @@
     <!-- Modal Backdrop -->
     <div v-if="showInviteModal" class="modal-backdrop fade show"></div>
     </div>
-  </template>
+</template>
   
-  
-  <script>
+
+<script>
   import { supabase } from "../supabase";
   import { useRouter } from "vue-router";
 

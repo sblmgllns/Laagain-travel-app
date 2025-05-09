@@ -1,0 +1,217 @@
+body{
+    font-family: 'Sarabun', sans-serif;
+}
+.select-loc-btn{
+    width: 100%;
+}
+
+.search-form{
+    width: 40%;
+}
+
+.input-bar{
+    border: 2px solid #ebe9e9;
+    width: 90%;
+    border-top-right-radius: 0.5rem !important;
+  border-bottom-right-radius: 0.5rem !important;
+}
+
+.top-bar{
+    height: 13%;
+    padding: 2% 2%;
+}
+
+
+.text-gray {
+    color: #b0b0b0; /* Default gray color */
+    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.nav-item:hover i,
+.nav-item:hover p {
+  color: #03AED2 !important; /* Blue when hovered */
+  transform: scale(1.1); /* Slight zoom effect */
+}
+
+.nav-link {
+  color: #808080;
+  font-weight: bold;
+}
+
+.nav-link:hover {
+  color: #03AED2;
+}
+
+.nav-link.active {
+border-bottom: 4px solid #03AED2 !important;
+color: #089dcf !important;
+}
+
+.nav-link.tab-spacing {
+letter-spacing: 0.04em; /* Adjust the value to fit your need */
+}
+
+.results-page {
+    display: flex;
+    padding: 1.5rem;
+    font-family: 'Sarabun', sans-serif;
+    background-color: #ebe9e9;
+    padding-bottom: 130px;
+  }
+  
+  .sidebar {
+    width: 250px;
+    margin-right: 2rem;
+    flex-shrink: 0;
+    border-right: 1px solid #eee;
+    background-color: white;
+    padding: 2%;
+  }
+  
+  .filter-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-group h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .results {
+    flex: 1;
+    background-color: white;
+    padding: 2%;
+  }
+  
+  .results-header {
+    margin-bottom: 1rem;
+  }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .result-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    background: #fff;
+  }
+  
+  .result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-img-top {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+  
+  .card-body {
+    padding: 0.75rem 1rem;
+  }
+  
+  .category {
+    color: #777;
+    font-size: 0.85rem;
+  }
+  
+  .card-title {
+    font-weight: 600;
+    margin: 0.25rem 0;
+  }
+  
+  .rating {
+    font-size: 0.85rem;
+    color: #444;
+    margin-bottom: 0.5rem;
+  }
+  
+  .price {
+    font-weight: 600;
+    color: #e67e22;
+  }
+
+
+
+  .loc-modal {
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-footer .btn-warning {
+    background-color: #ff5a00; /* Similar to Klook's orange */
+  }
+
+  .modal-footer .btn-link {
+    color: #666;
+  }
+
+  /* details modal */
+
+  /* Style specifically for the #detailsModal */
+#detailsModal .modal-content {
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  #detailsModal .modal-header {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  
+  #detailsModal .modal-title {
+    font-weight: 600;
+    font-size: 1.5rem;
+  }
+  
+  #detailsModal .modal-body {
+    padding-top: 0.5rem;
+  }
+  
+  #detailsModal .modal-body img {
+    border-radius: 12px;
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  #detailsModal .modal-body > div {
+    flex: 1;
+  }
+  
+  #detailsModal .modal-body p {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  #detailsModal .modal-body a {
+    text-decoration: none;
+    color: #007bff;
+  }
+  
+  #detailsModal .modal-body a:hover {
+    text-decoration: underline;
+  }
+  
+  #detailsModal .dropdown-toggle {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+  }
+  
+  #detailsModal .btn-danger {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+  }
+  
+  #detailsModal .d-flex.justify-content-end {
+    gap: 0.5rem;
+  }
+  
+  
