@@ -243,8 +243,35 @@ const deleteActivity = async () => {
   }
 };
 
+const editPotentialActivity = (index) => {
+  const activity = potentialActivities.value[index];
+  newActivity.value = {
+    id: activity.id,
+    title: activity.name || "",
+    description: activity.description || "",
+    location: activity.location || "",
+    date: activity.date || "",
+    startTime: activity.start_time || "",
+    endTime: activity.end_time || ""
+  };
+  isChecked.value = !activity.start_time && !activity.end_time;
+  showModal.value = true;
+};
 
 const saveActivity = async () => {
+  const startTime = newActivity.value.startTime;
+  const endTime = newActivity.value.endTime;
+
+  const isAllDay =
+    !startTime || startTime === 'None' ||
+    !endTime || endTime === 'None';
+
+  const start_time = isAllDay ? '00:00' : startTime;
+  const end_time = isAllDay ? '23:59' : endTime;
+
+  console.log("start_time", start_time);
+  console.log("end_time", end_time);
+
   const { error } = await supabase
     .from("potential_activities")
     .insert([
@@ -253,20 +280,57 @@ const saveActivity = async () => {
         description: newActivity.value.description,
         location: newActivity.value.location,
         date: newActivity.value.date,
-        start_time: newActivity.value.startTime,
-        end_time: newActivity.value.endTime,
-        itinerary_id: tripId
+        start_time,
+        end_time,
+        itinerary_id: tripId,
       },
     ]);
 
   if (error) {
     console.error("Error saving potential activity:", error);
+    alert("Failed to save activity. Please try again.");
     return;
   }
 
-  await fetchPotentialActivities(); // Refresh list
+  await fetchPotentialActivities();
   closeModal();
-  //window.location.reload();
+};
+
+
+
+const saveEditedPotentialActivity = async () => {
+  const startTime = newActivity.value.startTime;
+  const endTime = newActivity.value.endTime;
+
+  const isAllDay =
+    !startTime || startTime === 'None' ||
+    !endTime || endTime === 'None';
+
+  const start_time = isAllDay ? '00:00' : startTime;
+  const end_time = isAllDay ? '23:59' : endTime;
+
+  console.log("start_time", start_time);
+  console.log("end_time", end_time);
+
+  const { error } = await supabase
+    .from("potential_activities")
+    .update({
+      name: newActivity.value.title,
+      description: newActivity.value.description,
+      location: newActivity.value.location,
+      date: newActivity.value.date,
+      start_time,
+      end_time,
+    })
+    .eq("id", newActivity.value.id);
+
+  if (error) {
+    console.error("Error editing activity:", error);
+  } else {
+    console.log("Activity updated!");
+    showModal.value = false;
+    await fetchPotentialActivities();
+  }
 };
 
 const potentialActivities = ref([]);
@@ -284,21 +348,38 @@ const fetchPotentialActivities = async () => {
 
   potentialActivities.value = data;
 };
-
-// When add button is clicked on the right
 const addActivity = async (index) => {
-  const selectedActivity = potentialActivities.value[index];  // Access with `.value`
+  const selectedActivity = potentialActivities.value[index];
   console.log("Adding activity:", selectedActivity);
 
-  // Set to null if start or end time is missing
-  const startTimestamp = selectedActivity.start_time
-    ? `${selectedActivity.date}T${selectedActivity.start_time}:00`
-    : null;
+  // ❗ Check for missing date
+  if (!selectedActivity.date || selectedActivity.date.trim() === "") {
+    alert("Date is required to add this activity.");
+    return;
+  }
 
-  const endTimestamp = selectedActivity.end_time
-    ? `${selectedActivity.date}T${selectedActivity.end_time}:00`
-    : null;
+  // Determine timestamps
+  let startTimestamp = null;
+  let endTimestamp = null;
 
+  
+    // Check for missing start time
+    if (!selectedActivity.start_time || selectedActivity.start_time.trim() === "") {
+      alert("Start time is required.");
+      return;
+    }
+
+    // Check for missing end time
+    if (!selectedActivity.end_time || selectedActivity.end_time.trim() === "") {
+      alert("End time is required.");
+      return;
+    }
+
+    startTimestamp = `${selectedActivity.date} ${selectedActivity.start_time}:00`;
+    endTimestamp = `${selectedActivity.date} ${selectedActivity.end_time}:00`;
+
+
+  // Insert into "activities"
   const { error } = await supabase
     .from("activities")
     .insert([
@@ -317,7 +398,6 @@ const addActivity = async (index) => {
     console.error("Failed to insert activity:", error);
   } else {
     console.log("Activity successfully inserted!");
-    
   }
 
   // Remove from potential_activities
@@ -331,14 +411,41 @@ const addActivity = async (index) => {
     return;
   }
 
-  // Refresh potential list & calendar
-  window.location.reload();
+  // Refresh UI
   await fetchPotentialActivities();
   await fetchActivities();
   calendarApp.value?.setEvents([...calendarEvents.value]);
-  // calendarApp.value?.setEvents([...calendarEvents.value]);
+  window.location.reload();
+};
+
+
+
+const removeActivity = async (index) => {
+  const selectedActivity = potentialActivities.value[index];  // Access with `.value`
+  console.log("Removing activity:", selectedActivity.id);
+  try {
+    const { error: deleteError } = await supabase
+      .from("potential_activities")
+      .delete()
+      .eq("id", selectedActivity.id);
+
+    if (deleteError) {
+      console.error("Failed to delete from potential_activities:", deleteError);
+      return;
+    }
+    else{
+      console.log("Successfully removed");
+      window.location.reload();
+      await fetchPotentialActivities();
+      await fetchActivities();
+    }
   
-}
+  // calendarApp.value?.setEvents([...calendarEvents.value]);
+  } catch (err) {
+    console.error("Unexpected error during deletion:", err);
+  }
+
+};
 
 //for getting exisiting activities from supabase, for calendar reflection
 const fetchActivities = async () => {
@@ -951,19 +1058,28 @@ const saveEditedActivity = async () => {
               <button>🔍</button>
           </div>
           
-          <!-- potential activities -->
+          <!-- Potential Activities -->
           <div class="activity-list">
-            <div v-for="(activity, index) in potentialActivities" :key="index" class="activity-card">
-              <div class="activity-header">
-                <h2 class="activity-name">{{ activity.name }}</h2>
-                <button class="add-btn" @click="addActivity(index)">Add</button>
-              </div>
-              <p class="activity-description">{{ activity.description }}</p>
-              <p class="activity-location">Location: {{ activity.location }}</p>
-              <p class="activity-date">Date: {{ activity.date }}</p>
-              <p class="activity-time">Time: {{ activity.startTime }}</p>
+          <div
+            v-for="(activity, index) in potentialActivities"
+            :key="activity.id"
+            class="activity-card position-relative"
+            @click="editPotentialActivity(index)"
+          >
+            <button class="remove-btn" @click.stop="removeActivity(index)">×</button>
+
+            <div class="activity-header">
+              <h2 class="activity-name">{{ activity.name }}</h2>
             </div>
+            <p class="activity-description">{{ activity.description }}</p>
+            <p class="activity-location">Location: {{ activity.location }}</p>
+            <p class="activity-date">Date: {{ activity.date }}</p>
+            <p class="activity-time">Time: {{ activity.start_time }}</p>
+            
+            <button class="add-btn" @click.stop="addActivity(index)">Add</button>
           </div>
+        </div>
+
         </div>
 
       <!-- Right Section -->
@@ -974,27 +1090,23 @@ const saveEditedActivity = async () => {
     </div>
 
     <!-- Modal  -->
-    <!-- create activity modal -->
+    <!-- create/edit activity modal -->
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
-        <h2>New Activity</h2>
-        <!-- title -->
+        <h2>{{ newActivity.id ? "Edit Activity" : "New Activity" }}</h2>
+
         <div class="container-bar">
-        <input v-model="newActivity.title" placeholder="Activity Title" />
+          <input v-model="newActivity.title" placeholder="Activity Title" />
         </div>
-        <!-- description -->
+
         <div class="container-bar">
-        <textarea v-model="newActivity.description" placeholder="Description"></textarea>
-        </div>  
-        <!-- location -->
+          <textarea v-model="newActivity.description" placeholder="Description"></textarea>
+        </div>
+
         <div class="container-bar">
           <input v-model="newActivity.location" placeholder="Location" />
         </div>
-        
-        <!-- start date -->
-        <!-- <div class="start-date">Start</div>
-         -->
-        <!-- Date -->
+
         <div class="container-bar">
           <input 
             type="date" 
@@ -1003,40 +1115,31 @@ const saveEditedActivity = async () => {
             :max="endDate" 
           />
         </div>
-        <!-- all day option -->
-        <div class = "container-bar">
-          <!-- Label -->
+
+        <div class="container-bar">
           <div class="start-date">All day</div>
-          <!-- Toggle -->
           <VueToggles v-model="isChecked" />
         </div>
 
-        <!-- Only show the time inputs if NOT "All Day" -->
         <div v-if="!isChecked">
-          <!-- time -->
           <div class="container-bar">
-            <!-- Label -->
             <div class="start-date">Start</div>
-            <!-- Time -->
             <div class="datetime-wrapper">
               <input type="time" v-model="newActivity.startTime" />
             </div>
           </div>
 
-          <!-- End Div -->
           <div class="container-bar">
-            <!-- text -->
             <div class="start-date">End</div>
-            <!-- time -->
             <div class="datetime-wrapper">
               <input type="time" v-model="newActivity.endTime" />
             </div>
           </div>
         </div>
-      
+
         <div class="modal-actions">
-          <button 
-            @click="saveActivity" 
+         <button 
+            @click="newActivity.id ? saveEditedPotentialActivity() : saveActivity()"
             :disabled="
               !newActivity.title || 
               newActivity.title.trim() === '' || 

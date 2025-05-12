@@ -20,7 +20,10 @@
   
         <!-- Icons -->
         <div class="col-auto d-flex">
-          <a class="nav-link me-3" href="#"><i class="bi bi-search fs-3"></i></a>
+          <router-link class="nav-link me-3" to="/explore">
+            <i class="bi bi-search fs-3"></i>
+          </router-link>
+
           <a class="nav-link" href="#"><i class="bi bi-bell fs-3"></i></a>
         </div>
       </div>

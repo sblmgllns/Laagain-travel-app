@@ -390,7 +390,25 @@
   .activity-card:hover {
     transform: translateY(-5px);
   }
-  
+
+
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 1.2rem;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  color: #d00;
+}
+
   .activity-header {
     display: flex;
     justify-content: space-between;

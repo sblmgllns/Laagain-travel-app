@@ -1,15 +1,19 @@
 <script setup>
-import { ref , computed , onMounted} from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { cards } from '../assets/scripts/explore.js';
+import { supabase } from '../supabase';
 
-//separate file for the data retrievals para not so gubot
-import {cards} from '../assets/scripts/explore.js';
+const profilePicUrl = ref(null);
+const modalItem = ref(null);
+const activeTab = ref('attractions');
+const bookmarkedItems = ref([]);
+const userId = ref(null);
+const userTrips = ref([]);
+const selectedTripId = ref('');
 
-import { supabase } from '../supabase' // adjust path if needed
-
-const profilePicUrl = ref(null)
-
+// Get current user on mount
 onMounted(async () => {
-  // 1. Get current user
+   // 1. Get current user
   const {
     data: { user },
     error: userError
@@ -19,7 +23,8 @@ onMounted(async () => {
     console.error('Error getting user:', userError)
     return
   }
-
+  userId.value = user.id;
+  console.log(userId.value);
   // 2. Fetch user record from 'users' table
   const { data, error } = await supabase
     .from('profiles')
@@ -32,22 +37,188 @@ onMounted(async () => {
   } else {
     profilePicUrl.value = data.profile_pic_url
   }
-})
 
-const modalItem = ref(null);
-function showDetails(item) {
-  modalItem.value = item
+  // Load bookmarks
+  await loadBookmarks();
+  await loadUserTrips();
+});
+
+const handleAddActivity = async (item) => {
+  console.log("here", item.title);
+  const newActivity = {
+    name: item.title,
+    description: "",
+    location: "",
+    date: "",
+    start_time: null,
+    end_time: null,
+    itinerary_id: selectedTripId.value,
+  };
+
+  try {
+    const { error } = await supabase.from('potential_activities').insert(newActivity);
+
+    if (error) {
+      console.error("Error inserting activity:", error.message);
+    } else {
+      console.log("Activity inserted successfully");
+
+      // Close modal
+      const modalEl = document.getElementById("detailsModal");
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) {
+        modalInstance.hide();
+      }
+
+      // Show notification (simple toast or alert)
+      const alert = document.createElement("div");
+      alert.className = "alert alert-success position-fixed top-0 end-0 m-3";
+      alert.style.zIndex = 1055;
+      alert.innerText = "Activity added successfully!";
+      document.body.appendChild(alert);
+
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+      window.location.reload();
+    }
+  } catch (err) {
+    console.error("Unexpected error inserting activity:", err);
+  }
+};
+
+
+async function loadUserTrips() {
+  if (!userId.value) return;
+
+  try {
+    // Fetch owned trips (only id and name)
+    const { data: ownedTrips, error: ownedError } = await supabase
+      .from('itineraries')
+      .select('id, name')
+      .eq('owner_id', userId.value);
+
+    if (ownedError) throw ownedError;
+
+    // Fetch member trips (only id and name)
+    const { data: memberTrips, error: memberError } = await supabase
+      .from('itinerary_members')
+      .select(`
+        itineraries:itinerary_id (id, name)
+      `)
+      .eq('user_id', userId.value);
+
+    if (memberError) throw memberError;
+
+    // Format and combine results
+    const formattedOwnedTrips = ownedTrips.map(trip => ({
+      id: trip.id,
+      name: trip.name
+    }));
+
+    const formattedMemberTrips = memberTrips.map(member => ({
+      id: member.itineraries.id,
+      name: member.itineraries.name
+    }));
+
+    userTrips.value = [...formattedOwnedTrips, ...formattedMemberTrips];
+  } catch (error) {
+    console.error('Error loading trips:', error);
+  }
 }
 
-const activeTab = ref('attractions')
+async function loadBookmarks() {
+  if (!userId.value) return;
+  
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .select('*')
+    .eq('user_id', userId.value);
 
-console.log('cards is', cards)
-console.log('cards.value is', cards.value)
+  if (error) {
+    console.error('Error loading bookmarks:', error);
+    return;
+  }
 
-const filteredCards = computed(() =>
-  cards.value.filter(card => card.type === activeTab.value)
-)
+  bookmarkedItems.value = data.map(item => ({
+    id: item.card_id,
+    title: item.title,
+    image: item.image,
+    category: item.category,
+    price: item.price,
+    type: item.type,
+    rating: item.rating || 0,
+    reviews: item.reviews || 0,
+    booked: item.booked || ''
+  }));
+}
 
+async function toggleBookmark(item) {
+  if (!userId.value) {
+    console.error('User not logged in');
+    return;
+  }
+
+  console.log("Toggle", item);
+  // Generate an ID if one doesn't exist (fallback)
+  const cardId = item.id;
+  const isBookmarked = bookmarkedItems.value.some(bookmark => 
+    bookmark.id === cardId || bookmark.title === item.title
+  );
+
+  try {
+    if (isBookmarked) {
+      // Remove bookmark
+      const { error } = await supabase
+        .from('bookmarks')
+        .delete()
+        .eq('user_id', userId.value)
+        .or(`card_id.eq.${cardId},title.eq.${item.title}`);
+
+      if (error) throw error;
+      bookmarkedItems.value = bookmarkedItems.value.filter(
+        bookmark => bookmark.id !== cardId && bookmark.title !== item.title
+      );
+    } else {
+      // Add bookmark
+      const { error } = await supabase
+        .from('bookmarks')
+        .insert([
+          { 
+            user_id: userId.value, 
+            card_id: cardId,
+            title: item.title, // Store title as fallback
+            image: item.image,
+            category: item.category,
+            price: item.price,
+            type: item.type
+          }
+        ]);
+
+      if (error) throw error;
+      bookmarkedItems.value = [...bookmarkedItems.value, { ...item, id: cardId }];
+    }
+  } catch (error) {
+    console.error('Bookmark error:', error);
+  }
+}
+
+function isBookmarked(item) {
+  if (!item || !item.id || !bookmarkedItems.value) return false;
+  return bookmarkedItems.value.some(bookmark => bookmark.id === item.id);
+}
+
+function showDetails(item) {
+  modalItem.value = item;
+}
+
+const filteredCards = computed(() => {
+  if (activeTab.value === 'bookmarks') {
+    return bookmarkedItems.value;
+  }
+  return cards.value.filter(card => card.type === activeTab.value);
+});
 </script>
 
 <template>
@@ -153,9 +324,18 @@ const filteredCards = computed(() =>
             >
             View Details
             </button>
-            <button id="bookmarkBtn" class="btn">
-                <i id="bookmarkIcon" class="bi bi-bookmark"></i>
-            </button>
+            <button 
+            class="btn"
+            @click="toggleBookmark(item)"
+          >
+            <i 
+              class="bi"
+              :class="{
+                'bi-bookmark-fill bookmark-yellow': isBookmarked(item),
+                'bi-bookmark': !isBookmarked(item)
+              }"
+            ></i>
+          </button>
           </div>
         </div>
       </div>
@@ -264,8 +444,17 @@ const filteredCards = computed(() =>
                         <p><strong>Booked:</strong> {{ modalItem?.booked }}</p>
                         <p><strong>Website:</strong> <a href="#">Visit site</a></p>
                     </div>
-                    <button id="bookmarkBtn" class="btn">
-                        <i id="bookmarkIcon" class="bi bi-bookmark"></i>
+                    <button 
+                      class="btn"
+                      @click="toggleBookmark(modalItem)"
+                    >
+                      <i 
+                        class="bi"
+                        :class="{
+                          'bi-bookmark-fill text-primary': isBookmarked(modalItem),
+                          'bi-bookmark': !isBookmarked(modalItem)
+                        }"
+                      ></i>
                     </button>
                     <div class="d-flex justify-content-end mt-3">
                         <div class="dropdown me-2">
@@ -278,20 +467,27 @@ const filteredCards = computed(() =>
                             <li><a class="dropdown-item" href="#">Wishlist</a></li>
                         </ul> -->
 
-                        <select class="form-select w-auto">
-                            <option selected>Trip 1</option>
-                            <option >Trip 2</option>
-                            <option >Trip 3</option>
+                        <select class="form-select w-auto" v-model="selectedTripId">
+                          <option disabled value="">Select a Trip</option>
+                          <option 
+                            v-for="trip in userTrips" 
+                            :key="trip.id" 
+                            :value="trip.id"
+                          >
+                            {{ trip.name }}
+                          </option>
                         </select>
                         </div>
-                        <button class="btn btn-danger"> Add</button>
+                        <button @click="handleAddActivity(modalItem)" class="btn btn-primary">
+                          Add
+                        </button>
                     </div>
                 </div>
             </div>
             </div>
         </div>
     </div>
-
+  
 
 </template>
 

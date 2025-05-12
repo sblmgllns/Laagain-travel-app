@@ -4,7 +4,8 @@
 import { ref } from 'vue';
 
 export const cards = ref([
-  {
+  { 
+    id: 'hotel-1',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQY48vYs-5iydprqGgKxewYEPhrAn4tvlBvag&s',
     category: 'Zoos & aquariums • Cebu',
     title: 'HOTEL Cebu Ocean Park Ticket',
@@ -14,7 +15,8 @@ export const cards = ref([
     price: 12.39,
     type: 'hotels',
   },
-  {
+  { 
+    id: 'hotel-2',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/25/ca/d9/ff/sitting-elegantly-at.jpg?w=900&h=500&s=1',
     category: 'Resort passes • Cebu',
     title: 'Dusit Thani Mactan Day Use with Meals',
@@ -25,6 +27,7 @@ export const cards = ref([
     type: 'hotels',
   },
   {
+    id: 'hotel-3',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/6b/1b/e6/i-am-blessed-to-be-back.jpg?w=900&h=500&s=1',
     category: 'Day trips • Cebu',
     title: 'Cebu City Private Day Tour with Simala Shrine',
@@ -35,6 +38,7 @@ export const cards = ref([
     type: 'hotels',
   },
   {
+    id: 'hotel-4',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQY48vYs-5iydprqGgKxewYEPhrAn4tvlBvag&s',
     category: 'Zoos & aquariums • Cebu',
     title: 'Cebu Ocean Park Ticket',
@@ -45,6 +49,7 @@ export const cards = ref([
     type: 'hotels',
   },
   {
+    id: 'hotel-5',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/25/ca/d9/ff/sitting-elegantly-at.jpg?w=900&h=500&s=1',
     category: 'Resort passes • Cebu',
     title: 'ATTRACT Dusit Thani Mactan Day Use with Meals',
@@ -55,6 +60,7 @@ export const cards = ref([
     type: 'attractions',
   },
   {
+    id: 'hotel-6',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/6b/1b/e6/i-am-blessed-to-be-back.jpg?w=900&h=500&s=1',
     category: 'Day trips • Cebu',
     title: 'Cebu City Private Day Tour with Simala Shrine',
@@ -65,6 +71,7 @@ export const cards = ref([
     type: 'attractions',
   },
   {
+    id: 'hotel-7',
     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQY48vYs-5iydprqGgKxewYEPhrAn4tvlBvag&s',
     category: 'Zoos & aquariums • Cebu',
     title: 'Cebu Ocean Park Ticket',
@@ -75,6 +82,7 @@ export const cards = ref([
     type: 'attractions',
   },
   {
+    id: 'hotel-8',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/25/ca/d9/ff/sitting-elegantly-at.jpg?w=900&h=500&s=1',
     category: 'Resort passes • Cebu',
     title: 'Dusit Thani Mactan Day Use with Meals',
@@ -85,6 +93,7 @@ export const cards = ref([
     type: 'attractions',
   },
   {
+    id: 'hotel-9',
     image: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/6b/1b/e6/i-am-blessed-to-be-back.jpg?w=900&h=500&s=1',
     category: 'Day trips • Cebu',
     title: 'Cebu City Private Day Tour with Simala Shrine',
