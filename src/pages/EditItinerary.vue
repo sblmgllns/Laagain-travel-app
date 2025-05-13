@@ -17,6 +17,7 @@ import '@schedule-x/theme-default/dist/index.css';
 import VueToggles from "vue-toggles";
 import { formatDistanceToNow, format } from 'date-fns';
 import { createResizePlugin } from '@schedule-x/resize'
+import { createCurrentTimePlugin } from '@schedule-x/current-time'
 
 
 const route = useRoute();
@@ -85,7 +86,9 @@ watch(startDate, async (val) => {
   await nextTick();
 
   calendarApp.value = createCalendar({
-    plugins: [createDragAndDropPlugin(),     createResizePlugin()],
+    plugins: [createDragAndDropPlugin(),     
+              createResizePlugin(),
+              createCurrentTimePlugin()],
     callbacks: {
       onEventUpdate(event) {
         // Optionally update Supabase when an event is moved/changed
@@ -153,6 +156,13 @@ watch(startDate, async (val) => {
   });
 });
 
+createCurrentTimePlugin({
+  // Whether the indicator should be displayed in the full width of the week. Defaults to false
+  fullWeekWidth: true,
+ 
+  // Time zone offset in minutes. Can be any offset valid according to UTC (-720 to 840)
+  timeZoneOffset: 120
+})
 
 ///////MODAL PARTS//////////////////////////////////////////
 
