@@ -87,7 +87,7 @@ watch(startDate, async (val) => {
 
   calendarApp.value = createCalendar({
     plugins: [createDragAndDropPlugin(),     
-              createResizePlugin(),
+              createResizePlugin(15), // 15 minute intervals when resizing
               createCurrentTimePlugin()],
     callbacks: {
       onEventUpdate(event) {
@@ -217,7 +217,7 @@ const deleteActivity = async () => {
   if (!confirmed) return;
 
   const activityId = newActivity.value.id;
-
+  console.log("Deleting activity with ID:", newActivity.value.id);
   // 1. Delete related votes
   const { error: voteError } = await supabase
     .from("votes")
@@ -1015,6 +1015,11 @@ const saveEditedActivity = async () => {
   }
 };
 
+const isTimeInvalid = computed(() => {
+  if (!newActivity.value.startTime || !newActivity.value.endTime) return false;
+  return newActivity.value.endTime <= newActivity.value.startTime;
+});
+
 
 
 </script>
@@ -1150,6 +1155,11 @@ const saveEditedActivity = async () => {
           </div>
         </div>
 
+        <!-- 🟥 Error Message: End time earlier than start time -->
+        <p v-if="isTimeInvalid" style="color: red; font-size: 0.9rem; margin-left: 10px;">
+          End time cannot be earlier than start time.
+        </p>
+
         <div class="modal-actions">
          <button 
             @click="newActivity.id ? saveEditedPotentialActivity() : saveActivity()"
@@ -1158,7 +1168,8 @@ const saveEditedActivity = async () => {
               newActivity.title.trim() === '' || 
               !newActivity.location || 
               !newActivity.date || 
-              (!isChecked && (!newActivity.startTime || !newActivity.endTime))
+              (!isChecked && (!newActivity.startTime || !newActivity.endTime)) ||
+                (!isChecked && isTimeInvalid)
             "
           >
             Save
@@ -1269,83 +1280,91 @@ const saveEditedActivity = async () => {
 
       <!-- Modal Body -->
       <div class="modal-body" style="overflow-y: auto; padding: 20px;">
-        
-        <!-- Details -->
-        <div class="details-header">
-          <strong>Details</strong>
-        </div>
+        <div>  
+          <!-- Details -->
+          <div class="details-header">
+            <strong>Details</strong>
+          </div>
 
-        <!-- Description -->
-        <div class="detail-item" style="text-align: left; margin-left: 10px;">
-          <strong style="color: #3f3e3e; font-size: 1rem;">Description:</strong>
-          <template v-if="!isEditingActivity">
-            {{ newActivity.description || '-' }}
-          </template>
-          <textarea
-            v-else
-            v-model="newActivity.description"
-            class="form-control"
-            rows="2"
-            placeholder="Enter description"
-          ></textarea>
-        </div>
+          <!-- Description -->
+          <div class="detail-item" style="text-align: left; margin-left: 10px;">
+            <strong style="color: #3f3e3e; font-size: 1rem;">Description:</strong>
+            <template v-if="!isEditingActivity">
+              {{ newActivity.description || '-' }}
+            </template>
+            <textarea
+              v-else
+              v-model="newActivity.description"
+              class="form-control"
+              rows="2"
+              placeholder="Enter description"
+            ></textarea>
+          </div>
 
-        <!-- Location -->
-        <div class="detail-item" style="text-align: left; margin-left: 10px;">
-          <strong style="color: #3f3e3e; font-size: 1rem;">Location:</strong>
-          <template v-if="!isEditingActivity">
-            {{ newActivity.location || '-' }}
-          </template>
-          <input
-            v-else
-            v-model="newActivity.location"
-            class="form-control"
-            placeholder="Enter location"
-          />
-        </div>
+          <!-- Location -->
+          <div class="detail-item" style="text-align: left; margin-left: 10px;">
+            <strong style="color: #3f3e3e; font-size: 1rem;">Location:</strong>
+            <template v-if="!isEditingActivity">
+              {{ newActivity.location || '-' }}
+            </template>
+            <input
+              v-else
+              v-model="newActivity.location"
+              class="form-control"
+              placeholder="Enter location"
+            />
+          </div>
 
-        <!-- Date -->
-        <div class="detail-item" style="text-align: left; margin-left: 10px;">
-          <strong style="color: #3f3e3e; font-size: 1rem;">Date:</strong>
-          <template v-if="!isEditingActivity">
-            {{ newActivity.date || '-' }}
-          </template>
-          <input
-            v-else
-            v-model="newActivity.date"
-            type="date"
-            class="form-control"
-          />
-        </div>
+          <!-- Date -->
+          <div class="detail-item" style="text-align: left; margin-left: 10px;">
+            <strong style="color: #3f3e3e; font-size: 1rem;">Date:</strong>
+            <template v-if="!isEditingActivity">
+              {{ newActivity.date || '-' }}
+            </template>
+            <input
+              v-else
+              v-model="newActivity.date"
+              type="date"
+              class="form-control"
+              :min="startDate" 
+              :max="endDate" 
+            />
+          </div>
 
-        <!-- Start Time -->
-        <div class="detail-item" style="text-align: left; margin-left: 10px;">
-          <strong style="color: #3f3e3e; font-size: 1rem;">Start Time:</strong>
-          <template v-if="!isEditingActivity">
-            {{ newActivity.startTime || '-' }}
-          </template>
-          <input
-            v-else
-            v-model="newActivity.startTime"
-            type="time"
-            class="form-control"
-          />
-        </div>
+          <!-- Start Time -->
+          <div class="detail-item" style="text-align: left; margin-left: 10px;">
+            <strong style="color: #3f3e3e; font-size: 1rem;">Start Time:</strong>
+            <template v-if="!isEditingActivity">
+              {{ newActivity.startTime || '-' }}
+            </template>
+            <input
+              v-else
+              v-model="newActivity.startTime"
+              type="time"
+              class="form-control"
+            />
+          </div>
 
-        <!-- End Time -->
-        <div class="detail-item" style="text-align: left; margin-left: 10px;">
-          <strong style="color: #3f3e3e; font-size: 1rem;">End Time:</strong>
-          <template v-if="!isEditingActivity">
-            {{ newActivity.endTime || '-' }}
-          </template>
-          <input
-            v-else
-            v-model="newActivity.endTime"
-            type="time"
-            class="form-control"
-          />
-        </div>
+          <!-- End Time -->
+          <div class="detail-item" style="text-align: left; margin-left: 10px;">
+            <strong style="color: #3f3e3e; font-size: 1rem;">End Time:</strong>
+            <template v-if="!isEditingActivity">
+              {{ newActivity.endTime || '-' }}
+            </template>
+            <input
+              v-else
+              v-model="newActivity.endTime"
+              type="time"
+              class="form-control"
+            />
+          </div>
 
+          <!-- 🟥 Error Message: End time earlier than start time -->
+          <p v-if="isTimeInvalid && isEditingActivity" style="color: red; font-size: 0.9rem; margin-left: 10px; margin-top: 50px;">
+            End time cannot be earlier than start time.
+          </p>
+
+        </div>
         <!-- Votes -->
         <div class="details-header" style="margin-top: 1.5rem;">
           <strong>Votes</strong>
@@ -1447,7 +1466,12 @@ const saveEditedActivity = async () => {
       <div class="modal-footer">
         <button v-if="isEditingActivity" class="btn btn-danger" @click="deleteActivity">Delete</button>
         <button v-if="!isEditingActivity" class="btn btn-primary" @click="startEditingActivity">Edit</button>
-        <button v-if="isEditingActivity" class="btn btn-success" @click="saveEditedActivity">Save</button>
+        <button v-if="isEditingActivity"     
+            :disabled="isTimeInvalid || !newActivity.startTime || !newActivity.endTime"
+            class="btn btn-success" 
+            @click="saveEditedActivity">
+            Save
+            </button>
         <button v-if="isEditingActivity" class="btn btn-warning" @click="cancelEditingActivity">Cancel</button>
         <button class="btn btn-secondary" @click="closeActivityModal">Close</button>
       </div>
