@@ -18,6 +18,7 @@ import VueToggles from "vue-toggles";
 import { formatDistanceToNow, format } from 'date-fns';
 import { createResizePlugin } from '@schedule-x/resize'
 import { createCurrentTimePlugin } from '@schedule-x/current-time'
+import Explore from './Explore.vue';
 
 
 const route = useRoute();
@@ -33,6 +34,8 @@ let eventId = null;
 const currentUser = ref(null)
 const totalMembers = ref(1);
 const isEditingActivity = ref(false);
+const activeTab = ref('trips')      // default tab
+const drafts = ref(true)            // true when 'Drafts' tab is active
 
 // Fetch itinerary data including start_date
 const fetchItineraryData = async () => {
@@ -1021,6 +1024,11 @@ const isTimeInvalid = computed(() => {
 });
 
 
+function switchTab(tab) {
+  activeTab.value = tab
+  drafts.value = (tab === 'trips')
+}
+
 
 </script>
 
@@ -1064,39 +1072,59 @@ const isTimeInvalid = computed(() => {
     <div class="main-content">
       <!-- Left Section -->
         <div class="left-section">
-          <!-- Create Button -->
-          <button class="create-btn" @click="openModal">New Activity</button>
+          <!-- Tabs -->
+          <ul class="nav nav-tabs nav-fill">
+            <li class="nav-item">
+              <a class="nav-link fs-4" :class="{ active: activeTab === 'trips' }" @click="switchTab('trips')">
+                <i class="bi bi-file-earmark"></i> Drafts
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fs-4" :class="{ active: activeTab === 'guides' }" @click="switchTab('guides')">
+                <i class="bi bi-map"></i> Explore
+              </a>
+            </li>
+          </ul>
 
-          <!-- Divider Line -->
-          <hr class="divider" />
+          <div style="margin-top: 15px; margin-bottom: 15px; margin-left: 5px; margin-right: 5px;">
+            <div v-if="drafts">
+              <!-- Drafts content -->
+                        <!-- Create Button -->
+                <button class="create-btn" @click="openModal">New Activity</button>
+                <!-- Divider Line -->
+                <hr class="divider" />
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <input type="text" placeholder="Search events..." />
+                    <button>🔍</button>
+                </div>
+                <!-- Potential Activities -->
+                <div class="activity-list">
+                <div
+                  v-for="(activity, index) in potentialActivities"
+                  :key="activity.id"
+                  class="activity-card position-relative"
+                  @click="editPotentialActivity(index)">
+                  <button class="remove-btn" @click.stop="removeActivity(index)">×</button>
+                  <div class="activity-header">
+                    <h2 class="activity-name">{{ activity.name }}</h2>
+                  </div>
+                  <p class="activity-description">{{ activity.description }}</p>
+                  <p class="activity-location">Location: {{ activity.location }}</p>
+                  <p class="activity-date">Date: {{ activity.date }}</p>
+                  <p class="activity-time">Time: {{ activity.start_time }}</p>
 
-          <!-- Search Bar -->
-          <div class="search-bar">
-              <input type="text" placeholder="Search events..." />
-              <button>🔍</button>
-          </div>
-          
-          <!-- Potential Activities -->
-          <div class="activity-list">
-          <div
-            v-for="(activity, index) in potentialActivities"
-            :key="activity.id"
-            class="activity-card position-relative"
-            @click="editPotentialActivity(index)"
-          >
-            <button class="remove-btn" @click.stop="removeActivity(index)">×</button>
-
-            <div class="activity-header">
-              <h2 class="activity-name">{{ activity.name }}</h2>
+                  <button class="add-btn" @click.stop="addActivity(index)">Add</button>
+                </div>
+                </div>
             </div>
-            <p class="activity-description">{{ activity.description }}</p>
-            <p class="activity-location">Location: {{ activity.location }}</p>
-            <p class="activity-date">Date: {{ activity.date }}</p>
-            <p class="activity-time">Time: {{ activity.start_time }}</p>
-            
-            <button class="add-btn" @click.stop="addActivity(index)">Add</button>
+            <div class="left-section" v-else>
+              <!-- Explore content -->
+               <Explore></Explore>
+            </div>
           </div>
-        </div>
+
+
 
         </div>
 
