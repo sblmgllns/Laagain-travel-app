@@ -16,6 +16,8 @@ import '@schedule-x/theme-default/dist/index.css';
 
 import VueToggles from "vue-toggles";
 import { formatDistanceToNow, format } from 'date-fns';
+import { createResizePlugin } from '@schedule-x/resize'
+
 
 const route = useRoute();
 const tripId = route.query.id;
@@ -83,7 +85,7 @@ watch(startDate, async (val) => {
   await nextTick();
 
   calendarApp.value = createCalendar({
-    plugins: [createDragAndDropPlugin()],
+    plugins: [createDragAndDropPlugin(),     createResizePlugin()],
     callbacks: {
       onEventUpdate(event) {
         // Optionally update Supabase when an event is moved/changed
