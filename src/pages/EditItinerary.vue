@@ -352,7 +352,7 @@ const addActivity = async (index) => {
   const selectedActivity = potentialActivities.value[index];
   console.log("Adding activity:", selectedActivity);
 
-  // ❗ Check for missing date
+  //Check for missing date
   if (!selectedActivity.date || selectedActivity.date.trim() === "") {
     alert("Date is required to add this activity.");
     return;
@@ -412,10 +412,11 @@ const addActivity = async (index) => {
   }
 
   // Refresh UI
+  window.location.reload();
   await fetchPotentialActivities();
   await fetchActivities();
   calendarApp.value?.setEvents([...calendarEvents.value]);
-  window.location.reload();
+  
 };
 
 
