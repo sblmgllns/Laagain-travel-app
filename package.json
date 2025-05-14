@@ -16,6 +16,7 @@
     "@schedule-x/vue": "^2.23.0",
     "@supabase/supabase-js": "^2.48.1",
     "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.13.1",
     "date-fns": "^4.1.0",
     "supabase": "^2.15.8",
     "vue": "^3.5.13",

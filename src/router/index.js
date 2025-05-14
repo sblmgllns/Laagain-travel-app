@@ -11,6 +11,7 @@ import Dashboard from "../pages/Dashboard.vue";
 import newItinerary from "../pages/newItinerary.vue";
 import EditItinerary from "../pages/EditItinerary.vue";
 import Explore from "../pages/Explore.vue";
+import Notifications from "../pages/Notifications.vue";
 
 const routes = [
   //{ path: "/", redirect: "/edit-itinerary", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
@@ -27,6 +28,7 @@ const routes = [
   { path: "/new-itinerary", component: newItinerary },
   { path: "/edit-itinerary", component: EditItinerary},
   { path: "/explore", component: Explore},
+  { path: "/notifications", component: Notifications},
 ];
 
 const router = createRouter({

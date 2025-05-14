@@ -162,6 +162,7 @@ export default {
           const membersArray = this.tripMembers.split(",").map((email) => email.trim());
           
           let allInvitesSent = true; // Flag to track if all invites are successfully sent
+          let validInvites = [];
 
           for (const email of membersArray) {
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -208,12 +209,70 @@ export default {
                 allInvitesSent = false; // Set the flag to false if there was an error
               } else {
                 console.log(`Invitation sent to ${email}`);
+                validInvites.push({
+                  trip_id: tripId,
+                  invited_email: email
+                });
+
               }
             }
           }
 
         // Only redirect if all invitations were sent successfully
         if (allInvitesSent) {
+          // Fetch sender's profile for username and profile picture
+          const { data: senderProfile, error: senderError } = await supabase
+            .from("profiles")
+            .select("username, profile_pic_url")
+            .eq("id", this.user.id)
+            .single();
+
+          if (senderError || !senderProfile) {
+            console.error("Failed to fetch sender's profile data:", senderError?.message);
+            alert("Invites were sent, but notifications may not have been fully created.");
+            return;
+          }
+
+          const notificationsPayload = [];
+
+          for (const invite of validInvites) {
+            // Get the user ID of the invited person
+            const { data: invitedUser, error: profileError } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("email", invite.invited_email)
+              .single();
+
+            if (profileError || !invitedUser) {
+              console.warn(`Could not find user ID for ${invite.invited_email}, skipping notification.`);
+              continue;
+            }
+
+            notificationsPayload.push({
+              user_id: invitedUser.id, // The invited user
+              type: "invite",
+              message: `${senderProfile.username} invited you to join the itinerary "${this.tripName}"`,
+              itinerary_id: invite.trip_id,
+              sender_id: this.user.id,
+              image_url: senderProfile.profile_pic_url,
+              itinerary_name: this.tripName,
+              created_at: new Date().toISOString(),
+              is_read: false,
+            });
+          }
+
+          if (notificationsPayload.length > 0) {
+            const { error: notificationError } = await supabase
+              .from("notifications")
+              .insert(notificationsPayload);
+
+            if (notificationError) {
+              console.error("Error inserting notifications:", notificationError.message);
+            } else {
+              console.log("Notifications sent successfully.");
+            }
+          }
+
           alert("Invites have been sent!"); // Show popup
           this.$router.push("/dashboard");
         } else {

@@ -218,7 +218,7 @@ export default {
       // User has a profile, update the UI
       this.fullname = profile.full_name;
       this.username = profile.username;
-      this.profilePic = profile.profile_pic_url || "default_profile_pic.jpg";
+      this.profilePic = profile.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg";
     } else {
       console.warn("No profile found for this user. Creating one...");
 
@@ -228,7 +228,7 @@ export default {
           id: this.user.id,
           full_name: this.user.user_metadata?.full_name || "New User",
           username: this.user.user_metadata?.username || "user" + Date.now(),
-          profile_pic_url: "default_profile_pic.jpg",
+          profile_pic_url: "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
         },
       ]);
 

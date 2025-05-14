@@ -19,7 +19,9 @@
             <i class="bi bi-search fs-3"></i>
           </router-link>
 
-          <a class="nav-link me-3" href="#"><i class="bi bi-bell fs-3"></i></a>
+          <router-link class="nav-link" to="/notifications">
+            <i class="bi bi-bell fs-3"></i>
+          </router-link>
         </div>
       </nav>
 
@@ -615,6 +617,59 @@ export default {
         console.error("Error sending invites:", inviteInsertError.message);
         alert("There was an error sending the invites. Please try again.");
       } else {
+        // Fetch sender's profile for username and profile picture
+        const { data: senderProfile, error: senderError } = await supabase
+          .from("profiles")
+          .select("username, profile_pic_url")
+          .eq("id", this.user.id)
+          .single();
+
+        if (senderError || !senderProfile) {
+          console.error("Failed to fetch sender's profile data:", senderError?.message);
+          alert("Invites were sent, but notifications may not have been fully created.");
+          return;
+        }
+
+        const notificationsPayload = [];
+
+        for (const invite of validInvites) {
+          // Get the user ID of the invited person
+          const { data: invitedUser, error: profileError } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email", invite.invited_email)
+            .single();
+
+          if (profileError || !invitedUser) {
+            console.warn(`Could not find user ID for ${invite.invited_email}, skipping notification.`);
+            continue;
+          }
+
+          notificationsPayload.push({
+            user_id: invitedUser.id, // The invited user
+            type: "invite",
+            message: `${senderProfile.username} invited you to join the itinerary "${this.selectedItem.title}"`,
+            itinerary_id: invite.trip_id,
+            sender_id: this.user.id,
+            image_url: senderProfile.profile_pic_url, // Include sender's profile pic
+            itinerary_name: this.selectedItem.title, // Include itinerary title
+            created_at: new Date().toISOString(),
+            is_read: false,
+          });
+        }
+
+        if (notificationsPayload.length > 0) {
+          const { error: notificationError } = await supabase
+            .from("notifications")
+            .insert(notificationsPayload);
+
+          if (notificationError) {
+            console.error("Error inserting notifications:", notificationError.message);
+          }
+          else{
+            console.log("send succ");
+          }
+        }
         alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
         this.$router.push("/dashboard");

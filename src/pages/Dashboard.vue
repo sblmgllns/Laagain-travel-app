@@ -24,7 +24,9 @@
             <i class="bi bi-search fs-3"></i>
           </router-link>
 
-          <a class="nav-link" href="#"><i class="bi bi-bell fs-3"></i></a>
+          <router-link class="nav-link" to="/notifications">
+            <i class="bi bi-bell fs-3"></i>
+          </router-link>
         </div>
       </div>
   
@@ -557,58 +559,110 @@
         },
 
     async updateInviteStatus(id, newStatus) {
-      try {
-        const { error: updateError } = await supabase
-          .from("trip_invites")
-          .update({ status: newStatus })
-          .eq("id", id);
+    try {
+      // Step 1: Update invite status
+      const { error: updateError } = await supabase
+        .from("trip_invites")
+        .update({ status: newStatus })
+        .eq("id", id);
 
-        if (updateError) {
-          console.error(`Error updating invite status: ${updateError.message}`);
-          return;
-        }
+      if (updateError) {
+        console.error(`Error updating invite status: ${updateError.message}`);
+        return;
+      }
+
 
       console.log(`Invitation ${id} updated to ${newStatus}`);
 
-      if (newStatus === "approved") {
-        // Step 1: Get trip ID from the invite
-        const { data: inviteData, error: inviteError } = await supabase
-          .from("trip_invites")
-          .select("trip_id")
-          .eq("id", id)
-          .single();
+      // Step 2: Fetch trip_id and inviter_id
+      const { data: inviteData, error: inviteError } = await supabase
+        .from("trip_invites")
+        .select("trip_id, inviter_id")
+        .eq("id", id)
+        .single();
 
       if (inviteError || !inviteData) {
-          console.error("Error fetching trip ID:", inviteError?.message);
-          return;
+        console.error("Error fetching trip data:", inviteError?.message);
+        return;
+      }
+      console.log(inviteData);
+      const { trip_id, inviter_id } = inviteData;
+
+      // Step 3: Get itinerary name using trip_id
+      const { data: itineraryData, error: itineraryError } = await supabase
+        .from("itineraries")
+        .select("name")
+        .eq("id", trip_id)
+        .single();
+
+      console.log(itineraryData);
+      if (itineraryError || !itineraryData) {
+        console.error("Error fetching itinerary name:", itineraryError?.message);
+        return;
       }
 
-      const tripId = inviteData.trip_id;
-      
-      // Step 2: Add the user to the itinerary_members table
-      const { error: memberError } = await supabase
-        .from("itinerary_members")
-        .insert([
-        {
-          itinerary_id: tripId,
-          user_id: this.user.id,
-        },
-      ]);
+      const itineraryName = itineraryData.name;
+
+      // Step 4: Add current user to itinerary_members
+      if (newStatus === "approved") {
+        const { error: memberError } = await supabase
+          .from("itinerary_members")
+          .insert([
+            {
+              itinerary_id: trip_id,
+              user_id: this.user.id,
+            },
+          ]);
 
         if (memberError) {
-          console.error("Error adding user to itinerary_members:", memberError.message);
+          console.error("Error adding to itinerary_members:", memberError.message);
+          return;
+        }
+
+        console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
+
+        // Step 5: Fetch current user's profile
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("username, profile_pic_url")
+          .eq("id", this.user.id)
+          .single();
+
+        if (profileError || !profileData) {
+          console.error("Error fetching user profile:", profileError?.message);
+          return;
+        }
+
+        // Step 6: Send notification to inviter
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: inviteData.inviter_id,
+              type: "accept",
+              sender_id: this.user.id,
+              message: `${profileData.username} accepted your invitation to "${itineraryName}"`,
+              image_url: profileData.profile_pic_url || '',
+              itinerary_name: itineraryName,
+            },
+          ]);
+
+        if (notifError) {
+          console.error("Error creating notification:", notifError.message);
         } else {
-            console.log(`User ${this.user.id} added to itinerary_members for trip ${tripId}`);
+          console.log("Notification sent to inviter.");
         }
       }
+    
+    // Refresh lists
+    this.fetchInvites();
+    this.fetchTasks();
+  } catch (err) {
+    console.error("Unexpected error:", err);
+  }
+},
 
-        // Refresh the invited tasks list
-        this.fetchInvites();
-        this.fetchTasks();
-        } catch (err) {
-          console.error("Unexpected error:", err);
-        }
-      },
+
 
       async fetchTasks() {
         try {
@@ -911,6 +965,59 @@
         console.error("Error sending invites:", inviteInsertError.message);
         alert("There was an error sending the invites. Please try again.");
       } else {
+        // Fetch sender's profile for username and profile picture
+        const { data: senderProfile, error: senderError } = await supabase
+          .from("profiles")
+          .select("username, profile_pic_url")
+          .eq("id", this.user.id)
+          .single();
+
+        if (senderError || !senderProfile) {
+          console.error("Failed to fetch sender's profile data:", senderError?.message);
+          alert("Invites were sent, but notifications may not have been fully created.");
+          return;
+        }
+
+        const notificationsPayload = [];
+
+        for (const invite of validInvites) {
+          // Get the user ID of the invited person
+          const { data: invitedUser, error: profileError } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email", invite.invited_email)
+            .single();
+
+          if (profileError || !invitedUser) {
+            console.warn(`Could not find user ID for ${invite.invited_email}, skipping notification.`);
+            continue;
+          }
+
+          notificationsPayload.push({
+            user_id: invitedUser.id, // The invited user
+            type: "invite",
+            message: `${senderProfile.username} invited you to join the itinerary "${this.selectedItem.title}"`,
+            itinerary_id: invite.trip_id,
+            sender_id: this.user.id,
+            image_url: senderProfile.profile_pic_url, // Include sender's profile pic
+            itinerary_name: this.selectedItem.title, // Include itinerary title
+            created_at: new Date().toISOString(),
+            is_read: false,
+          });
+        }
+
+        if (notificationsPayload.length > 0) {
+          const { error: notificationError } = await supabase
+            .from("notifications")
+            .insert(notificationsPayload);
+
+          if (notificationError) {
+            console.error("Error inserting notifications:", notificationError.message);
+          }
+          else{
+            console.log("send succ");
+          }
+        }
         alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
         this.$router.push("/dashboard");
@@ -1054,4 +1161,3 @@
 </style>
 
 
-  
