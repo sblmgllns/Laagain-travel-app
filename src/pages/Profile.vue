@@ -70,7 +70,12 @@
                   <span class="trip-menu" @click.stop="toggleMenu(index)">
                     <i class="bi bi-three-dots"></i>
                     <div v-if="showMenus[index]" class="menu-options">
-                      <a href="#" @click.stop="deletePost(post.id, index)">Delete</a>
+                      <template v-if="post.ownerId === user.id">
+                        <a href="#" @click.stop="deletePost(post.id, index)">Delete</a>
+                      </template>
+                      <template v-else>
+                        <a href="#" @click.stop="leaveTrip(post.id, index)">Leave</a>
+                      </template>
                     </div>
                   </span>
                 </div>
@@ -226,56 +231,70 @@
               <div @click="switchTab('username')" style="cursor: pointer; padding: 7px; width: 48%; text-align: center; margin-bottom: 4px; z-index: 1;">
                 <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; color: black; font-size: 10px;">username</span>
               </div>
+
+            
             </div>
+
+            <i
+              v-if="ownerProfile.id === user.id"
+              class="bi bi-pencil"
+              @click="editField"
+              style="position: absolute; right: 8px; font-size: 12px; cursor: pointer; z-index: 2; margin-right: 30px;"
+              title="Edit"
+            ></i>
+
 
             <div v-if="!loading" class="modal-body" style="overflow-y: auto;">
-            <!-- Owner Info -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
-              <!-- Left side (profile pic + text) -->
-              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
-                    style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
-                    {{ ownerProfile.name }}
+              <!-- Owner Info -->
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
+                      style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                  <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                      {{ ownerProfile.name }}
+                    </span>
+                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                      @{{ ownerProfile.username }}
+                    </span>
+                  </div>
+                </div>
+                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
+                  Owner
+                </span>
+              </div>
+              <!-- Members -->
+              <div v-for="member in members" :key="member.username"
+                  style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+                
+                <!-- Left side (Profile + Name + Username) -->
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <img :src="member.profile_pic_url" alt="Member's Profile Picture"
+                      style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                  <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                      {{ member.full_name }}
+                    </span>
+                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                      @{{ member.username }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Right side (x icon only if in edit mode) -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
+                    Member
                   </span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
-                    @{{ ownerProfile.username }}
+                  <span v-if="isEditMode"
+                        @click="removeMember(member.username)"
+                        style="color: red; font-size: 16px; cursor: pointer;"
+                        title="Remove Member">
+                    ×
                   </span>
                 </div>
               </div>
-
-              <!-- Role -->
-              <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
-                Owner
-              </span>
             </div>
-
-            <!-- Members -->
-            <div v-for="member in members" :key="member.username"
-                style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
-              <!-- Left side (profile pic + text) -->
-              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                <img :src="member.profile_pic_url" alt="Member's Profile Picture"
-                    style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
-                    {{ member.full_name }}
-                  </span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
-                    @{{ member.username }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Role -->
-              <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
-                Member
-              </span>
-            </div>
-          </div>
-
-
             <!-- Show Loading Spinner while loading -->
             <div v-if="loading" class="modal-body">
               <p>Loading...</p> <!-- Add your loading spinner here -->
@@ -320,6 +339,7 @@ export default {
   data() {
     return {
       isEmailSelected: true,
+      isEditMode: false,
       showMenus: {},
       user: null, // Store the logged-in user
       profilePic: "",
@@ -332,6 +352,7 @@ export default {
       showInviteModal: false,
       selectedItem: null,
       ownerProfile: {
+        id:'',
         picture: '',
         name: '',
         username: '',
@@ -344,7 +365,9 @@ export default {
       guides: [
         { title: "Liked Item 1", content: "This is something you liked." },
         { title: "Liked Item 2", content: "Another liked item." }
-      ]
+      ], 
+    showMenus: {}, // { [tripId]: boolean }
+
     };
   },
   async mounted() {
@@ -418,6 +441,65 @@ export default {
         this.selectedTab = 'username';
       }
     },
+
+    editField() {
+    this.isEditMode = !this.isEditMode;
+    },
+
+    async removeMember(username, index) {
+      try {
+        const memberToRemove = this.members.find(member => member.username === username);
+        if (!memberToRemove) {
+          console.warn('Member not found');
+          return;
+        }
+
+        const tripId = this.selectedItem.id;
+        const tripName = this.selectedItem.title || 'a trip';
+
+        console.log("Removing from trip:", tripId, memberToRemove.id);
+
+        // Delete the member from the itinerary_members table
+        const { error: deleteError } = await supabase
+          .from("itinerary_members")
+          .delete()
+          .eq("user_id", memberToRemove.id)
+          .eq("itinerary_id", tripId);
+
+        if (deleteError) throw deleteError;
+
+        // Insert a notification to the removed member
+        const { error: notifyError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: memberToRemove.id,
+              type: "removed",
+              message: `${this.ownerProfile.username} removed you from the itinerary "${tripName}"`,
+              itinerary_id: tripId,
+              sender_id: this.ownerProfile.id,
+              image_url: this.ownerProfile.picture,
+              itinerary_name: tripName,
+              created_at: new Date().toISOString(),
+              is_read: false
+            }
+          ]);
+
+        if (notifyError) {
+          console.warn("Member removed, but notification insert failed:", notifyError.message);
+        }
+
+        // Update frontend
+        this.members = this.members.filter(member => member.username !== username);
+
+      } catch (err) {
+        this.isEditMode = false;
+        console.error('Error removing member:', err.message);
+        alert('Could not remove member.');
+      }
+      this.isEditMode = false;
+    },
+
       
     async fetchTrips() {
       try {
@@ -472,6 +554,7 @@ export default {
     openInviteModal(item) {
       this.selectedItem = item;
       this.showInviteModal = true;
+      this.isEditMode = false;
       this.loading = true;  // Set loading state to true before fetching data
       this.fetchOwnerProfile();  // Re-fetch data when the modal opens
     },
@@ -480,6 +563,7 @@ export default {
       this.tripMembers = ""; 
       this.showInviteModal = false;
       this.inviteEmail = "";
+      this.isEditMode = false;
     },
 
   async sendInvite() {
@@ -670,9 +754,9 @@ export default {
             console.log("send succ");
           }
         }
+        this.isEditMode = false;
         alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
-        this.$router.push("/dashboard");
       }
     } else {
       // Show all invalid items with appropriate alerts
@@ -681,9 +765,13 @@ export default {
   },
 
     toggleMenu(index) {
-      // Close other menus and toggle only the clicked one
-      this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
+      // Close all menus first
+      this.showMenus = {};
+
+      // Then toggle the selected one
+      this.showMenus[index] = !this.showMenus[index];
     },
+
 
     async deletePost(itinerary_id, index) {
       try {
@@ -727,10 +815,22 @@ export default {
           return;
         }
 
-        alert("Itinerary deleted successfully!");
+        // Step 5: Delete associated trip invites
+        const { error: inviteDeleteError } = await supabase
+          .from("trip_invites")
+          .delete()
+          .eq("trip_id", itinerary_id);
+
+        if (inviteDeleteError) {
+          console.error("Error deleting trip invites:", inviteDeleteError.message);
+          // You may choose not to alert the user here to avoid confusion
+        }
+
         this.showMenu = false;
         this.showMenus[index] = false;
-        window.location.reload(); // Refresh the page
+        alert("Itinerary deleted successfully!");
+  
+        this.trips.splice(index, 1);
 
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -738,6 +838,105 @@ export default {
         alert("Something went wrong.");
       }
     },
+
+    async leaveTrip(tripId, index) {
+      if (!confirm("Are you sure you want to leave this trip?")) return;
+
+      try {
+        // Check if the current user is the owner of the trip
+        const { data: trip, error: tripError } = await supabase
+          .from("itineraries")
+          .select("owner_id, name")
+          .eq("id", tripId)
+          .single();
+
+        if (tripError) {
+          console.error("Error checking trip ownership:", tripError.message);
+          alert("Unable to verify your ownership of the trip.");
+          return;
+        }
+
+        if (trip.owner_id === this.user.id) {
+          this.showMenus[index] = false;
+          alert("You can't leave this trip because you are the owner.");
+          
+          return;
+        }
+
+        // Proceed to delete membership
+        const { error } = await supabase
+          .from("itinerary_members")
+          .delete()
+          .eq("user_id", this.user.id)
+          .eq("itinerary_id", tripId);
+
+        if (error) {
+          this.showMenus[index] = false;
+          console.error("Error leaving trip:", error.message);
+          alert("There was an issue leaving the trip. Please try again.");
+          return;
+        }
+
+        // Fetch user profile to get username and profile_pic_url
+        const { data: senderProfile, error: profileError } = await supabase
+          .from("profiles")
+          .select("username, profile_pic_url")
+          .eq("id", this.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Failed to fetch sender profile:", profileError.message);
+        }
+
+        //Send notification to the owner
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: trip.owner_id,
+              sender_id: this.user.id,
+              type: "left",
+              message: `${senderProfile?.username || "Someone"} left your itinerary "${trip.name}"`,
+              itinerary_id: tripId,
+              image_url: senderProfile?.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg',
+              itinerary_name: trip.name,
+              created_at: new Date().toISOString(),
+              is_read: false,
+            }
+          ]);
+
+        if (notifError) {
+          console.error("Failed to send notification:", notifError.message);
+        }
+
+        // Remove trip from UI
+        this.trips.splice(index, 1);
+
+        // Recalculate trip count
+        const { count: ownedTripCount, error: ownedCountError } = await supabase
+          .from("itineraries")
+          .select("*", { count: "exact", head: true })
+          .eq("owner_id", this.user.id);
+
+        const { count: joinedTripCount, error: joinedCountError } = await supabase
+          .from("itinerary_members")
+          .select("itinerary_id", { count: "exact", head: true })
+          .eq("user_id", this.user.id);
+
+        if (!ownedCountError && !joinedCountError) {
+          this.trip = ownedTripCount + joinedTripCount;
+        }
+        this.showMenus[index] = false;
+        alert("You have successfully left the trip.");
+      } catch (err) {
+        this.showMenus[index] = false;
+        console.error("Unexpected error while leaving trip:", err);
+        alert("An unexpected error occurred.");
+      }
+
+      this.showMenus[index] = false;
+    },
+
 
     async fetchOwnerProfile() {
       try {
@@ -756,9 +955,11 @@ export default {
           return;
         }
 
+        console.log("owner id:", this.selectedItem.ownerId);
         // Update the ownerProfile with the fetched data
         this.ownerProfile = {
-          picture: data.profile_pic_url,
+          id: this.selectedItem.ownerId,
+          picture: data.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg',
           name: data.full_name,
           username: data.username,
         };
@@ -778,12 +979,13 @@ export default {
 
           const { data: membersData, error: membersError } = await supabase
             .from('profiles')
-            .select('full_name, username, profile_pic_url')
+            .select('full_name, username, profile_pic_url, id')
             .in('id', userIds);
 
           if (membersError) throw membersError;
 
           this.members = membersData.map(member => ({
+            id: member.id,
             username: member.username,
             full_name: member.full_name,
             profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing

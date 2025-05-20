@@ -88,11 +88,15 @@
                 <!-- Top: Date and Menu -->
                 <div class="d-flex justify-content-between align-items-start">
                   <span class="trip-date px-2 py-1">{{ task.date }}</span>
-
-                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
                     <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[index]" class="menu-options">
-                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    <div v-if="showMenus[task.id]" class="menu-options">
+                      <template v-if="task.ownerId == user.id">
+                        <a href="#" @click.stop="deletePost(task.id, index, 'activeNowTasks')">Delete</a>
+                      </template>
+                      <template v-else>
+                        <a href="#" @click.stop="leaveTrip(task.id, index, 'activeNowTasks')">Leave</a>
+                      </template>
                     </div>
                   </span>
                 </div>
@@ -139,10 +143,15 @@
                 <div class="d-flex justify-content-between align-items-start">
                   <span class="trip-date px-2 py-1">{{ task.date }}</span>
 
-                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
                     <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[index]" class="menu-options">
-                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    <div v-if="showMenus[task.id]" class="menu-options">
+                      <template v-if="task.ownerId == user.id">
+                        <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
+                      </template>
+                      <template v-else>
+                        <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
+                      </template>
                     </div>
                   </span>
                 </div>
@@ -180,10 +189,15 @@
                 <div class="d-flex justify-content-between align-items-start">
                   <span class="trip-date px-2 py-1">{{ task.date }}</span>
 
-                  <span class="trip-menu" @click.stop="toggleMenu(index)">
+                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
                     <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[index]" class="menu-options">
-                      <a href="#" @click.stop="deletePost(task.id, index)">Delete</a>
+                    <div v-if="showMenus[task.id]" class="menu-options">
+                      <template v-if="task.ownerId == user.id">
+                        <a href="#" @click.stop="deletePost(task.id, index, 'completedTasks' )">Delete</a>
+                      </template>
+                      <template v-else>
+                        <a href="#" @click.stop="leaveTrip(task.id, index, 'completedTasks')">Leave</a>
+                      </template>
                     </div>
                   </span>
                 </div>
@@ -373,41 +387,64 @@
               </div>
             </div>
 
+            <i
+              v-if="ownerProfile.id === user.id"
+              class="bi bi-pencil"
+              @click="editField"
+              style="position: absolute; right: 8px; font-size: 12px; cursor: pointer; z-index: 2; margin-right: 30px;"
+              title="Edit"
+            ></i>
+
             <div v-if="!loading" class="modal-body" style="overflow-y: auto;">
-              <!-- Profile Picture and Owner Info -->
-              <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 5px;">
-                <!-- Profile Picture -->
-                <img :src="ownerProfile.picture" alt="Owner's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
-                
-                <!-- Name and Username (Full Name on top, Username below) -->
-                <div>
-                  <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ ownerProfile.name }}</span>
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ ownerProfile.username }}</span>
-                </div>
-
-                <!-- Owner Indication -->
-                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800; margin-left: auto; margin-right: 20px;">Owner</span>
-              </div>
-
-              <!-- Displaying Members -->
-              <div style="max-height: 300px;">
-                <div v-for="member in members" :key="member.username" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 10px;">
-                  <!-- Member Profile Picture -->
-                  <img
-  :src="member.profile_pic_url"
-     alt="Member's Profile Picture" style="width: 40px; height: 40px; margin-left: 20px; border-radius: 50%; margin-right: 10px;">
-                  
-                  <!-- Member Name and Username -->
-                  <div>
-                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">{{ member.full_name }}</span>
-                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">@{{ member.username }}</span>
+              <!-- Owner Info -->
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
+                      style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                  <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                      {{ ownerProfile.name }}
+                    </span>
+                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                      @{{ ownerProfile.username }}
+                    </span>
                   </div>
+                </div>
+                <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
+                  Owner
+                </span>
+              </div>
+              <!-- Members -->
+              <div v-for="member in members" :key="member.username"
+                  style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
+                
+                <!-- Left side (Profile + Name + Username) -->
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <img :src="member.profile_pic_url" alt="Member's Profile Picture"
+                      style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
+                  <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
+                      {{ member.full_name }}
+                    </span>
+                    <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
+                      @{{ member.username }}
+                    </span>
+                  </div>
+                </div>
 
-                  <!-- Member Indication -->
-                  <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6; margin-left: auto; margin-right: 20px;">Member</span>
+                <!-- Right side (x icon only if in edit mode) -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
+                    Member
+                  </span>
+                  <span v-if="isEditMode"
+                        @click="removeMember(member.username)"
+                        style="color: red; font-size: 16px; cursor: pointer;"
+                        title="Remove Member">
+                    ×
+                  </span>
                 </div>
               </div>
-
             </div>
 
             <!-- Show Loading Spinner while loading -->
@@ -456,6 +493,7 @@
       return {
         user: null,
         profilePic: "",
+        isEditMode: false,
         username: "",
         fullname: "",
         trip: "5",
@@ -467,6 +505,7 @@
         selectedItem: null,
         selectedTab: 'email',
         ownerProfile: {
+          id: '',
           picture: '',
           name: '',
           username: '',
@@ -493,7 +532,8 @@
         invitedTasks: [
             { title: "Upcoming Event", content: "isabela.lobitana invited you to join the “SUMMER 2023” trip plan", date: "2023-02-20T12:00:00Z" },
             { title: "Project Meeting", content: "marcs_pel invited you to join the “SIARGAO WE COMING” trip plan", date: "2022-03-10T08:30:00Z" }
-        ]
+        ], 
+        showMenus: {},
 
       }
     },
@@ -545,6 +585,7 @@
       }
     },
 
+
     timeAgo(date) {
             const now = new Date();
             const past = new Date(date);
@@ -557,6 +598,65 @@
             if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`; // Less than a year
             return `${Math.floor(diff / 31536000)} years ago`; // More than a year
         },
+    
+    editField() {
+    this.isEditMode = !this.isEditMode;
+    },
+
+    async removeMember(username, index) {
+      try {
+        const memberToRemove = this.members.find(member => member.username === username);
+        if (!memberToRemove) {
+          console.warn('Member not found');
+          return;
+        }
+
+        const tripId = this.selectedItem.id;
+        const tripName = this.selectedItem.title || 'a trip';
+
+        console.log("Removing from trip:", tripId, memberToRemove.id);
+
+        // Delete the member from the itinerary_members table
+        const { error: deleteError } = await supabase
+          .from("itinerary_members")
+          .delete()
+          .eq("user_id", memberToRemove.id)
+          .eq("itinerary_id", tripId);
+
+        if (deleteError) throw deleteError;
+
+        // Insert a notification to the removed member
+        const { error: notifyError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: memberToRemove.id,
+              type: "removed",
+              message: `${this.ownerProfile.username} removed you from the itinerary "${tripName}"`,
+              itinerary_id: tripId,
+              sender_id: this.ownerProfile.id,
+              image_url: this.ownerProfile.picture,
+              itinerary_name: tripName,
+              created_at: new Date().toISOString(),
+              is_read: false
+            }
+          ]);
+
+        if (notifyError) {
+          console.warn("Member removed, but notification insert failed:", notifyError.message);
+        }
+
+        // Update frontend
+        this.members = this.members.filter(member => member.username !== username);
+        this.isEditMode = false;
+
+      } catch (err) {
+        this.isEditMode = false;
+        console.error('Error removing member:', err.message);
+        alert('Could not remove member.');
+      }
+    },
+
 
     async updateInviteStatus(id, newStatus) {
     try {
@@ -653,6 +753,20 @@
           console.log("Notification sent to inviter.");
         }
       }
+
+      // ✅ Step 7: If declined, delete invite from trip_invites to allow re-invite
+    if (newStatus === "declined") {
+      const { error: deleteError } = await supabase
+        .from("trip_invites")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) {
+        console.error("Error deleting declined invite:", deleteError.message);
+      } else {
+        console.log(`Declined invite ${id} removed to allow future reinvitation.`);
+      }
+    }
     
     // Refresh lists
     this.fetchInvites();
@@ -822,12 +936,15 @@
       this.loading = true;  // Set loading state to true before fetching data
       console.log(this.selectedItem );
       this.fetchOwnerProfile();  // Re-fetch data when the modal opens
+      this.isEditMode = false;
     },
 
     closeInviteModal() {
       this.tripMembers = ""; 
+      this.isEditMode = false;
       this.showInviteModal = false;
       this.inviteEmail = "";
+    
     },
 
     async sendInvite() {
@@ -1020,7 +1137,7 @@
         }
         alert("Invites have been sent!"); // Show popup
         this.showInviteModal = false;
-        this.$router.push("/dashboard");
+        this.isEditMode = false;
       }
     } else {
       // Show all invalid items with appropriate alerts
@@ -1036,7 +1153,7 @@
         // Fetch owner data from Supabase
         const { data, error } = await supabase
           .from('profiles')  // Replace 'profiles' with your actual table name
-          .select('full_name, username, profile_pic_url')
+          .select('full_name, username, profile_pic_url, id')
           .eq('id', this.selectedItem.ownerId)  // Fetch based on owner ID
           .single();
 
@@ -1048,6 +1165,7 @@
 
         // Update the ownerProfile with the fetched data
         this.ownerProfile = {
+          id: data.id,
           picture: data.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
           name: data.full_name,
           username: data.username,
@@ -1067,12 +1185,13 @@
 
           const { data: membersData, error: membersError } = await supabase
             .from('profiles')
-            .select('full_name, username, profile_pic_url')
+            .select('full_name, username, profile_pic_url, id')
             .in('id', userIds);
 
           if (membersError) throw membersError;
 
           this.members = membersData.map(member => ({
+            id: member.id,
             username: member.username,
             full_name: member.full_name,
             profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing
@@ -1085,12 +1204,15 @@
       }
     },
 
-    toggleMenu(index) {
-      // Close other menus and toggle only the clicked one
-      this.showMenus = { ...this.showMenus, [index]: !this.showMenus[index] };
+    toggleMenu(tripId) {
+      // Close all other menus and toggle the clicked one
+      this.showMenus = {
+        [tripId]: !this.showMenus[tripId],
+      };
     },
 
-    async deletePost(itinerary_id, index) {
+
+    async deletePost(itinerary_id, index, listName = "activeNowTasks") {
       try {
         // Fetch the owner_id of the itinerary before deleting
         const { data, error } = await supabase
@@ -1108,8 +1230,8 @@
 
         // Check if the current user is the owner
         if (data.owner_id !== this.user.id) {
-          alert("You cannot delete this itinerary because you are not the owner.");
           this.showMenus[index] = false;
+          alert("You cannot delete this itinerary because you are not the owner.");
           return;
         }
 
@@ -1127,21 +1249,125 @@
 
         if (deleteError) {
           console.error("Error deleting itinerary:", deleteError);
-          alert("Failed to delete itinerary. Try again.");
           this.showMenus[index] = false;
+          alert("Failed to delete itinerary. Try again.");
+          
           return;
         }
 
-        alert("Itinerary deleted successfully!");
+      
         this.showMenu = false;
         this.showMenus[index] = false;
-        window.location.reload(); // Refresh the page
+        alert("Itinerary deleted successfully!");
+        this[listName].splice(index, 1);
 
       } catch (err) {
         console.error("Unexpected error:", err);
         this.showMenus[index] = false;
         alert("Something went wrong.");
       }
+    },
+
+    /////LEAVE GROUP 
+    async leaveTrip(tripId, index, listName = "activeNowTasks") {
+      if (!confirm("Are you sure you want to leave this trip?")) return;
+
+      try {
+        // Check if the current user is the owner of the trip
+        const { data: trip, error: tripError } = await supabase
+          .from("itineraries")
+          .select("owner_id, name")
+          .eq("id", tripId)
+          .single();
+
+        if (tripError) {
+          console.error("Error checking trip ownership:", tripError.message);
+          alert("Unable to verify your ownership of the trip.");
+          return;
+        }
+
+        if (trip.owner_id === this.user.id) {
+          alert("You can't leave this trip because you are the owner.");
+          this.showMenus[index] = false;
+          return;
+        }
+
+        // Proceed to delete membership
+        const { error } = await supabase
+          .from("itinerary_members")
+          .delete()
+          .eq("user_id", this.user.id)
+          .eq("itinerary_id", tripId);
+
+        if (error) {
+          this.showMenus[index] = false;
+          console.error("Error leaving trip:", error.message);
+          alert("There was an issue leaving the trip. Please try again.");
+          return;
+        }
+
+        // Fetch user profile to get username and profile_pic_url
+        const { data: senderProfile, error: profileError } = await supabase
+          .from("profiles")
+          .select("username, profile_pic_url")
+          .eq("id", this.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Failed to fetch sender profile:", profileError.message);
+        }
+
+        // Send notification to the owner
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: trip.owner_id,
+              sender_id: this.user.id,
+              type: "left",
+              message: `${senderProfile?.username || "Someone"} left your itinerary "${trip.name}"`,
+              itinerary_id: tripId,
+              image_url: senderProfile?.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg',
+              itinerary_name: trip.name,
+              created_at: new Date().toISOString(),
+              is_read: false,
+            }
+          ]);
+
+        if (notifError) {
+          console.error("Failed to send notification:", notifError.message);
+        }
+
+        // Remove from appropriate task list
+        if (["activeNowTasks", "activeUpcomingTasks", "completedTasks"].includes(listName)) {
+          const list = this[listName];
+          if (Array.isArray(list) && index >= 0 && index < list.length) {
+            list.splice(index, 1);
+          }
+        }
+        // Recalculate trip count
+        const { count: ownedTripCount, error: ownedCountError } = await supabase
+          .from("itineraries")
+          .select("*", { count: "exact", head: true })
+          .eq("owner_id", this.user.id);
+
+        const { count: joinedTripCount, error: joinedCountError } = await supabase
+          .from("itinerary_members")
+          .select("itinerary_id", { count: "exact", head: true })
+          .eq("user_id", this.user.id);
+
+        if (!ownedCountError && !joinedCountError) {
+          this.trip = ownedTripCount + joinedTripCount;
+        }
+        this.showMenus[index] = false;
+        alert("You have successfully left the trip.");
+      } catch (err) {
+        this.showMenus[index] = false;
+        console.error("Unexpected error while leaving trip:", err);
+        alert("An unexpected error occurred.");
+      }
+
+      
     },
 
     handleClickOutside(event) {
