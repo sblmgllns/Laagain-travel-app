@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { cards } from '../assets/scripts/explore.js';
 import { supabase } from '../supabase';
 
+
 const profilePicUrl = ref(null);
 const modalItem = ref(null);
 const activeTab = ref('attractions');
@@ -87,7 +88,6 @@ const handleAddActivity = async (item) => {
     console.error("Unexpected error inserting activity:", err);
   }
 };
-
 
 async function loadUserTrips() {
   if (!userId.value) return;
@@ -218,7 +218,52 @@ const filteredCards = computed(() => {
     return bookmarkedItems.value;
   }
   return cards.value.filter(card => card.type === activeTab.value);
-});
+}); 
+
+const searchQuery = ref('');
+const isLoading = ref(false)
+const results = ref([])
+const errorMessage = ref('')
+
+
+// API call to Supabase edge function
+async function fetchTripResults() {
+  console.log("fetching data in Supabase")
+  errorMessage.value = ''
+  if (!searchQuery.value) {
+    errorMessage.value = 'Please enter a search query.'
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const { data, error } = await supabase.functions.invoke('new-trip-search', {
+      method: 'POST',
+      body: {
+        searchQuery: searchQuery.value,
+        language: 'en',
+        category: activeTab.value,
+      }
+    })
+
+    if (error) {
+      errorMessage.value = error.message || 'An error occurred'
+      results.value = []
+    } else {
+      results.value = data.results || data  // adjust depending on API response shape
+    }
+    
+    console.log("here's the data", results.value)
+
+  } catch (err) {
+    errorMessage.value = err.message || 'An error occurred during fetch'
+    results.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+
 </script>
 
 <template>
@@ -258,14 +303,18 @@ const filteredCards = computed(() => {
 
     <main class="results">
       <div class="results-header d-flex justify-content-between align-items-center">
-        <form class="search-form d-flex" role="search">
-            <div class="input-group rounded-input">
-                <span class="input-group-text bg-white border-end-0">
-                    <i class="bi bi-search"></i>
-                </span>
-                <input type="search"  class="input-bar" placeholder="Search" aria-label="Search">
-                <!-- <button class="btn btn-primary" type="submit">Search</button> -->
-            </div>
+        <form class="search-form d-flex" role="search" @submit.prevent="fetchTripResults">
+          <div class="input-group rounded-input">
+            <span class="input-group-text bg-white border-end-0">
+              <i class="bi bi-search"></i>
+            </span>
+            <input
+              v-model="searchQuery"
+              :disabled="isLoading"
+              placeholder="Search"
+            />
+            <button class="btn btn-primary"  type="submit" :disabled="isLoading">Search</button>
+          </div>
         </form>
 
         <h6>{{ filteredCards.length }} results found</h6>
@@ -278,6 +327,9 @@ const filteredCards = computed(() => {
           <option>Rating: Low to High</option>
         </select>
       </div>
+
+      <div v-if="isLoading" class="text-center my-4">Loading results...</div>
+      <div v-if="tripError" class="text-danger text-center my-4">Error: {{ errorMessage.message }}</div>
 
       <!-- Tabs -->
       <div class="d-flex tabs my-3">
@@ -304,6 +356,14 @@ const filteredCards = computed(() => {
         >
           Hotels
         </button>
+
+        <button
+          class="btn me-2"
+          :class="{'btn-primary': activeTab === 'restaurants', 'btn-outline-primary': activeTab !== 'restaurants'}"
+          @click="activeTab = 'restaurants'"
+        >
+          Restaurants
+        </button>
       </div>
 
       <div class="card-grid">
@@ -313,29 +373,27 @@ const filteredCards = computed(() => {
             <p class="category">{{ item.category }}</p>
             <h6 class="card-title">{{ item.title }}</h6>
             <div class="rating">
-              <i class="bi bi-star-fill text-warning"></i> {{ item.rating }} ({{ item.reviews }}) • {{ item.booked }}
+              <i class="bi bi-star-fill text-warning"></i>
+              {{ item.rating }} ({{ item.reviews }}) • {{ item.booked }}
             </div>
             <p class="price">From US$ {{ item.price.toFixed(2) }}</p>
             <button
-            class="btn btn-outline-primary btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#detailsModal"
-            @click="showDetails(item)"
+              class="btn btn-outline-primary btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#detailsModal"
+              @click="showDetails(item)"
             >
-            View Details
+              View Details
             </button>
-            <button 
-            class="btn"
-            @click="toggleBookmark(item)"
-          >
-            <i 
-              class="bi"
-              :class="{
-                'bi-bookmark-fill bookmark-yellow': isBookmarked(item),
-                'bi-bookmark': !isBookmarked(item)
-              }"
-            ></i>
-          </button>
+            <button class="btn" @click="toggleBookmark(item)">
+              <i
+                class="bi"
+                :class="{
+                  'bi-bookmark-fill bookmark-yellow': isBookmarked(item),
+                  'bi-bookmark': !isBookmarked(item)
+                }"
+              ></i>
+            </button>
           </div>
         </div>
       </div>
@@ -404,8 +462,11 @@ const filteredCards = computed(() => {
 
             <div class="modal-body">
                 <!-- Search bar -->
-                <input type="text" class="form-control form-control-lg mb-4 rounded-pill px-4" placeholder="Search by city, region or country">
-
+                <input
+                  type="text"
+                  class="form-control form-control-lg mb-4 rounded-pill px-4"
+                  placeholder="Search by city, region or country"
+                />
                 <!-- Country and city options -->
                 <div class="mb-3">
                 <div class="mt-2 d-flex flex-wrap gap-2 ps-4">
