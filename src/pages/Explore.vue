@@ -217,7 +217,7 @@ const filteredCards = computed(() => {
   if (activeTab.value === 'bookmarks') {
     return bookmarkedItems.value;
   }
-  return cards.value.filter(card => card.type === activeTab.value);
+  return results.value.filter(card => card.type === activeTab.value);
 }); 
 
 const searchQuery = ref('');
@@ -225,41 +225,84 @@ const isLoading = ref(false)
 const results = ref([])
 const errorMessage = ref('')
 
-
-// API call to Supabase edge function
 async function fetchTripResults() {
-  console.log("fetching data in Supabase")
-  errorMessage.value = ''
+  console.log("fetching data in Supabase");
+  errorMessage.value = '';
   if (!searchQuery.value) {
-    errorMessage.value = 'Please enter a search query.'
-    return
+    errorMessage.value = 'Please enter a search query.';
+    return;
   }
 
-  isLoading.value = true
+  isLoading.value = true;
+
   try {
-    const { data, error } = await supabase.functions.invoke('new-trip-search', {
+    const { data: searchData, error: searchError } = await supabase.functions.invoke('new-trip-search', {
       method: 'POST',
       body: {
         searchQuery: searchQuery.value,
         language: 'en',
         category: activeTab.value,
       }
-    })
+    });
 
-    if (error) {
-      errorMessage.value = error.message || 'An error occurred'
-      results.value = []
-    } else {
-      results.value = data.results || data  // adjust depending on API response shape
+    if (searchError || !Array.isArray(searchData?.data)) {
+      errorMessage.value = searchError?.message || 'Failed to fetch search results';
+      results.value = [];
+      return;
     }
-    
-    console.log("here's the data", results.value)
+
+    // Fetch photos for each locationId
+    const locations = searchData.data;
+
+    const enrichedResults = await Promise.all(locations.map(async (item) => {
+      const locationId = item.location_id || item.id;
+
+      // Default image fallback
+      let imageUrl = 'fallback-image-url';
+
+      // Attempt to get a photo for this location
+      try {
+        const { data: photoData } = await supabase.functions.invoke('get-trip-photos', {
+          method: 'POST',
+          body: {
+            locationId,
+            language: 'en',
+            limit: 1, // just get the first photo
+            source: 'Traveler'
+          }
+        });
+
+        // Grab the first photo URL if it exists
+        if (Array.isArray(photoData?.data) && photoData.data[0]?.images?.original?.url) {
+          imageUrl = photoData.data[0].images.original.url;
+        }
+      } catch (photoErr) {
+        console.warn(`Failed to fetch photo for location ${locationId}`, photoErr);
+      }
+
+      return {
+        id: locationId,
+        image: imageUrl,
+        category: item.address_obj?.street1
+          ? `${item.address_obj.street1}, ${item.location_string || ''}`
+          : item.location_string || 'Unknown Location',
+        title: item.name,
+        rating: item.rating || 0,
+        reviews: item.num_reviews || 0,
+        booked: 'N/A',
+        price: parseFloat(item.price_level?.replace(/[^0-9.]/g, '')) || 0,
+        type: activeTab.value,
+      };
+    }));
+
+    results.value = enrichedResults;
+    console.log("Enriched results", enrichedResults);
 
   } catch (err) {
-    errorMessage.value = err.message || 'An error occurred during fetch'
-    results.value = []
+    errorMessage.value = err.message || 'An error occurred during fetch';
+    results.value = [];
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
@@ -282,7 +325,7 @@ async function fetchTripResults() {
 
   <div class="results-page">
 
-    <aside class="sidebar">
+    <!-- <aside class="sidebar">
         <div class="filter-group">
             <h5>Location</h5>
             <button class="select-loc-btn btn btn-outline-primary d-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#locationModal">
@@ -299,7 +342,7 @@ async function fetchTripResults() {
           <span>PHP 1000</span>
         </div>
       </div>
-    </aside>
+    </aside> -->
 
     <main class="results">
       <div class="results-header d-flex justify-content-between align-items-center">
@@ -329,7 +372,7 @@ async function fetchTripResults() {
       </div>
 
       <div v-if="isLoading" class="text-center my-4">Loading results...</div>
-      <div v-if="tripError" class="text-danger text-center my-4">Error: {{ errorMessage.message }}</div>
+      <div v-if="errorMessage" class="text-danger text-center my-4">Error: {{ errorMessage.message }}</div>
 
       <!-- Tabs -->
       <div class="d-flex tabs my-3">
@@ -372,11 +415,11 @@ async function fetchTripResults() {
           <div class="card-body">
             <p class="category">{{ item.category }}</p>
             <h6 class="card-title">{{ item.title }}</h6>
-            <div class="rating">
+            <!-- <div class="rating">
               <i class="bi bi-star-fill text-warning"></i>
               {{ item.rating }} ({{ item.reviews }}) • {{ item.booked }}
-            </div>
-            <p class="price">From US$ {{ item.price.toFixed(2) }}</p>
+            </div> -->
+            <!-- <p class="price">From US$ {{ item.price.toFixed(2) }}</p> -->
             <button
               class="btn btn-outline-primary btn-sm"
               data-bs-toggle="modal"
