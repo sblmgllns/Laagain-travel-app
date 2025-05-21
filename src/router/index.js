@@ -12,23 +12,29 @@ import newItinerary from "../pages/newItinerary.vue";
 import EditItinerary from "../pages/EditItinerary.vue";
 import Explore from "../pages/Explore.vue";
 import Notifications from "../pages/Notifications.vue";
+import Sidenav from "../pages/sidenav.vue";
 
 const routes = [
   //{ path: "/", redirect: "/edit-itinerary", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
   { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  },
+  { path: "/", redirect: "/dashboard", meta: { title: "Laagain - Dashboard" } },
+  { path: "/login", component: LogInPage, meta: { title: "Laagain - Log In", layout: 'none' } },
+  { path: "/signup", component: SignUpPage, meta: { title: "Laagain - Sign Up", layout: 'none' } },
+  { path: "/forgot-password", component: ForgotPassword, meta: { layout: 'none' } },
+  { path: "/reset-password", component: ResetPassword, meta: { layout: 'none' } },
   { path: "/login", component: LogInPage, meta: {title: "Laagain - Log In"} },
   { path: "/signup", component: SignUpPage, meta: {title: "Laagain - Sign Up"} },
   { path: "/home", component: HomePage },
   { path: "/profile", component: Profile },
   { path: "/ProfileSettings", component: ProfileSettings},
-  { path: "/forgot-password", component: ForgotPassword },
-  { path: "/reset-password", component: ResetPassword },
   { path: "/deactivate-account", component: DeactivateAccount },
   { path: "/dashboard", component: Dashboard },
   { path: "/new-itinerary", component: newItinerary },
   { path: "/edit-itinerary", component: EditItinerary},
   { path: "/explore", component: Explore},
   { path: "/notifications", component: Notifications},
+  { path: "/sidenav", component: Sidenav},
+
 ];
 
 const router = createRouter({

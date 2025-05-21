@@ -4,22 +4,22 @@
       <!-- Profile Header with Laagain -->
       <div class="row p-3 d-flex align-items-center">
         <!-- Profile Picture -->
-        <div class="col-auto d-flex align-items-center justify-content-center">
+        <!-- <div class="col-auto d-flex align-items-center justify-content-center">
           <img 
             :src="profilePic" 
             alt="Profile Picture" 
             class="rounded-circle border border-white shadow-sm img-fluid"
             style="width: 80px; height: 80px; object-fit: cover;" 
           />
-        </div>
+        </div> -->
   
         <!-- Laagain Text (Same Line as Profile Pic) -->
-        <div class="col text-center">
+        <!-- <div class="col text-center">
           <h4 class="fw-bold m-0">laagain</h4>
-        </div>
+        </div> -->
   
         <!-- Icons -->
-        <div class="col-auto d-flex">
+        <!-- <div class="col-auto d-flex">
           <router-link class="nav-link me-3" to="/explore">
             <i class="bi bi-search fs-3"></i>
           </router-link>
@@ -27,11 +27,11 @@
           <router-link class="nav-link" to="/notifications">
             <i class="bi bi-bell fs-3"></i>
           </router-link>
-        </div>
+        </div> -->
       </div>
   
       <!-- MY TRIPS Centered -->
-      <div class="text-center mt-1 mb-3">
+      <div class="text-left mt-1 mb-3">
         <h2 class="fw-bold display-3 fs-1" style="color: #03AED2;">MY TRIPS</h2>
       </div>
   
@@ -318,6 +318,7 @@
       </div>
 
       </div>
+
       <<div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="height: 80vh;">
@@ -327,6 +328,7 @@
             </h5>
             <button type="button" class="btn-close" @click="closeInviteModal"></button>
           </div>
+
           <div class="modal-body" style="overflow-y: auto;">
             <!-- Colored Circles -->
             <div style="display: flex; justify-content: center; gap: 0px; align-items: center; margin-top: -20px">
@@ -451,7 +453,6 @@
             <div v-if="loading" class="modal-body">
               <p>Loading...</p> <!-- Add your loading spinner here -->
             </div>
-
           </div>
           <!-- Sticky Footer with Yellow Button -->
           <div class="modal-footer" style="padding-top: 10px; background-color: white; position: sticky; bottom: 0; z-index: 10;">

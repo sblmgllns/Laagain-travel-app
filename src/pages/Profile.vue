@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid w-100y">
-
+    
     <!-- Profile Header -->
     <div class="row">
       <!-- Navbar Top -->
@@ -24,7 +24,7 @@
           </router-link>
         </div>
       </nav>
-
+      <!-- user profile details -->
       <div class="card w-100 rounded-1">
         <img :src="profilePic" alt="Profile Picture" class="profile-pic mx-auto" />
         <h1 class="mt-3">@{{ username }}</h1>
