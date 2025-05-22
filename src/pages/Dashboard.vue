@@ -1,60 +1,128 @@
 <template>
     <div class="container-fluid w-100 bg-white">
       
-      <!-- Profile Header with Laagain -->
-      <div class="row p-3 d-flex align-items-center">
-        <!-- Profile Picture -->
-        <!-- <div class="col-auto d-flex align-items-center justify-content-center">
-          <img 
-            :src="profilePic" 
-            alt="Profile Picture" 
-            class="rounded-circle border border-white shadow-sm img-fluid"
-            style="width: 80px; height: 80px; object-fit: cover;" 
-          />
-        </div> -->
-  
-        <!-- Laagain Text (Same Line as Profile Pic) -->
-        <!-- <div class="col text-center">
-          <h4 class="fw-bold m-0">laagain</h4>
-        </div> -->
-  
-        <!-- Icons -->
-        <!-- <div class="col-auto d-flex">
-          <router-link class="nav-link me-3" to="/explore">
-            <i class="bi bi-search fs-3"></i>
-          </router-link>
+      <div class="my-trips-container">
+        <h1 class="my-trips-title">My Trips</h1>
+      </div>
 
-          <router-link class="nav-link" to="/notifications">
-            <i class="bi bi-bell fs-3"></i>
-          </router-link>
-        </div> -->
-      </div>
-  
-      <!-- MY TRIPS Centered -->
-      <div class="text-left mt-1 mb-3">
-        <h2 class="fw-bold display-3 fs-1" style="color: #03AED2;">MY TRIPS</h2>
-      </div>
-  
-      <!-- Tabs Section -->
-      <div class="row" id="contentSection">
-        
-        <ul class="nav nav-tabs nav-fill">
-          <li class="nav-item">
-            <a class="nav-link fs-5 tab-spacing" :class="{ active: activeTab === 'active' }" @click="activeTab = 'active'">
-              Active
-            </a>
+      <div class="tab-section">
+        <ul class="underline-tabs">
+          <li
+            class="underline-tab"
+            :class="{ active: activeTab === 'active' }"
+            @click="activeTab = 'active'"
+          >
+            Active
           </li>
-          <li class="nav-item">
-            <a class="nav-link fs-5 tab-spacing" :class="{ active: activeTab === 'completed' }" @click="activeTab = 'completed'">
-              Completed
-            </a>
+          <li
+            class="underline-tab"
+            :class="{ active: activeTab === 'completed' }"
+            @click="activeTab = 'completed'"
+          >
+            Completed
           </li>
-          <li class="nav-item">
-            <a class="nav-link fs-5 tab-spacing" :class="{ active: activeTab === 'invited' }" @click="activeTab = 'invited'">
-              Invited
-            </a>
+          <li
+            class="underline-tab"
+            :class="{ active: activeTab === 'invited' }"
+            @click="activeTab = 'invited'"
+          >
+            Invited
           </li>
         </ul>
+      </div>
+
+      <div v-if="activeTab === 'active'" class="row justify-content-start">
+        <div class="status-container">
+          <h5 class="status-title">Now Traveling</h5>
+          <div class="underline"></div>
+        </div>
+
+        <div class="responsive-scroll-container">
+          <div class="responsive-scroll-inner">
+            <div class="card-grid" v-for="(task, index) in activeNowTasks" :key="index">
+              <div class="result-card h-100">
+                    
+                    <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
+                    
+                    <div class="card-body">
+                      <div class="card-name">
+                        <!-- Title field -->
+                        <input
+                          type="text"
+                          class="form-control-plaintext p-0 m-0"
+                          :value="task.title"
+                          readonly
+                          style="font-weight: 600;"
+                        />
+
+                        <!-- Pencil icon -->
+                        <span class="edit-icon ms-2">
+                          <i class="bi bi-pencil-fill text-secondary"></i>
+                        </span>
+
+                        <!-- Underline on hover -->
+                        <div class="underline-hover"></div>
+                      </div>
+            
+                      <p class="category">
+                        {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                      </p>
+
+                      
+                    </div>
+
+                  </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-container">
+          <h5 class="status-title">Upcoming Trip</h5>
+          <div class="underline"></div>
+        </div>
+
+        <div class="responsive-scroll-container">
+          <div class="responsive-scroll-inner">
+            <div class="card-grid" v-for="(task, index) in activeUpcomingTasks" :key="index">
+              <div class="result-card h-100">
+                    
+                    <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
+                    
+                    <div class="card-body">
+                      <div class="card-name">
+                        <!-- Title field -->
+                        <input
+                          type="text"
+                          class="form-control-plaintext p-0 m-0"
+                          :value="task.title"
+                          readonly
+                          style="font-weight: 600;"
+                        />
+
+                        <!-- Pencil icon -->
+                        <span class="edit-icon ms-2">
+                          <i class="bi bi-pencil-fill text-secondary"></i>
+                        </span>
+
+                        <!-- Underline on hover -->
+                        <div class="underline-hover"></div>
+                      </div>
+            
+                      <p class="category">
+                        {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                      </p>
+
+                      
+                    </div>
+
+                  </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <!-- Tabs Section -->
+      <div class="row" id="contentSection">
   
         <!-- Tab Content -->
         <div class="tab-content overflow-auto pb-15vh">
@@ -263,59 +331,6 @@
         </div>
       </div>
   
-        <!-- Bottom Navigation Bar -->
-      <div class="position-absolute start-50 translate-middle-x bottom-0 mb-4 w-50 bg-white rounded-pill shadow-lg py-3 d-flex justify-content-around align-items-center text-decoration-none"
-        style="height: 70px; 
-               box-shadow: 
-                   inset 0px 5px 10px rgba(150, 150, 150, 0.5),  
-                   0px 10px 30px rgba(100, 100, 100, 0.7);">
-        
-        <!-- Trips -->
-        <div class="text-center">
-          <router-link to="/dashboard" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-suitcase-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Trips</p>
-          </router-link>
-        </div>
-
-        <!-- Explore -->
-        <div class="text-center">
-          <router-link to="/explore" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-compass-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Explore</p>
-          </router-link>
-        </div>
-
-        <!-- Plus Button (Centered Floating Button) -->
-        <div class="position-absolute start-50 translate-middle rounded-circle d-flex align-items-center justify-content-center"
-            style="width: 60px; height: 60px; top: -5px; background-color: #03AED2; 
-                box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);">
-
-            <router-link to="/new-itinerary" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
-                <i class="bi bi-plus-lg" 
-                style="font-size: 2.5rem; /* Make it bigger */
-                        font-weight: bold; 
-                        -webkit-text-stroke: 3px white; 
-                        text-stroke: 3px white;"></i>
-            </router-link>
-        </div>
-
-        <!-- Hotel -->
-        <div class="text-center">
-          <router-link to="/hotel" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-building-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Hotel</p>
-          </router-link>
-        </div>
-
-        <!-- Profile -->
-        <div class="text-center">
-          <router-link to="/profile" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-person-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Profile</p>
-          </router-link>
-        </div>
-      </div>
 
       </div>
 

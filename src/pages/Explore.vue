@@ -310,39 +310,7 @@ async function fetchTripResults() {
 </script>
 
 <template>
-    <!-- Fixed Top Bar -->
-    <div class="top-bar w-100 d-flex align-items-center">
-        <div class="col-auto d-flex align-items-center justify-content-center">
-          <img 
-            :src="profilePicUrl" 
-            alt="Profile Picture" 
-            class="rounded-circle border border-white shadow-sm img-fluid"
-            style="width: 80px; height: 80px; object-fit: cover;" 
-          />
-        </div>
-
-    </div>
-
   <div class="results-page">
-
-    <!-- <aside class="sidebar">
-        <div class="filter-group">
-            <h5>Location</h5>
-            <button class="select-loc-btn btn btn-outline-primary d-flex align-items-center gap-2" type="button" data-bs-toggle="modal" data-bs-target="#locationModal">
-                <i class="bi bi-geo-alt"></i>
-                <span>Select location</span>
-            </button>
-        </div>
-
-      <div class="filter-group">
-        <h5>Price range</h5>
-        <input type="range" class="form-range" min="0" max="1042" />
-        <div class="d-flex justify-content-between">
-          <span>PHP 0</span>
-          <span>PHP 1000</span>
-        </div>
-      </div>
-    </aside> -->
 
     <main class="results">
       <div class="results-header d-flex justify-content-between align-items-center">
@@ -412,14 +380,11 @@ async function fetchTripResults() {
       <div class="card-grid">
         <div class="result-card" v-for="(item, index) in filteredCards" :key="index">
           <img :src="item.image" class="card-img-top" />
+
           <div class="card-body">
             <p class="category">{{ item.category }}</p>
             <h6 class="card-title">{{ item.title }}</h6>
-            <!-- <div class="rating">
-              <i class="bi bi-star-fill text-warning"></i>
-              {{ item.rating }} ({{ item.reviews }}) • {{ item.booked }}
-            </div> -->
-            <!-- <p class="price">From US$ {{ item.price.toFixed(2) }}</p> -->
+
             <button
               class="btn btn-outline-primary btn-sm"
               data-bs-toggle="modal"
@@ -442,59 +407,6 @@ async function fetchTripResults() {
       </div>
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <div class="position-absolute start-50 translate-middle-x bottom-0 mb-4 w-50 bg-white rounded-pill shadow-lg py-3 d-flex justify-content-around align-items-center text-decoration-none"
-        style="height: 70px; 
-               box-shadow: 
-                   inset 0px 5px 10px rgba(150, 150, 150, 0.5),  
-                   0px 10px 30px rgba(100, 100, 100, 0.7);">
-        
-        <!-- Trips -->
-        <div class="text-center">
-          <router-link to="/dashboard" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-suitcase-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Trips</p>
-          </router-link>
-        </div>
-
-        <!-- Explore -->
-        <div class="text-center">
-          <router-link to="/explore" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-compass-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Explore</p>
-          </router-link>
-        </div>
-
-        <!-- Plus Button (Centered Floating Button) -->
-        <div class="position-absolute start-50 translate-middle rounded-circle d-flex align-items-center justify-content-center"
-            style="width: 60px; height: 60px; top: -5px; background-color: #03AED2; 
-                box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);">
-
-            <router-link to="/new-itinerary" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
-                <i class="bi bi-plus-lg" 
-                style="font-size: 2.5rem; /* Make it bigger */
-                        font-weight: bold; 
-                        -webkit-text-stroke: 3px white; 
-                        text-stroke: 3px white;"></i>
-            </router-link>
-        </div>
-
-        <!-- Hotel -->
-        <div class="text-center">
-          <router-link to="/hotel" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-building-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Hotel</p>
-          </router-link>
-        </div>
-
-        <!-- Profile -->
-        <div class="text-center">
-          <router-link to="/profile" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-person-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Profile</p>
-          </router-link>
-        </div>
-      </div>
   </div>
 
 

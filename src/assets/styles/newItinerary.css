@@ -1,212 +1,123 @@
-html,body{
-    background-color: #03AED2 !important; /* Force background */
-    background-color: #03AED2 ;
-  }
-  
-.trip-form {
-    max-width: 1000px;
-    width: 35vw;
-    height: 85vh;
-    min-width: 350px;
-    min-height: 865px;
-    margin: 2% auto;
-    /* height: 90vh; */
-    padding: 1%;
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.container {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  font-family: Arial, sans-serif;
 }
-  
-  .input-group{
-    height: 65%;
-    width: 100%;
-    margin-left: 0px;
-    /* background-color: green; */
+
+.create-pin {
+  display: flex;
+}
+
+.image-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-preview {
+  border-radius: 16px;
+  border: 1px solid #ccc;
+  width: 400px;       /* fixed width */
+  height: 200px;      /* fixed height, adjust as needed */
+  object-fit: cover;  /* cover to fill area, cropping if needed */
+  display: block;     /* removes inline gap below image */
+}
+.form-section {
+  flex: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-title {
+  position: relative;
+  margin-bottom: 1rem;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.field label {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 16px;
+  background: #fff;
+  color: #0E0E0D; /* 👈 this sets the text color */
+}
+
+
+.field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.field small {
+  color: #666;
+  font-size: 12px;
+}
+
+.publish-button {
+  background-color: #e60023;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 16px;
+  border-radius: 30px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.date-range {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.date-range .date-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 600px) {
+  .date-range {
+    flex-direction: column;
     display: flex;
+    gap: 1.2rem;
   }
-  .input-group-text {
-    background-color: #f8f9fa;
-    border-right: none;
-    width: 10%;
-    /* background-color: yellow; */
-    justify-content: center;
-  }
+  .date-range {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
 
-  .inputField{
-    width: 90%;
-  }
+.date-range .date-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   
-  .formcontrol {
-    border-left: none;
-    width: 90%;
-    /* background-color: purple; */
-    border-radius: 5px;
-    border: 2px solid #eaeaea;
-    font-size: 125%;
-  }
-  
-  .button-group {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    margin-top: 10px !important;
-    /* background-color: pink; */
-  }
-  
-  
-  .inputG {
-    height: 8%;
-    width: 98%;
-    margin-bottom: .85% auto;
-    /* background-color: pink; */
-  }
-  
-  .inputLabels{
-    color: #03AED2;
-    font-family: 'Roboto', sans-serif;
-    font-size: 120%;
-    text-align: center; /* Ensure alignment to the left */
-    margin-bottom: 0%;
-    /* background-color: orange; */
-    height:35%;
-    font-weight: bold;
-  }
-  
-  #coverPhotoContainer{
-    margin-bottom: 2%;
-    height: 33%;
-    width: 98%;
-    background-color: #fff;
-  }
-
-  .cover-image-display {
-    width: 100%;
-    height: 85%;
-    max-height: 350px;
-    margin: auto;
-    text-align: center;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 4px dashed gray;
-  }
-
-  #displayedCover{
-    object-fit: cover;
-    height: 100%;
-    width: 100%;
-  }
-  input[type="file"] {
-    font-size: 14px;
-    color: #333;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 2%;
-  }
-  
-  input[type="file"]::file-selector-button {
-    background-color: #03AED2;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-  }
-  
-  input[type="file"]::file-selector-button:hover {
-    background-color: #87CEEB;
-  }
-  
-  #privacyLabel{
-    margin-top:0%;
-  }
-  
-  .privacy{
-    margin: .5% auto;
-    width: 98%;
-    display: flex;
-    /* background-color: purple; */
-  }
-  
-  .form-check {
-    display: flex;
-    align-items: center;
-    gap: 15px; /* Space between radio and label */
-    padding: 8px;
-    border-radius: 8px;
-    transition: background 0.3s ease;
-    /* background-color: orange; */
-    width: 20%;
-    margin: auto;
-  }
-  
-  .form-check:hover {
-    background: rgba(3, 174, 210, 0.1); /* Light highlight on hover */
-  }
-  
-  .form-check-input {
-    appearance: none; /* Hide default radio button */
-    width: 20px;
-    height: 20px;
-    border: 2px solid #03AED2;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-  .form-check-input:checked {
-    background-color: #03AED2;
-    border-color: #03AED2;
-  }
-  
-  .form-check-input:checked::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: white;
-    display: block;
-  }
-  
-  .form-check-label {
-    font-size: 120%;
-    font-weight: 500;
-    color: #333;
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-  
-  .form-check-input:checked + .form-check-label {
-    color: #03AED2;
-  }
-  
-  #saveChangesButton{
-    background-color:#F28C28;
-    color: white;
-    font-size: 120%;
-    font-weight: bold;
-  }
-
-  #cancelButton{
-    background-color: #eaeaea;
-    color: gray;
-    font-size: 120%;
-  }
-
-  body, .container-fluid {
-    font-family: 'Sarabun', sans-serif;
-  }
-
-  .form-title {
-    font-size: 2rem; /* Adjust size as needed */
-    font-weight: bold;
-    text-align: center;
-    color: #03AED2; /* Matches your theme */
-  }
-
-  
+  width: 100%;
+  border-radius: 10px;
+  font-size: 16px;
+  background: #fff;
+  color: #0E0E0D; /* 👈 this sets the text color */
+}
+}

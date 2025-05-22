@@ -42,11 +42,6 @@
             <i class="bi bi-geo"></i> Trips
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link fs-4" :class="{ active: activeTab === 'guides' }" @click="activeTab = 'guides'">
-            <i class="bi bi-map"></i> Guides
-          </a>
-        </li>
       </ul>
 
       <!-- Tab Content -->
@@ -97,71 +92,6 @@
           </div>
         </div>
 
-        <!-- Guides Tab -->
-        <div v-if="activeTab === 'guides'" class="row">
-          <div v-for="(guide, index) in guides" :key="index" class="col-lg-4 col-md-6 col-12">
-            <div class="card mb-2 mt-2 rounded-5 w-100">
-              <div class="card-body">
-                <h5 class="card-title">{{ guide.title }}</h5>
-                <p class="card-text">{{ guide.content }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Bottom Navigation Bar -->
-      <div class="position-absolute start-50 translate-middle-x bottom-0 mb-4 w-50 bg-white rounded-pill shadow-lg py-3 d-flex justify-content-around align-items-center text-decoration-none"
-        style="height: 70px; 
-               box-shadow: 
-                   inset 0px 5px 10px rgba(150, 150, 150, 0.5),  
-                   0px 10px 30px rgba(100, 100, 100, 0.7);">
-        
-        <!-- Trips -->
-        <div class="text-center">
-          <router-link to="/dashboard" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-suitcase-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Trips</p>
-          </router-link>
-        </div>
-
-        <!-- Explore -->
-        <div class="text-center">
-          <router-link to="/explore" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-compass-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Explore</p>
-          </router-link>
-        </div>
-
-        <!-- Plus Button (Centered Floating Button) -->
-        <div class="position-absolute start-50 translate-middle rounded-circle d-flex align-items-center justify-content-center"
-            style="width: 60px; height: 60px; top: -5px; background-color: #03AED2; 
-                box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);">
-
-            <router-link to="/new-itinerary" class="text-white text-decoration-none d-flex align-items-center justify-content-center w-100 h-100">
-                <i class="bi bi-plus-lg" 
-                style="font-size: 2.5rem; /* Make it bigger */
-                        font-weight: bold; 
-                        -webkit-text-stroke: 3px white; 
-                        text-stroke: 3px white;"></i>
-            </router-link>
-        </div>
-
-        <!-- Hotel -->
-        <div class="text-center">
-          <router-link to="/hotel" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-building-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Hotel</p>
-          </router-link>
-        </div>
-
-        <!-- Profile -->
-        <div class="text-center">
-          <router-link to="/profile" class="text-decoration-none d-flex flex-column align-items-center nav-item">
-            <i class="bi bi-person-fill fs-4 text-gray"></i>
-            <p class="fw-bold m-0 small text-gray">Profile</p>
-          </router-link>
-        </div>
       </div>
     </div>
 

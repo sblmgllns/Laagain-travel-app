@@ -18,37 +18,13 @@ const layout = computed(() => {
 </script>
 
 <style>
-/* For WebKit (Chrome, Edge, Opera) */
-::-webkit-scrollbar {
-  width: 8px;
-}
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.25);
-}
-
-/* For Firefox */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-}
-
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* if you want no scroll at all */
   font-family: 'Sarabun', sans-serif;
   background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%);
-  overflow-y: scroll; /* Ensure scroll is allowed */
 }
-
 </style>
