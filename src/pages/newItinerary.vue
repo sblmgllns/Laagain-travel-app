@@ -11,12 +11,15 @@
         <form @submit.prevent="saveTrip" class="form-fields">
 
           <!-- Image Section -->
-        <div class="image-section">
-          <div>
-            <img :src="coverImage" id="displayedCover" alt="Cover" class="image-preview" />
-            <input type="file" id="coverImage" @change="handleImageUpload" class="field-input" />
+          <div class="image-section">
+            <div>
+              <img :src="coverImage" id="displayedCover" alt="Cover" class="image-preview" />
+              <input type="file" id="coverImage" @change="handleImageUpload" class="field-input" />
+              <transition name="fade">
+                <p v-if="imageError" class="image-error">{{ imageError }}</p>
+              </transition>
+            </div>
           </div>
-        </div>
 
           <!-- Trip Name -->
           <div class="field">
@@ -97,6 +100,10 @@ const privacy = ref("")
 const coverImage = ref(null)
 const errorMessage = ref("")
 const today = new Date().toISOString().split('T')[0]
+const uploadingImage = ref(false)
+const imageError = ref("")
+let errorTimeout = null
+
 
 
 onMounted(async () => {
@@ -120,14 +127,27 @@ function cancel() {
 }
 
 async function handleImageUpload(event) {
+  uploadingImage.value = true
+
   const file = event.target.files[0]
   if (!file) return
 
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"]
   if (!allowedTypes.includes(file.type)) {
     console.error("Invalid file type. Please upload a JPG or PNG.")
+    imageError.value = "Invalid file type. Only JPG and PNG images are allowed."
+    if (errorTimeout) clearTimeout(errorTimeout)
+    // Set timeout to clear the error after 3 seconds
+    errorTimeout = setTimeout(() => {
+      imageError.value = ""
+    }, 3000)
+
     return
   }
+  else{
+    imageError.value = ""
+  }
+
 
   const fileExt = file.name.split(".").pop()
   const filePath = `itinerary-assets/${user.value.id}-${Date.now()}.${fileExt}`
@@ -135,6 +155,8 @@ async function handleImageUpload(event) {
   const { error: uploadError } = await supabase.storage
     .from("itinerary-assets")
     .upload(filePath, file, { upsert: true, contentType: file.type })
+
+  uploadingImage.value = false
 
   if (uploadError) {
     console.error("Error uploading image:", uploadError.message)
@@ -153,6 +175,12 @@ async function handleImageUpload(event) {
 }
 
 async function saveTrip() {
+
+  if (uploadingImage.value) {
+    alert("Please wait until the image is uploaded.")
+    return
+  }
+
   if (new Date(startDate.value) > new Date(endDate.value)) {
     alert("Invalid Dates!")
     return
@@ -274,9 +302,9 @@ async function saveTrip() {
     }
   }
 
-  alert("Trip and invites saved.")
-  router.push("/dashboard")
+  router.push({ path: "/edit-itinerary", query: { id: tripId } })
 }
+
 </script>
 
 

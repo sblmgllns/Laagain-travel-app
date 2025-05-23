@@ -1,10 +1,53 @@
 <template>
+    
+    <!-- header Photo+search-->
+    <div class="container-parent">
+      <div class="Header-container">  
+
+        <!-- Overlay Content -->
+        <div class="header-overlay text-center">
+          <!-- Headline and Subhead First -->
+          <div class="header-text">
+            <h1 class="headline">Plan Trips Together, the Laagain Way.</h1>
+            <p class="subhead">Laagain is your collaborative platform to effortlessly plan and share travel adventures with friends.</p>
+          </div>
+
+          <!-- Search Bar BELOW the text -->
+          <form class="search-form d-flex justify-content-center" role="search" @submit.prevent="fetchTripResults">
+            <div class="search-box d-flex flex-row gap-0 input-group w-100">
+              <div id="searchIconContainer">
+                <i class="bi bi-search text-muted"></i>
+              </div>
+              <div id="searchQueryContainer">
+                <input
+                  v-model="searchQuery"
+                  :disabled="isLoading"
+                  class="inputField"
+                  placeholder="Search"
+                />
+              </div>
+              <div style="width: 30%;">
+                <button class="btn btn-primary search-btn" type="submit" :disabled="isLoading">Search</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+
+        <!-- image -->
+        <img class="header-image" src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//header.jpg" alt="">
+      </div>
+    </div>
+
+
+    <!-- New UI Main Content -->
     <div class="container-fluid w-100 bg-white">
-      
+      <!-- My Trips-->
       <div class="my-trips-container">
         <h1 class="my-trips-title">My Trips</h1>
       </div>
 
+      <!-- Tabs -->
       <div class="tab-section">
         <ul class="underline-tabs">
           <li
@@ -31,310 +74,296 @@
         </ul>
       </div>
 
+      <!-- new ui active tab -->
       <div v-if="activeTab === 'active'" class="row justify-content-start">
         <div class="status-container">
           <h5 class="status-title">Now Traveling</h5>
           <div class="underline"></div>
         </div>
 
-        <div class="responsive-scroll-container">
-          <div class="responsive-scroll-inner">
-            <div class="card-grid" v-for="(task, index) in activeNowTasks" :key="index">
-              <div class="result-card h-100">
-                    
-                    <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
-                    
-                    <div class="card-body">
-                      <div class="card-name">
-                        <!-- Title field -->
-                        <input
-                          type="text"
-                          class="form-control-plaintext p-0 m-0"
-                          :value="task.title"
-                          readonly
-                          style="font-weight: 600;"
-                        />
+        <div v-if="activeNowTasks.length">
 
-                        <!-- Pencil icon -->
-                        <span class="edit-icon ms-2">
-                          <i class="bi bi-pencil-fill text-secondary"></i>
-                        </span>
+          <div class="responsive-scroll-container">
+            <div class="responsive-scroll-inner">
 
-                        <!-- Underline on hover -->
-                        <div class="underline-hover"></div>
-                      </div>
-            
-                      <p class="category">
-                        {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
-                      </p>
+              <div class="card-grid" v-for="(task, index) in activeNowTasks" :key="index">
 
+                <div class="result-card h-100">
+                      <span class="trip-menu" @click.stop="toggleMenu(task.id)">
+                        <i class="bi bi-three-dots"></i>
+
+                        <div v-if="showMenus[task.id]" class="menu-options">
+                          <template v-if="task.ownerId == user.id">
+                            <a href="#" @click.stop="deletePost(task.id, index, 'activeNowTasks')">Delete</a>
+                          </template>
+                          <template v-else>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'activeNowTasks')">Leave</a>
+                          </template>
+                        </div>
+                      </span>
                       
-                    </div>
+                      <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
+                      
+                      <div class="card-body">
+                        <div class="card-name">
+                          <!-- Title field -->
+                          <input
+                            type="text"
+                            class="form-control-plaintext p-0 m-0"
+                            :value="task.title"
+                            readonly
+                            style="font-weight: 600;"
+                          />
 
-                  </div>
+                          <!-- Pencil icon -->
+                          <span class="edit-icon ms-2">
+                            <i class="bi bi-pencil-fill text-secondary"></i>
+                          </span>
+
+                          <!-- Underline on hover -->
+                          <div class="underline-hover"></div>
+                        </div>
+              
+                        <p class="category">
+                          {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                        </p>
+
+                        
+                      </div>
+
+                </div>
+
+              </div>
             </div>
           </div>
+        </div>
+        <div v-else class="text-center w-100 my-4">
+          <img
+            src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+            alt="No result"
+            class="No-Result"
+          />
+          <p class="text-muted">No trips found.</p>
         </div>
 
         <div class="status-container">
           <h5 class="status-title">Upcoming Trip</h5>
           <div class="underline"></div>
         </div>
+        
+        <div v-if="activeUpcomingTasks.length"> 
+          <div class="responsive-scroll-container">
+            <div class="responsive-scroll-inner">
+              <div class="card-grid" v-for="(task, index) in activeUpcomingTasks" :key="index">
+                <div class="result-card h-100">
+                      <!-- Three dots menu (top-right corner over image) -->
+                      <div
+                        class="trip-menu position-absolute top-0 end-0 m-2"
+                        @click.stop="toggleMenu(task.id)"
+                      >
+                        <i class="bi bi-three-dots fs-5"></i>
 
-        <div class="responsive-scroll-container">
-          <div class="responsive-scroll-inner">
-            <div class="card-grid" v-for="(task, index) in activeUpcomingTasks" :key="index">
-              <div class="result-card h-100">
-                    
-                    <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
-                    
-                    <div class="card-body">
-                      <div class="card-name">
-                        <!-- Title field -->
-                        <input
-                          type="text"
-                          class="form-control-plaintext p-0 m-0"
-                          :value="task.title"
-                          readonly
-                          style="font-weight: 600;"
-                        />
-
-                        <!-- Pencil icon -->
-                        <span class="edit-icon ms-2">
-                          <i class="bi bi-pencil-fill text-secondary"></i>
-                        </span>
-
-                        <!-- Underline on hover -->
-                        <div class="underline-hover"></div>
+                        <div v-if="showMenus[task.id]" class="menu-options">
+                          <template v-if="task.ownerId == user.id">
+                            <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
+                          </template>
+                          <template v-else>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
+                          </template>
+                        </div>
                       </div>
-            
-                      <p class="category">
-                        {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
-                      </p>
 
-                      
+                      <!-- Image -->
+                      <img
+                        :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                        @click="navigateToEditItinerary(task.id)"
+                        class="card-img-top"
+                        style="cursor: pointer;"
+                      />
+
+                      <div class="card-body">
+                        <div class="card-name">
+                          <!-- Title field -->
+                          <input
+                            type="text"
+                            class="form-control-plaintext p-0 m-0"
+                            :value="task.title"
+                            readonly
+                            style="font-weight: 600;"
+                          />
+
+                          <!-- Pencil icon -->
+                          <span class="edit-icon ms-2">
+                            <i class="bi bi-pencil-fill text-secondary"></i>
+                          </span>
+
+                          <!-- Underline on hover -->
+                          <div class="underline-hover"></div>
+                        </div>
+              
+                        <p class="category">
+                          {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                        </p>
+
+                        
+                      </div>
+
                     </div>
-
-                  </div>
+              </div>
             </div>
           </div>
+        </div>
+        <div v-else class="text-center w-100 my-4">
+          <img
+            src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+            alt="No result"
+            class="No-Result"
+          />
+          <p class="text-muted">No trips found.</p>
         </div>
       </div>
     
-      <!-- Tabs Section -->
-      <div class="row" id="contentSection">
-  
-        <!-- Tab Content -->
-        <div class="tab-content overflow-auto pb-15vh">
-          
-          <!-- NOW TRAVELING Section (Only in Active Tab) -->
-          <div v-if="activeTab === 'active'" 
-            class="now-traveling mx-auto text-center rounded-pill shadow-sm py-2 px-4 mb-2 d-inline-flex align-items-center mt-4" 
-            style="background-color: #FFD90C;">
-            <div class="circle bg-white rounded-circle me-2" style="width: 10px; height: 10px;"></div>
-            <h6 class="fw-bold text-white m-0">Now Traveling</h6>
-          </div>
-  
-          <!-- Active Trips List -->
-          <div v-if="activeTab === 'active'" class="row justify-content-start">
-            <div v-for="(task, index) in activeNowTasks" :key="index" class="col-lg-4 col-md-6 col-12">
-              <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
-              @click="navigateToEditItinerary(task.id)"
-              :style="{
-                  backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }">
+      <!-- new ui completed tab -->
+      <div v-if="activeTab === 'completed'" class="row justify-content-start">
+
+        <div v-if="completedTasks.length">
+          <div class="responsive-scroll-container">
+            <div class="responsive-scroll-inner">
+              <div class="card-grid" v-for="(task, index) in completedTasks" :key="index">
                 
-                <!-- Invite Icon (Opens Modal) -->
-                <div class="trip-icon" @click.stop="openInviteModal(task)">
-                  <i class="bi bi-person-plus"></i>
-                </div>
-  
-                <div class="card-body d-flex flex-column justify-content-between h-100">
-                <!-- Top: Date and Menu -->
-                <div class="d-flex justify-content-between align-items-start">
-                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
-                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
-                    <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[task.id]" class="menu-options">
-                      <template v-if="task.ownerId == user.id">
-                        <a href="#" @click.stop="deletePost(task.id, index, 'activeNowTasks')">Delete</a>
-                      </template>
-                      <template v-else>
-                        <a href="#" @click.stop="leaveTrip(task.id, index, 'activeNowTasks')">Leave</a>
-                      </template>
-                    </div>
-                  </span>
+                <div v-if="showMenus[task.id]" class="menu-options">
+                  <template v-if="task.ownerId == user.id">
+                    <a href="#" @click.stop="deletePost(task.id, index, 'completedTasks')">Delete</a>
+                  </template>
+                  <template v-else>
+                    <a href="#" @click.stop="leaveTrip(task.id, index, 'completedTasks')">Leave</a>
+                  </template>
                 </div>
 
-                <!-- Title & Content -->
-                <div>
-                  <h5 class="card-title">{{ task.title }}</h5>
-                  <p class="card-text">{{ task.content }}</p>
-                </div>
-              </div>
+                <div class="result-card h-100">
+                      <span class="trip-menu" @click.stop="toggleMenu(task.id)">
+                        <i class="bi bi-three-dots"></i>
+                      </span>
+                      
+                      <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
+                      
+                      <div class="card-body">
+                        <div class="card-name">
+                          <!-- Title field -->
+                          <input
+                            type="text"
+                            class="form-control-plaintext p-0 m-0"
+                            :value="task.title"
+                            readonly
+                            style="font-weight: 600;"
+                          />
 
-              </div>
-            </div>
-          </div>
-          
-          <!-- Upcoming Trips Section (Centered) -->
-          <div v-if="activeTab === 'active'" class="d-flex justify-content-center mt-5">
-                <div class="upcoming-trips d-flex align-items-center justify-content-center rounded-pill shadow-sm py-2 px-4 mb-3"
-                    style="background-color: #adb5bd; min-width: 180px; max-width: 100%;">
-                    <div class="circle bg-white rounded-circle me-2" style="width: 12px; height: 12px;"></div>
-                    <h6 class="fw-bold text-white m-0">Upcoming Trips</h6>
-                </div>
-          </div>
-        
-            <!-- Active Trips List -->
-            <div v-if="activeTab === 'active'" class="row justify-content-start">
-            <div v-for="(task, index) in activeUpcomingTasks" :key="index" class="col-lg-4 col-md-6 col-12">
-              <div class="tripCard card mb-2 mt-2 rounded-5 w-100" 
-                @click="navigateToEditItinerary(task.id)"
-                :style="{
-                  backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }">
-                
-                 <!-- Invite Icon (Opens Modal) -->
-                <div class="trip-icon" @click.stop="openInviteModal(task)">
-                  <i class="bi bi-person-plus"></i>
-                </div>
-  
-                <div class="card-body d-flex flex-column justify-content-between h-100">
-                <!-- Top: Date and Menu -->
-                <div class="d-flex justify-content-between align-items-start">
-                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
+                          <!-- Pencil icon -->
+                          <span class="edit-icon ms-2">
+                            <i class="bi bi-pencil-fill text-secondary"></i>
+                          </span>
 
-                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
-                    <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[task.id]" class="menu-options">
-                      <template v-if="task.ownerId == user.id">
-                        <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
-                      </template>
-                      <template v-else>
-                        <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
-                      </template>
-                    </div>
-                  </span>
+                          <!-- Underline on hover -->
+                          <div class="underline-hover"></div>
+                        </div>
+              
+                        <p class="category">
+                          {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                        </p>
+
+                        
+                      </div>
+
                 </div>
 
-                <!-- Title & Content -->
-                <div>
-                  <h5 class="card-title">{{ task.title }}</h5>
-                  <p class="card-text">{{ task.content }}</p>
-                </div>
-              </div>
-
-              </div>
-            </div>
-          </div>
-
-          <!-- Completed Tab -->
-          <div v-if="activeTab === 'completed'" class="row mt-4">
-            <div v-for="(task, index) in completedTasks" :key="index" class="col-lg-4 col-md-6 col-12">
-              <div class="tripCard card mb-2 mt-2 rounded-5 w-100"
-              @click="navigateToEditItinerary(task.id)"
-              :style="{
-                  backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${task.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }">
-  
-                 <!-- Invite Icon (Opens Modal) -->
-                  <div class="trip-icon" @click.stop="openInviteModal(task)">
-                    <i class="bi bi-person-plus"></i>
-                  </div>
-  
-                  <div class="card-body d-flex flex-column justify-content-between h-100">
-                <!-- Top: Date and Menu -->
-                <div class="d-flex justify-content-between align-items-start">
-                  <span class="trip-date px-2 py-1">{{ task.date }}</span>
-
-                  <span class="trip-menu" @click.stop="toggleMenu(task.id)">
-                    <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[task.id]" class="menu-options">
-                      <template v-if="task.ownerId == user.id">
-                        <a href="#" @click.stop="deletePost(task.id, index, 'completedTasks' )">Delete</a>
-                      </template>
-                      <template v-else>
-                        <a href="#" @click.stop="leaveTrip(task.id, index, 'completedTasks')">Leave</a>
-                      </template>
-                    </div>
-                  </span>
-                </div>
-
-                <!-- Title & Content -->
-                <div>
-                  <h5 class="card-title">{{ task.title }}</h5>
-                  <p class="card-text">{{ task.content }}</p>
-                </div>
-              </div>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Invited Tab -->
-          <div v-if="activeTab === 'invited'" class="row mx-0 mt-5">
-          <div v-for="(task, index) in invitedTasks" :key="index" class="col-12 px-0">
-            {{ console.log("Task Data:", task) }}
-            <!-- Time Ago -->
-            <div class="text-muted text-start ms-4 mb-1 fst-italic">
-              <em>{{ timeAgo(task.date) }}</em>
-            </div>
-
-            <!-- Invitation Card -->
-            <div class="card mb-3 border-0 shadow-sm rounded-4 w-100">
-              <div class="card-body d-flex align-items-center px-4 py-1">
-                
-                <!-- Profile Picture of the Inviter -->
-                <div class="me-3 position-absolute">
-                  <img 
-                    :src="task.profilePic" 
-                    alt="Inviter Profile Picture" 
-                    class="rounded-circle" 
-                    style="width: 80px; height: 80px; object-fit: cover;" 
-                  />
-                </div>
-
-                <!-- Text Content -->
-                <div style="margin-left: 100px;">
-                  <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
-                  <p class="card-text" style="color: black; font-size: 18px; tom: 0;" v-html="task.content"></p>
-                </div>
-                <!-- Check & X Buttons with Bootstrap Hover Effect (Wider Buttons & More Space) -->
-                <div class="d-flex ms-auto">
-                  <div class="me-4">
-                    <span class="text-success fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light" 
-                          @click="updateInviteStatus(task.id, 'approved')" 
-                          style="width: 50px; height: 50px; text-align: center; line-height: 46px;">
-                      ✔
-                    </span>
-                  </div>
-                  <div>
-                    <span class="text-danger fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light" 
-                          @click="updateInviteStatus(task.id, 'declined')" 
-                          style="width: 50px; height: 50px; text-align: center; line-height: 46px;">
-                      ✘
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
+        <div v-else class="text-center w-100 my-4">
+          <img
+            src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+            alt="No result"
+            class="No-Result"
+          />
+          <p class="text-muted">No trips found.</p>
+        </div>
+
       </div>
+
+      <!-- Invited Tab -->
+      <!-- Invited Tab -->
+<div v-if="activeTab === 'invited'" class="row mx-0 mt-5">
   
+  <div v-if="invitedTasks.length">
+    <div v-for="(task, index) in invitedTasks" :key="index" class="col-12 px-0">
+      
+      <!-- Debugging Output -->
+      {{ console.log("Task Data:", task) }}
+      
+      <!-- Time Ago -->
+      <div class="text-muted text-start ms-4 mb-1 fst-italic">
+        <em>{{ timeAgo(task.date) }}</em>
+      </div>
+
+      <!-- Invitation Card -->
+      <div class="card mb-3 border-0 shadow-sm rounded-4 w-100">
+        <div class="card-body d-flex align-items-center px-4 py-1">
+          
+          <!-- Profile Picture of the Inviter -->
+          <div class="me-3 position-absolute">
+            <img 
+              :src="task.profilePic" 
+              alt="Inviter Profile Picture" 
+              class="rounded-circle" 
+              style="width: 80px; height: 80px; object-fit: cover;" 
+            />
+          </div>
+
+          <!-- Text Content -->
+          <div style="margin-left: 100px;">
+            <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
+            <p class="card-text" style="color: black; font-size: 18px;" v-html="task.content"></p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex ms-auto">
+            <div class="me-4">
+              <span
+                class="text-success fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light"
+                @click="updateInviteStatus(task.id, 'approved')"
+                style="width: 50px; height: 50px; text-align: center; line-height: 46px;"
+              >
+                ✔
+              </span>
+            </div>
+            <div>
+              <span
+                class="text-danger fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light"
+                @click="updateInviteStatus(task.id, 'declined')"
+                style="width: 50px; height: 50px; text-align: center; line-height: 46px;"
+              >
+                ✘
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results Message -->
+  <div v-else class="text-center w-100 my-5">
+    <p class="text-muted fs-5">No invitations at the moment.</p>
+  </div>
+
+</div>
+
 
       </div>
 
-      <<div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+      <div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" style="height: 80vh;">
           <div class="modal-header">
@@ -485,7 +514,7 @@
 
     <!-- Modal Backdrop -->
     <div v-if="showInviteModal" class="modal-backdrop fade show"></div>
-    </div>
+
 </template>
   
 
@@ -531,24 +560,10 @@
         newMemberEmail: "",
         tripMembersInput: '', // Stores the input field value (current email to add)
         tripMembers: [],
-        activeNowTasks: [
-            // { title: "Boracay 2027", date: "January - December", content: "This is an example post.", image: "https://cebudailynews.inquirer.net/files/2021/10/10-20-Boracay-1024x683.jpeg" },
-            // { title: "Singapore", date: "January - December", content: "This is an example post.", image: "https://a.travel-assets.com/findyours-php/viewfinder/images/res70/542000/542607-singapore.jpg" },
-            // { title: "Rizal Family Reunion", date: "January - December", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
-            // { title: "IAO GIRLS TRIP!", date: "January - December", content: "This is an example post.", image:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9H6Ak0OUlv42bOs9_YwkU7JnLS74Tz0OcIQ&s" },
-            // { title: "Home", date: "January - December", content: "This is an example post.", image: "https://minamiresidences.com.ph/wp-content/uploads/2023/07/image-1-53-1.png" }
-        ],
-        activeUpcomingTasks: [
-        ],
-        completedTasks: [
-            { title: "JAPAN", date: "April - May", content: "This is an example post.", image: "https://lp-cms-production.imgix.net/2020-11/GettyRF_1179891725.jpg?auto=format&fit=crop&sharp=10&vib=20&ixlib=react-8.6.4&w=850&q=20&dpr=5" },
-            { title: "Korea 2027", date: "June", content: "This is an example post.", image: "https://th.bing.com/th/id/OIP.MSywdx_5O5dWTucTNjtHsgHaE7?w=298&h=199&c=7&r=0&o=5&dpr=1.3&pid=1.7" },
-            { title: "Manila Summer", date: "July - November", content: "This is an example post.", image: "https://upload.wikimedia.org/wikipedia/commons/9/9b/Rizal_Shrine%2C_Calamba%2C_Laguna%2C_Mar_2023.jpg" },
-            ],
-        invitedTasks: [
-            { title: "Upcoming Event", content: "isabela.lobitana invited you to join the “SUMMER 2023” trip plan", date: "2023-02-20T12:00:00Z" },
-            { title: "Project Meeting", content: "marcs_pel invited you to join the “SIARGAO WE COMING” trip plan", date: "2022-03-10T08:30:00Z" }
-        ], 
+        activeNowTasks: [],
+        activeUpcomingTasks: [],
+        completedTasks: [],
+        invitedTasks: [], 
         showMenus: {},
 
       }
@@ -589,6 +604,24 @@
     await this.fetchTasks();
   },
   methods: {
+
+    toggleMenu(taskId) {
+    // Toggle the clicked menu and close all others
+    this.$set(this.showMenus, taskId, !this.showMenus[taskId]);
+    },
+    closeAllMenus() {
+      this.showMenus = {};
+    },
+    handleClickOutside(event) {
+      // Only close menus if the click is outside the trip menu or menu-options
+      if (
+        !event.target.closest('.trip-menu') &&
+        !event.target.closest('.menu-options')
+      ) {
+        this.closeAllMenus();
+      }
+    },
+
     switchTab(type) {
       if (type === 'email') {
         console.log("Switched to email");

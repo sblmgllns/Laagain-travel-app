@@ -46,7 +46,6 @@ function close() {
   background: white; /* or your modal background */
   border-radius: 24px;
   pointer-events: auto; /* allow clicks */
-  overflow-y: auto;
   transition: opacity 0.3s ease, transform 0.3s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
