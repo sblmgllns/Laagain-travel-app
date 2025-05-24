@@ -31,7 +31,7 @@
 }
 
 .form-title {
-  position: relative;
+  position: absolute;
   margin-bottom: 1rem;
   font-size: 24px;
   font-weight: bold;
@@ -47,6 +47,9 @@
   font-weight: bold;
   margin-bottom: 0.25rem;
   display: block;
+  font-family: 'Sarabun', sans-serif;
+  text-align: justify;
+  color: #03AED2; 
 }
 
 .field input,
@@ -54,11 +57,13 @@
 .field select {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid #03AED2;
   border-radius: 10px;
   font-size: 16px;
   background: #fff;
-  color: #0E0E0D; /* 👈 this sets the text color */
+  color: #333; 
+  font-family: 'Sarabun', sans-serif;
+
 }
 
 
@@ -68,12 +73,12 @@
 }
 
 .field small {
-  color: #666;
+  color: #03AED2; 
   font-size: 12px;
 }
 
 .publish-button {
-  background-color: #e60023;
+  background-color: #03AED2;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -81,6 +86,25 @@
   border-radius: 30px;
   cursor: pointer;
   align-self: flex-end;
+}
+
+.publish-button:hover{
+  background-color: #019dbc;
+}
+
+.cancel-button{
+  background-color: #ccc; 
+  color: black;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 16px;
+  border-radius: 30px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.cancel-button:hover{
+    background-color: #bbb;    
 }
 
 .date-range {
@@ -94,32 +118,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 600px) {
-  .date-range {
-    flex-direction: column;
-    display: flex;
-    gap: 1.2rem;
-  }
-  .date-range {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.date-range .date-input {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  
-  width: 100%;
-  border-radius: 10px;
-  font-size: 16px;
-  background: #fff;
-  color: #0E0E0D; /* 👈 this sets the text color */
-}
 }
 
 .fade-enter-active,

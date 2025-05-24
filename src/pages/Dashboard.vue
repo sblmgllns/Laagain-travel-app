@@ -1,8 +1,8 @@
 <template>
-    
     <!-- header Photo+search-->
     <div class="container-parent">
       <div class="Header-container">  
+
 
         <!-- Overlay Content -->
         <div class="header-overlay text-center">
@@ -95,6 +95,7 @@
                         <div v-if="showMenus[task.id]" class="menu-options">
                           <template v-if="task.ownerId == user.id">
                             <a href="#" @click.stop="deletePost(task.id, index, 'activeNowTasks')">Delete</a>
+                            <a @click.stop="openInviteModal(task)">Share</a>
                           </template>
                           <template v-else>
                             <a href="#" @click.stop="leaveTrip(task.id, index, 'activeNowTasks')">Leave</a>
@@ -166,6 +167,7 @@
                         <div v-if="showMenus[task.id]" class="menu-options">
                           <template v-if="task.ownerId == user.id">
                             <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
+                            <a @click.stop="openInviteModal(task)">Share</a>
                           </template>
                           <template v-else>
                             <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
@@ -231,20 +233,25 @@
             <div class="responsive-scroll-inner">
               <div class="card-grid" v-for="(task, index) in completedTasks" :key="index">
                 
-                <div v-if="showMenus[task.id]" class="menu-options">
-                  <template v-if="task.ownerId == user.id">
-                    <a href="#" @click.stop="deletePost(task.id, index, 'completedTasks')">Delete</a>
-                  </template>
-                  <template v-else>
-                    <a href="#" @click.stop="leaveTrip(task.id, index, 'completedTasks')">Leave</a>
-                  </template>
-                </div>
-
                 <div class="result-card h-100">
-                      <span class="trip-menu" @click.stop="toggleMenu(task.id)">
-                        <i class="bi bi-three-dots"></i>
-                      </span>
-                      
+                                            <!-- Three dots menu (top-right corner over image) -->
+                      <div
+                        class="trip-menu position-absolute top-0 end-0 m-2"
+                        @click.stop="toggleMenu(task.id)"
+                      >
+                        <i class="bi bi-three-dots fs-5"></i>
+
+                        <div v-if="showMenus[task.id]" class="menu-options">
+                          <template v-if="task.ownerId == user.id">
+                            <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
+                            <a @click.stop="openInviteModal(task)">Share</a>
+                          </template>
+                          <template v-else>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
+                          </template>
+                        </div>
+                      </div>
+
                       <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
                       
                       <div class="card-body">
@@ -301,55 +308,58 @@
       <!-- Debugging Output -->
       {{ console.log("Task Data:", task) }}
       
-      <!-- Time Ago -->
-      <div class="text-muted text-start ms-4 mb-1 fst-italic">
-        <em>{{ timeAgo(task.date) }}</em>
-      </div>
 
       <!-- Invitation Card -->
-      <div class="card mb-3 border-0 shadow-sm rounded-4 w-100">
-        <div class="card-body d-flex align-items-center px-4 py-1">
-          
-          <!-- Profile Picture of the Inviter -->
-          <div class="me-3 position-absolute">
-            <img 
-              :src="task.profilePic" 
-              alt="Inviter Profile Picture" 
-              class="rounded-circle" 
-              style="width: 80px; height: 80px; object-fit: cover;" 
-            />
-          </div>
+      <div class="card mb-3 border-0 shadow-sm rounded-4 w-100 invite-card">
+        <div class="card-body invite-body">
+          <!-- NEW WRAPPER START -->
+          <div class="invite-main">
+            <!-- Profile Picture -->
+            <div class="inviter-img">
+              <img :src="task.profilePic" alt="Inviter Profile Picture" class="rounded-circle" />
+            </div>
 
-          <!-- Text Content -->
-          <div style="margin-left: 100px;">
-            <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
-            <p class="card-text" style="color: black; font-size: 18px;" v-html="task.content"></p>
+            <!-- Content & Time Ago -->
+            <div class="invite-text">
+              <div class="content">
+                <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
+                <p class="card-text" v-html="task.content"></p>
+              </div>
+              <div class="time-ago">
+                <small><em>{{ timeAgo(task.date) }}</em></small>
+              </div>
+            </div>
           </div>
+          <!-- NEW WRAPPER END -->
 
           <!-- Action Buttons -->
-          <div class="d-flex ms-auto">
-            <div class="me-4">
-              <span
-                class="text-success fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light"
-                @click="updateInviteStatus(task.id, 'approved')"
-                style="width: 50px; height: 50px; text-align: center; line-height: 46px;"
-              >
-                ✔
-              </span>
-            </div>
-            <div>
-              <span
-                class="text-danger fw-bold fs-5 p-1 rounded bg-light shadow-sm d-inline-block btn btn-light"
-                @click="updateInviteStatus(task.id, 'declined')"
-                style="width: 50px; height: 50px; text-align: center; line-height: 46px;"
-              >
-                ✘
-              </span>
-            </div>
+          <div class="invite-actions">
+              <template v-if="!task.status">
+                <div
+                  class="btn btn-light fw-bold fs-5 approve-btn"
+                  @click="updateInviteStatus(task.id, 'approved')"
+                  style="background-color: #089dcf; color: white"
+                >
+                  Accept
+                </div>
+                <div
+                  class="btn btn-light fw-bold fs-5 decline-btn"
+                  @click="updateInviteStatus(task.id, 'declined')"
+                  style="background-color: #666; color: white"
+                >
+                  Decline
+                </div>
+              </template>
+              <template v-else>
+                <p class="fw-semibold" :style="{ color: task.status === 'approved' ? '#089dcf' : '#666' }">
+                  You {{ task.status === 'approved' ? 'accepted' : 'declined' }} this invite.
+                </p>
+              </template>
           </div>
-
         </div>
+
       </div>
+
     </div>
   </div>
 
@@ -609,9 +619,11 @@
     // Toggle the clicked menu and close all others
     this.$set(this.showMenus, taskId, !this.showMenus[taskId]);
     },
+
     closeAllMenus() {
       this.showMenus = {};
     },
+
     handleClickOutside(event) {
       // Only close menus if the click is outside the trip menu or menu-options
       if (
@@ -634,19 +646,18 @@
       }
     },
 
-
     timeAgo(date) {
-            const now = new Date();
-            const past = new Date(date);
-            const diff = Math.floor((now - past) / 1000); // Difference in seconds
+        const now = new Date();
+        const past = new Date(date);
+        const diff = Math.floor((now - past) / 1000); // Difference in seconds
 
-            if (diff < 60) return "Just now"; // Less than a minute
-            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`; // Less than an hour
-            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`; // Less than a day
-            if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`; // Less than a month
-            if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`; // Less than a year
-            return `${Math.floor(diff / 31536000)} years ago`; // More than a year
-        },
+        if (diff < 60) return "Just now"; // Less than a minute
+        if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`; // Less than an hour
+        if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`; // Less than a day
+        if (diff < 2592000) return `${Math.floor(diff / 86400)} days ago`; // Less than a month
+        if (diff < 31536000) return `${Math.floor(diff / 2592000)} months ago`; // Less than a year
+        return `${Math.floor(diff / 31536000)} years ago`; // More than a year
+    },
     
     editField() {
     this.isEditMode = !this.isEditMode;
@@ -706,209 +717,212 @@
       }
     },
 
-
     async updateInviteStatus(id, newStatus) {
-    try {
-      // Step 1: Update invite status
-      const { error: updateError } = await supabase
-        .from("trip_invites")
-        .update({ status: newStatus })
-        .eq("id", id);
-
-      if (updateError) {
-        console.error(`Error updating invite status: ${updateError.message}`);
-        return;
-      }
-
-
-      console.log(`Invitation ${id} updated to ${newStatus}`);
-
-      // Step 2: Fetch trip_id and inviter_id
-      const { data: inviteData, error: inviteError } = await supabase
-        .from("trip_invites")
-        .select("trip_id, inviter_id")
-        .eq("id", id)
-        .single();
-
-      if (inviteError || !inviteData) {
-        console.error("Error fetching trip data:", inviteError?.message);
-        return;
-      }
-      console.log(inviteData);
-      const { trip_id, inviter_id } = inviteData;
-
-      // Step 3: Get itinerary name using trip_id
-      const { data: itineraryData, error: itineraryError } = await supabase
-        .from("itineraries")
-        .select("name")
-        .eq("id", trip_id)
-        .single();
-
-      console.log(itineraryData);
-      if (itineraryError || !itineraryData) {
-        console.error("Error fetching itinerary name:", itineraryError?.message);
-        return;
-      }
-
-      const itineraryName = itineraryData.name;
-
-      // Step 4: Add current user to itinerary_members
-      if (newStatus === "approved") {
-        const { error: memberError } = await supabase
-          .from("itinerary_members")
-          .insert([
-            {
-              itinerary_id: trip_id,
-              user_id: this.user.id,
-            },
-          ]);
-
-        if (memberError) {
-          console.error("Error adding to itinerary_members:", memberError.message);
-          return;
-        }
-
-        console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
-
-        // Step 5: Fetch current user's profile
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("username, profile_pic_url")
-          .eq("id", this.user.id)
-          .single();
-
-        if (profileError || !profileData) {
-          console.error("Error fetching user profile:", profileError?.message);
-          return;
-        }
-
-        // Step 6: Send notification to inviter
-        const { error: notifError } = await supabase
-          .from("notifications")
-          .insert([
-            {
-              user_id: inviteData.inviter_id,
-              type: "accept",
-              sender_id: this.user.id,
-              message: `${profileData.username} accepted your invitation to "${itineraryName}"`,
-              image_url: profileData.profile_pic_url || '',
-              itinerary_name: itineraryName,
-            },
-          ]);
-
-        if (notifError) {
-          console.error("Error creating notification:", notifError.message);
-        } else {
-          console.log("Notification sent to inviter.");
-        }
-      }
-
-      // ✅ Step 7: If declined, delete invite from trip_invites to allow re-invite
-    if (newStatus === "declined") {
-      const { error: deleteError } = await supabase
-        .from("trip_invites")
-        .delete()
-        .eq("id", id);
-
-      if (deleteError) {
-        console.error("Error deleting declined invite:", deleteError.message);
-      } else {
-        console.log(`Declined invite ${id} removed to allow future reinvitation.`);
-      }
-    }
-    
-    // Refresh lists
-    this.fetchInvites();
-    this.fetchTasks();
-  } catch (err) {
-    console.error("Unexpected error:", err);
-  }
-},
-
-
-
-      async fetchTasks() {
         try {
-          // Fetch trips where the user is the owner
-          const { data: ownedTrips, error: ownedError } = await supabase
-            .from("itineraries")
-            .select("id, owner_id, name, start_date, end_date, cover_pic_url, place")
-            .eq("owner_id", this.user.id);
+          // Step 1: Update invite status
+          const { error: updateError } = await supabase
+            .from("trip_invites")
+            .update({ status: newStatus })
+            .eq("id", id);
 
-          if (ownedError) {
-            console.error("Error fetching owned trips:", ownedError);
-            this.errorMessage = "Failed to load owned trips.";
+          if (updateError) {
+            console.error(`Error updating invite status: ${updateError.message}`);
             return;
           }
 
-          console.log("this is:", this.user.id);
-
-
-          const { data: joinedTrips, error: joinedError } = await supabase
-            .from("itinerary_members")
-            .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(*)")  // Fetch all related itinerary details
-            .eq("user_id", this.user.id);  // Only trips for the current user
-
-          console.log("Joined Trips Data:", joinedTrips);
-
-
-          if (joinedError) {
-            console.error("Error fetching joined trips:", joinedError);
-            this.errorMessage = "Failed to load joined trips.";
-            return;
-          }
-
-          // Extract itinerary details from joined trips
-          const joinedTripsData = joinedTrips.map((entry) => entry.itineraries);
-          console.log("Joined Trips Data:", joinedTripsData);
-          // Combine owned and joined trips
-          const allTrips = [...ownedTrips, ...joinedTripsData];
-
-          // Get today's date without time
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          // Reset the task lists
-          this.activeNowTasks = [];
-          this.activeUpcomingTasks = [];
-          this.completedTasks = [];
-
-          // Categorize trips based on date
-          allTrips.forEach(trip => {
-            const startDate = new Date(trip.start_date);
-            const endDate = new Date(trip.end_date);
-
-            // Normalize times to ignore time portion
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(23, 59, 59, 999); // Ensure whole end date counts
-
-            const task = {
-              id: trip.id,
-              title: trip.name,
-              ownerId: trip.owner_id,
-              date: `${trip.start_date} - ${trip.end_date}`,
-              content: trip.place,
-              image: trip.cover_pic_url || ""
-            };
-
-            if (today >= startDate && today <= endDate) {
-              this.activeNowTasks.push(task); // Ongoing trip
-            } else if (today < startDate) {
-              this.activeUpcomingTasks.push(task); // Future trip
-            } else {
-              this.completedTasks.push(task); // Completed trip
+          if (Array.isArray(this.tasks)) {
+            const task = this.tasks.find(t => t.id === id);
+            if (task) {
+              task.status = newStatus;
             }
-          });
+          }
 
-          console.log("Active Trips:", this.activeNowTasks);
-          console.log("Upcoming Trips:", this.activeUpcomingTasks);
-          console.log("Completed Trips:", this.completedTasks);
+          console.log(`Invitation ${id} updated to ${newStatus}`);
 
-        } catch (err) {
-          console.error("Unexpected error:", err);
-          this.errorMessage = "Something went wrong.";
+          // Step 2: Fetch trip_id and inviter_id
+          const { data: inviteData, error: inviteError } = await supabase
+            .from("trip_invites")
+            .select("trip_id, inviter_id")
+            .eq("id", id)
+            .single();
+
+          if (inviteError || !inviteData) {
+            console.error("Error fetching trip data:", inviteError?.message);
+            return;
+          }
+          console.log(inviteData);
+          const { trip_id, inviter_id } = inviteData;
+
+          // Step 3: Get itinerary name using trip_id
+          const { data: itineraryData, error: itineraryError } = await supabase
+            .from("itineraries")
+            .select("name")
+            .eq("id", trip_id)
+            .single();
+
+          console.log(itineraryData);
+          if (itineraryError || !itineraryData) {
+            console.error("Error fetching itinerary name:", itineraryError?.message);
+            return;
+          }
+
+          const itineraryName = itineraryData.name;
+
+          // Step 4: Add current user to itinerary_members
+          if (newStatus === "approved") {
+            const { error: memberError } = await supabase
+              .from("itinerary_members")
+              .insert([
+                {
+                  itinerary_id: trip_id,
+                  user_id: this.user.id,
+                },
+              ]);
+
+            if (memberError) {
+              console.error("Error adding to itinerary_members:", memberError.message);
+              return;
+            }
+
+            console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
+
+            // Step 5: Fetch current user's profile
+            const { data: profileData, error: profileError } = await supabase
+              .from("profiles")
+              .select("username, profile_pic_url")
+              .eq("id", this.user.id)
+              .single();
+
+            if (profileError || !profileData) {
+              console.error("Error fetching user profile:", profileError?.message);
+              return;
+            }
+
+            // Step 6: Send notification to inviter
+            const { error: notifError } = await supabase
+              .from("notifications")
+              .insert([
+                {
+                  user_id: inviteData.inviter_id,
+                  type: "accept",
+                  sender_id: this.user.id,
+                  message: `${profileData.username} accepted your invitation to "${itineraryName}"`,
+                  image_url: profileData.profile_pic_url || '',
+                  itinerary_name: itineraryName,
+                },
+              ]);
+
+            if (notifError) {
+              console.error("Error creating notification:", notifError.message);
+            } else {
+              console.log("Notification sent to inviter.");
+            }
+          }
+
+          // ✅ Step 7: If declined, delete invite from trip_invites to allow re-invite
+        if (newStatus === "declined") {
+          const { error: deleteError } = await supabase
+            .from("trip_invites")
+            .delete()
+            .eq("id", id);
+
+          if (deleteError) {
+            console.error("Error deleting declined invite:", deleteError.message);
+          } else {
+            console.log(`Declined invite ${id} removed to allow future reinvitation.`);
+          }
         }
-      },
+        
+        // Refresh lists
+        this.fetchInvites();
+        this.fetchTasks();
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      }
+    },
+
+    async fetchTasks() {
+      try {
+        // Fetch trips where the user is the owner
+        const { data: ownedTrips, error: ownedError } = await supabase
+          .from("itineraries")
+          .select("id, owner_id, name, start_date, end_date, cover_pic_url, place")
+          .eq("owner_id", this.user.id);
+
+        if (ownedError) {
+          console.error("Error fetching owned trips:", ownedError);
+          this.errorMessage = "Failed to load owned trips.";
+          return;
+        }
+
+        console.log("this is:", this.user.id);
+
+
+        const { data: joinedTrips, error: joinedError } = await supabase
+          .from("itinerary_members")
+          .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(*)")  // Fetch all related itinerary details
+          .eq("user_id", this.user.id);  // Only trips for the current user
+
+        console.log("Joined Trips Data:", joinedTrips);
+
+
+        if (joinedError) {
+          console.error("Error fetching joined trips:", joinedError);
+          this.errorMessage = "Failed to load joined trips.";
+          return;
+        }
+
+        // Extract itinerary details from joined trips
+        const joinedTripsData = joinedTrips.map((entry) => entry.itineraries);
+        console.log("Joined Trips Data:", joinedTripsData);
+        // Combine owned and joined trips
+        const allTrips = [...ownedTrips, ...joinedTripsData];
+
+        // Get today's date without time
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Reset the task lists
+        this.activeNowTasks = [];
+        this.activeUpcomingTasks = [];
+        this.completedTasks = [];
+
+        // Categorize trips based on date
+        allTrips.forEach(trip => {
+          const startDate = new Date(trip.start_date);
+          const endDate = new Date(trip.end_date);
+
+          // Normalize times to ignore time portion
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999); // Ensure whole end date counts
+
+          const task = {
+            id: trip.id,
+            title: trip.name,
+            ownerId: trip.owner_id,
+            date: `${trip.start_date} - ${trip.end_date}`,
+            content: trip.place,
+            image: trip.cover_pic_url || ""
+          };
+
+          if (today >= startDate && today <= endDate) {
+            this.activeNowTasks.push(task); // Ongoing trip
+          } else if (today < startDate) {
+            this.activeUpcomingTasks.push(task); // Future trip
+          } else {
+            this.completedTasks.push(task); // Completed trip
+          }
+        });
+
+        console.log("Active Trips:", this.activeNowTasks);
+        console.log("Upcoming Trips:", this.activeUpcomingTasks);
+        console.log("Completed Trips:", this.completedTasks);
+
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        this.errorMessage = "Something went wrong.";
+      }
+    },
 
     async fetchInvites() {
       try {
@@ -963,11 +977,11 @@
               .single();
 
             return {
-              title: "Trip Invitation",
               content: `${inviterProfile?.username} invited you to join "<strong>${tripData?.name}</strong>"`,
               date: invite.time_stamp,
               profilePic: inviterProfile?.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
               id: invite.id,
+              status: null // can be 'approved' or 'declined'
             };
           })
         );

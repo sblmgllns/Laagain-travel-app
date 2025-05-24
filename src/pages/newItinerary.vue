@@ -48,7 +48,6 @@
           </div>
 
           
-
           <!-- Trip Members -->
           <div class="field">
             <label>Trip Members</label>
@@ -63,8 +62,7 @@
           <div class="field d-flex justify-content-between">
             <button
               @click="cancel"
-              class="publish-button"
-              style="background-color: #ccc; color: black;"
+              class="cancel-button"
             >
               Cancel
             </button>

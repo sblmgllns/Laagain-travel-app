@@ -1,15 +1,18 @@
 <template>
   <div class="container mt-4 sarabun-font">
     <!-- Back + Clear Button -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="back-button" @click="$router.back()">
-        <i class="bi bi-chevron-right back-icon"></i>
-      </div>
-      <button class="btn btn-outline-danger btn-sm" @click="showModal = true">Clear All</button>
-    </div>
 
-    <!-- Title -->
-    <h2 class="notification-title">Notifications</h2>
+    <div v-if="!isChild" class="notif-header">
+      <!-- functions kineme -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="back-button" @click="$router.back()">
+          <i class="bi bi-chevron-right back-icon"></i>
+        </div>
+        <button class="btn btn-outline-danger btn-sm" @click="showModal = true">Clear All</button>
+      </div>
+      <!-- Title -->
+      <h2 class="notification-title">Notifications</h2>
+    </div>
 
     <!-- Notification List -->
     <ul class="list-group mt-3">
@@ -74,7 +77,12 @@ const userProfilePic = ref('')
 const userId = ref('')
 const userEmail = ref('')
 let modalInstance = null
-
+defineProps({
+  isChild: {
+    type: Boolean,
+    default: false
+  }
+})
 
 // Fetch profile
 const fetchUserProfile = async () => {

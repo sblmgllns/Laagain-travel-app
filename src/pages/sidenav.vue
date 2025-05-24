@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { supabase } from '../supabase'
 import { useRoute } from 'vue-router'
-
+const showNotifications = ref(false)
 const defaultAvatar = '/assets/default-avatar.png'
 const userAvatar = ref(defaultAvatar)
 const route = useRoute()
+const emit = defineEmits(['open-modal'])  // ✅ Add this
 
 onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession()
@@ -22,6 +23,12 @@ onMounted(async () => {
     userAvatar.value = profile.profile_pic_url || defaultAvatar
   }
 })
+
+function handleNotificationClick() {
+  showNotifications.value = !showNotifications.value
+  emit('open-modal', showNotifications.value ? 'notifications' : null)
+}
+
 </script>
 
 <template>
@@ -34,7 +41,7 @@ onMounted(async () => {
       <!-- Top Nav -->
       <div class="d-flex flex-column align-items-center gap-4 w-100">
         
-        <router-link to="/dashboard" class="logo-link">
+        <router-link to="/dashboard" class="logo-link" @click.prevent="$emit('open-modal', 'null')">
           <img
             src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//laagain_logo.png"
             alt="Laagain Logo"
@@ -42,30 +49,56 @@ onMounted(async () => {
           />
         </router-link>
 
-        <button
-          @click="$emit('open-modal')"
-          class="nav-btn text-dark text-center"
-          title="Create New Itinerary"
-        >
-          <i class="bi bi-plus-lg"></i>
-        </button>
+          <button
+           @click = "showNotifications=false"
+            @click.prevent="$emit('open-modal', 'create-itinerary')"
+            class="nav-btn text-dark text-center"
+            title="Create New Itinerary"
+          >
+            <i class="bi-plus-lg"></i>
+          </button>
+        
+        
 
-        <router-link to="/dashboard" class="text-dark text-center" title="Home">
-          <i :class="['bi', route.path === '/dashboard' ? 'bi-house-fill' : 'bi-house', 'fs-4']"></i>
-        </router-link>
+        <div class="text-center" @click.prevent="$emit('open-modal', 'null')">
+          <router-link to="/dashboard" class="text-dark text-center" title="Home">
+            <i :class="[
+              'bi',
+              route.path === '/dashboard' ? 'bi-house-fill' : 'bi-house',
+              'fs-4',
+              'icon-btn',
+              route.path !== '/dashboard' ? 'no-bg' : ''
+            ]"></i>
+          </router-link>
 
-        <router-link to="/explore" class="text-dark text-center" title="Explore">
-          <i :class="['bi', route.path === '/explore' ? 'bi-compass-fill' : 'bi-compass', 'fs-4']"></i>
+        </div>
+
+        <router-link to="/explore" class="text-dark text-center" title="Explore" @click.prevent="$emit('open-modal', 'null')">
+          <i :class="['bi', route.path === '/explore' ? 'bi-compass-fill' : 'bi-compass',   'fs-4',
+  'icon-btn', route.path !== '/explore' ? 'no-bg' : '']"></i>
         </router-link>
       </div>
 
       <!-- Bottom Nav -->
       <div class="d-flex flex-column align-items-center gap-4 w-100">
-        <router-link to="/notifications" class="text-dark text-center" title="Notifications">
-          <i class="bi bi-bell fs-4"></i>
-        </router-link>
+          
+        <div
+          @click="handleNotificationClick"
+          class="text-dark text-center"
+          :class="{ 'is-active': showNotifications }"
+          title="Notifications"
+        >
+          <i :class="[
+              'bi',
+              showNotifications ? 'bi-bell-fill' : 'bi-bell',
+              'fs-4',
+              'icon-btn'
+            ]"
+            :style="showNotifications ? 'background-color: #A8D4DE;' : 'background-color: transparent; box-shadow: none;'"
+          />
+        </div>
 
-        <router-link to="/profile" class="text-center" title="Profile">
+        <router-link to="/profile" class="text-center" title="Profile" @click.prevent="$emit('open-modal', 'null')">
           <img
             :src="userAvatar"
             alt="Profile"
@@ -81,16 +114,16 @@ onMounted(async () => {
       class="d-flex d-md-none justify-content-around align-items-center px-2"
       style="position: fixed; bottom: 0; width: 100%; height: 64px; background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%); border-top: 1px solid #ccc; z-index: 99;"
     >
-      <router-link to="/dashboard" class="text-dark text-center" title="Home">
-        <i :class="['bi', route.path === '/dashboard' ? 'bi-house-fill' : 'bi-house', 'fs-4']"></i>
+      <router-link to="/dashboard" class="text-dark text-center" title="Home" @click.prevent="$emit('open-modal', 'null')">
+        <i :class="['bi', route.path === '/dashboard' ? 'bi-house-fill' : 'bi-house', 'fs-4', 'no-bg']"></i>
       </router-link>
 
-      <router-link to="/explore" class="text-dark text-center" title="Explore">
-        <i :class="['bi', route.path === '/explore' ? 'bi-compass-fill' : 'bi-compass', 'fs-4']"></i>
+      <router-link to="/explore" class="text-dark text-center" title="Explore" @click.prevent="$emit('open-modal', 'null')">
+        <i :class="['bi', route.path === '/explore' ? 'bi-compass-fill' : 'bi-compass', 'fs-4','no-bg']"></i>
       </router-link>
 
       <button
-        @click="$emit('open-modal')"
+        @click.prevent="$emit('open-modal', 'create-itinerary')"
         class="nav-btn text-dark text-center"
         title="Create New Itinerary"
       >
@@ -98,11 +131,16 @@ onMounted(async () => {
       </button>
 
 
-      <router-link to="/notifications" class="text-dark text-center" title="Notifications">
-        <i class="bi bi-bell fs-4"></i>
+      <router-link to="/notifications" class="text-dark text-center" title="Notifications" @click.prevent="$emit('open-modal', 'null')">
+        <i :class="[
+          'bi',
+          route.path === '/notifications' ? 'bi-bell-fill' : 'bi-bell',
+          'fs-4',
+          'no-bg'
+        ]"></i>
       </router-link>
 
-      <router-link to="/profile" class="text-center" title="Profile">
+      <router-link to="/profile" class="text-center" title="Profile" @click.prevent="$emit('open-modal', 'null')">
         <img
           :src="userAvatar"
           alt="Profile"
@@ -114,47 +152,7 @@ onMounted(async () => {
   </div>
 </template>
 
+
 <style scoped>
-.nav-btn {
-  background-color: rgba(255, 255, 255, 0.6);
-  color: #0e0e0d;
-  border: none;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  font-size: 1.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease-in-out;
-  backdrop-filter: blur(6px);
-}
-
-.nav-btn:hover {
-  background-color: #fddf57;
-  color: #0e0e0d;
-}
-
-.logo-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  text-decoration: none;
-  border-radius: 8px;
-}
-
-.app-logo {
-  max-width: 48px;  /* Adjust size as needed */
-  height: auto;
-  transition: transform 0.3s ease;
-}
-
-.logo-link:hover .app-logo {
-  transform: scale(1.05); /* Subtle hover animation */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-}
-
+@import "../assets/styles/sidenav.css"; /* Import external CSS file */
 </style>

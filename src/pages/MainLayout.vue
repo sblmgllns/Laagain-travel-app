@@ -1,21 +1,30 @@
+
 <template>
   <div class="d-flex" style="height: 100vh; overflow: hidden;">
     <!-- sidenav -->
-    <sidenav @open-modal="isModalOpen = true" />
+    <sidenav @open-modal="handleModalOpen"/>
 
     <!-- Main Content Area -->
     <div class="main-content flex-grow-1 p-4">
       <div class="routed-container">
-        <!-- Modal container, absolute so not scrollable -->
-        <div class="modal-wrapper">
+
+        <!-- Modal c  ontainer -->
+        <div class="modal-wrapper" >
           <CreateItineraryModal
-            :isOpen="isModalOpen"
-            @close="isModalOpen = false"
+            v-if="activeModal === 'create-itinerary'"
+            :isOpen="true"
+            @close="activeModal = null"
+          />
+
+          <NotificationModal
+            v-if="activeModal === 'notifications'"
+            :isOpen="true"
+            @close="activeModal = null"
           />
         </div>
 
         <!-- Scrollable content area -->
-        <div class="scrollable-content">
+        <div class="scrollable-content" @click="handleModalOpen(null)">
           <router-view />
         </div>
       </div>
@@ -26,18 +35,25 @@
 <script setup>
 import sidenav from './sidenav.vue'
 import CreateItineraryModal from './CreateItineraryModal.vue'
+import NotificationModal from './NotificationModal.vue'
 import { ref } from 'vue'
 
-const isModalOpen = ref(false)
+const activeModal = ref(null)
+
+function handleModalOpen(modalType) {
+  activeModal.value = modalType
+}
 </script>
+
 
 <style scoped>
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  background: white ;
   background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%);
-  overflow: hidden; /* if you want to prevent page scrolling */
+  overflow: hidden; 
 }
 
 
@@ -47,6 +63,7 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
+  
   background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%);
   overflow: hidden; /* prevent main layout from scrolling */
   display: flex;

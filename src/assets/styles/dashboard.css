@@ -87,57 +87,18 @@ box-sizing: border-box; /* Ensure padding is inside the element */
   right: 8px;
   background-color: white;
   padding: 6px;
-  border-radius: 50%;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: background-color 0.2s ease;
   z-index: 5;
-}
+    border-radius: 8px;
 
-.trip-menu i {
-  color: #333;
-  transition: transform 0.2s ease;
-}
-
-.trip-menu i {
-  color:#333 ;
-  transition: transform 0.2s ease, color 0.2s ease;
-  display: inline-block;
 }
 
 .trip-menu i {
   color:#333 ;
   transition: transform 0.2s ease, color 0.2s ease;
   display: inline-block;
-}
-
-
-/* Dropdown menu */
-.menu-options {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
-  padding: 5px;
-  margin-top: 5px;
-  z-index: 10;
-}
-
-/* Links inside menu */
-.menu-options a {
-  display: block;
-  padding: 8px 12px;
-  color: red;
-  text-decoration: none;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.menu-options a:hover {
-  background: #f8d7da;
 }
 
 .icon-container span {
@@ -203,14 +164,19 @@ cursor: pointer;
 transition: transform 0.2s ease;
 }
 
-
-.trip-menu {
-  padding: 4px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* Dropdown menu */
+.menu-options {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 5px;
+  margin-top: 5px;
+  z-index: 10;
 }
-
 
 .menu-options a {
 display: block;
@@ -339,6 +305,22 @@ transition: opacity 0.2s ease;
     margin-bottom: 80px;
   }
 
+  .result-card .trip-menu {
+    display: inline-block;
+  }
+
+  .headline{
+    font-size: 25px !important;
+    margin-bottom: 0px;
+
+  }
+  .subhead{
+    display: none;
+  }
+
+  .header-overlay{
+    z-index: 0.5;
+  }
 }
 
 /* Optional: Style scrollbars (for webkit browsers) */
@@ -428,7 +410,7 @@ transition: opacity 0.2s ease;
   .Header-container {
     margin: 0;
     border-radius: 0;
-    height: 150px;
+    height: 250px;
     width: 100%;
   }
 }
@@ -445,7 +427,6 @@ transition: opacity 0.2s ease;
 .search-form {
   width: 100%;
   max-width: 700px;
-  margin-top: 1rem; /* spacing from heading */
   z-index: 2;
 }
 
@@ -457,6 +438,7 @@ transition: opacity 0.2s ease;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+
 /* Search icon area */
 #searchIconContainer {
   background-color: white;
@@ -467,7 +449,7 @@ transition: opacity 0.2s ease;
   display: flex;
   justify-content: center;
   align-items: center;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 
 }
 
@@ -488,11 +470,26 @@ transition: opacity 0.2s ease;
   background-color: #E6C73B	;
 }
 
-.search-box .inputField {
-  border: none;
+.search-box{
+  outline: none;
+  transition: outline 0.2s ease;
+}
+
+.search-box:has(.inputField:focus) {
+  outline: 2px solid #E6C73B;
+  border-radius: 24px;
+  transition: outline 0.2s ease;
+
+}
+
+.search-box .inputField {   
+  border: none !important;
+  outline: none !important;
   width: 100%;
   height: 100%;
   background-color: white;
+  color: #666;           /* Set text color */
+  font-size: 16px;        /* Optional: adjust font size */
 }
 
 /* Container overlay that holds heading + form */
@@ -529,4 +526,141 @@ transition: opacity 0.2s ease;
   max-width: 700px;
   margin: 0;
   color: #f0f0f0; /* Softer white */
+}
+
+/* Hide navbar by default */
+.mobile-navbar {
+  display: none;
+}
+
+/* Show and style navbar on small screens (≤600px) */
+@media (max-width: 600px) {
+  .mobile-navbar {
+    display: flex;
+    justify-content: center;
+    background-color: #ffffff;
+    padding: 10px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 24px;
+  }
+
+  .mobile-navbar ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .mobile-navbar li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    padding: 8px 12px;
+  }
+}
+
+/* Invitation Card Styles */
+
+.inviter-img {
+  flex: 0 0 auto;
+}
+
+.inviter-img img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.invite-text {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.invite-text .card-title {
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #000;
+}
+
+.invite-text .card-text {
+  font-size: 1rem;
+  color: #000;
+  word-wrap: break-word;
+}
+
+.invite-text .time-ago {
+  color: #333;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.invite-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+}
+
+.approve-btn, .decline-btn {
+  width: 140px;
+  height: auto ;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.approve-btn:hover{
+  background-color: #19b0e3 !important;
+}
+
+.decline-btn:hover{
+  background-color: #999 !important;
+}
+
+/* Default: stack everything on big screens */
+.invite-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Don't use flex for .invite-main by default */
+.invite-main {
+  display: contents; /* acts like it's not there, so img + text stay in main flow */
+}
+
+/* Small screens layout */
+@media (max-width: 576px) {
+  .invite-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .invite-main {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .inviter-img img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .invite-actions {
+    justify-content: center;
+    margin-top: 8px;
+  }
 }

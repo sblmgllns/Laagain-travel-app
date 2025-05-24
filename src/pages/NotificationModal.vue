@@ -7,19 +7,19 @@
     <div class="modal-content custom-modal p-0 rounded">
       <!-- Sticky header -->
       <div class="modal-header sticky-top bg-white p-4 border-bottom" style="z-index: 1;">
-        <h5>Create New Itinerary</h5>
+        <h5>Notification</h5>
       </div>
 
       <!-- Scrollable content body -->
       <div class="modal-body p-4">
-        <newItinerary @close="emit('close')" />
+        <Notifications @close="emit('close')" :isChild="true" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import newItinerary from './newItinerary.vue'
+import Notifications from './Notifications.vue'
 
 const props = defineProps({
   isOpen: Boolean
@@ -72,21 +72,16 @@ function close() {
 @media (max-width: 600px) {
   .modal-overlay {
     position: fixed;
-    bottom: 48px;
+    bottom: 0;
     top: auto;
     left: 0;
     right: 0;
     width: 100%;
     height: auto;
     max-height: 90vh;
-    border-radius: 48px 48px 0 0;
+    border-radius: 24px 24px 0 0;
     transform: translateY(100%);
     animation: slideUp 0.3s ease-out forwards;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
-  }
-  .custom-modal {
-    border-radius: 48px;
-    /* box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); */
   }
 }
 
@@ -98,5 +93,7 @@ function close() {
     transform: translateY(0%);
   }
 }
+
+
 
 </style>
