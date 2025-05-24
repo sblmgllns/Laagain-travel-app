@@ -3,96 +3,89 @@
     
     <!-- Profile Header -->
     <div class="row">
-      <!-- Navbar Top -->
-      <nav class="navbar navbar-light bg-light d-flex align-items-center">
-        <!-- Left Icon (Settings) -->
-        <router-link to="/ProfileSettings" class="nav-link ms-3">
-          <i class="bi bi-gear fs-3"></i>
+
+      <!-- user profile details -->
+      <div class="card w-100 rounded-1 position-relative">
+
+        <router-link 
+          to="/ProfileSettings" 
+          class="nav-link position-absolute top-0 end-0 m-2"
+        >
+          <i class="bi bi-gear fs-4"></i>
         </router-link>
 
-        <!-- Center Brand (Laagain) -->
-        <a class="navbar-brand mx-auto" href="#"></a>
-
-        <!-- Right Icons (Search & Notification) -->
-        <div class="d-flex">
-          <router-link class="nav-link me-3" to="/explore">
-            <i class="bi bi-search fs-3"></i>
-          </router-link>
-
-          <router-link class="nav-link" to="/notifications">
-            <i class="bi bi-bell fs-3"></i>
-          </router-link>
-        </div>
-      </nav>
-      <!-- user profile details -->
-      <div class="card w-100 rounded-1">
         <img :src="profilePic" alt="Profile Picture" class="profile-pic mx-auto" />
-        <h1 class="mt-3">@{{ username }}</h1>
-        <h4 class="mt-0">{{ fullname }}</h4>
+        <h1 class="mt-3">{{ fullname }}</h1>
+        <h4 class="mt-0">@{{ username}}</h4>
         <p class="text-muted mx-auto rounded-3" id="tripCount">{{ trip }} Trips</p>
-      </div>
-    </div>
 
-    <!-- Contents Section (Trips and Guides) -->
-    <div class="row" id="contentSection">
-      <!-- Tabs -->
-      <ul class="nav nav-tabs nav-fill">
-        <li class="nav-item">
-          <a class="nav-link fs-4" :class="{ active: activeTab === 'trips' }" @click="activeTab = 'trips'">
-            <i class="bi bi-geo"></i> Trips
-          </a>
-        </li>
-      </ul>
-
-      <!-- Tab Content -->
-      <div class="tab-content overflow-auto pb-15vh">
-        <!-- Trips Tab -->
-        <div v-if="activeTab === 'trips'" class="row">
-          <div v-for="(post, index) in trips" :key="index" class="col-lg-4 col-md-6 col-12">
-            <div class="tripCard card mb-2 mt-2 rounded-5 w-100"
-            @click="navigateToEditItinerary(post.id)"
-            :style="{
-                backgroundImage: `linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)), url(${post.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }"
-            >
-              <div class="card-body d-flex flex-column justify-content-between h-100">
-                <!-- Upper section (Date and Three-dot menu) -->
-                <div class="d-flex justify-content-between">
-                  <span class="trip-date px-2 py-1">{{ post.date }}</span>
-                  <span class="trip-menu" @click.stop="toggleMenu(index)">
-                    <i class="bi bi-three-dots"></i>
-                    <div v-if="showMenus[index]" class="menu-options">
-                      <template v-if="post.ownerId === user.id">
-                        <a href="#" @click.stop="deletePost(post.id, index)">Delete</a>
-                      </template>
-                      <template v-else>
-                        <a href="#" @click.stop="leaveTrip(post.id, index)">Leave</a>
-                      </template>
-                    </div>
-                  </span>
-                </div>
-
-                <!-- Lower section (Title & Content) -->
-                <div>
-                  <h5 class="card-title">{{ post.title }}</h5>
-                  <p class="card-text">{{ post.content }}</p>
-                </div>
-                <!-- Invite Button -->
         
-              </div>
-              <!-- Invite Icon (Opens Modal) -->
-              <div class="trip-icon" @click.stop="openInviteModal(post)">
-                <i class="bi bi-person-plus"></i>
+      <div v-if="trips.length">
+
+          <div class="responsive-scroll-container">
+            <div class="responsive-scroll-inner">
+              <div class="card-grid" v-for="(task, index) in trips" :key="index">
+                <div class="result-card h-100">
+                      <span class="trip-menu" @click.stop="toggleMenu(task.id)">
+                        <i class="bi bi-three-dots"></i>
+
+                        <div v-if="showMenus[task.id]" class="menu-options">
+                          <template v-if="task.ownerId == user.id">
+                            <a href="#" @click.stop="deletePost(task.id, index, 'trips')">Delete</a>
+                            <a @click.stop="openInviteModal(task)">Share</a>
+                          </template>
+                          <template v-else>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'trips')">Leave</a>
+                          </template>
+                        </div>
+                      </span>
+                      
+                      <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"  @click="navigateToEditItinerary(task.id)" class="card-img-top" />
+                      
+                      <div class="card-body">
+                        <div class="card-name">
+                          <!-- Title field -->
+                          <input
+                            type="text"
+                            class="form-control-plaintext p-0 m-0"
+                            :value="task.title"
+                            readonly
+                            style="font-weight: 600;"
+                          />
+
+                          <!-- Pencil icon -->
+                          <span class="edit-icon ms-2">
+                            <i class="bi bi-pencil-fill text-secondary"></i>
+                          </span>
+
+                          <!-- Underline on hover -->
+                          <div class="underline-hover"></div>
+                        </div>
+              
+                        <p class="category">
+                          {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                        </p>
+
+                        
+                      </div>
+
+                </div>
+
               </div>
             </div>
-            
           </div>
-        </div>
-
       </div>
+      <div v-else class="text-center w-100 my-4">
+        <img
+          src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+          alt="No result"
+          class="No-Result"
+        />
+        <p class="text-muted">No trips found.</p>
+      </div>
+      </div>
+
+
     </div>
 
     <div v-if="showInviteModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
@@ -332,19 +325,8 @@ export default {
         return;
       }
 
-      // Count joined trips
-      const { count: joinedTripCount, error: joinedCountError } = await supabase
-        .from("itinerary_members")
-        .select("itinerary_id", { count: "exact", head: true })
-        .eq("user_id", this.user.id);
-
-      if (joinedCountError) {
-        console.error("Error fetching joined trip count:", joinedCountError);
-        return;
-      }
-
       // Total trip count (owned + joined)
-      this.trip = ownedTripCount + joinedTripCount;
+      this.trip = ownedTripCount;
 
       // Fetch the trip details
       await this.fetchTrips();
@@ -446,23 +428,8 @@ export default {
           return;
         }
 
-        // Fetch trips where the user is a member
-        const { data: joinedTrips, error: joinedError } = await supabase
-          .from("itinerary_members")
-          .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(*)")
-          .eq("user_id", this.user.id);
-
-        if (joinedError) {
-          console.error("Error fetching joined trips:", joinedError);
-          this.errorMessage = "Failed to load joined trips.";
-          return;
-        }
-
-        // Extract itinerary details from joined trips
-        const joinedTripsData = joinedTrips.map(entry => entry.itineraries);
-
         // Combine owned and joined trips
-        const allTrips = [...ownedTrips, ...joinedTripsData];
+        const allTrips = [...ownedTrips];
 
         // Map data from Supabase to match your component's structure
         this.trips = allTrips.map(trip => ({
@@ -946,4 +913,5 @@ export default {
 
 <style scoped>
 @import "../assets/styles/profile.css"; /* Import external CSS file */
+@import "../assets/styles/card-profile.css"
 </style>

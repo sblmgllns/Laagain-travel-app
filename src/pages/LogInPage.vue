@@ -139,7 +139,7 @@ export default {
             }
 
             // Redirect user to home page
-            this.$router.push("/profile");
+            this.$router.push("/dashboard");
         },
 
     },

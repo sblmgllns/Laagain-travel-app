@@ -69,7 +69,7 @@
             :class="{ active: activeTab === 'invited' }"
             @click="activeTab = 'invited'"
           >
-            Invited
+            Shared
           </li>
         </ul>
       </div>
@@ -243,11 +243,11 @@
 
                         <div v-if="showMenus[task.id]" class="menu-options">
                           <template v-if="task.ownerId == user.id">
-                            <a href="#" @click.stop="deletePost(task.id, index, 'activeUpcomingTasks')">Delete</a>
+                            <a href="#" @click.stop="deletePost(task.id, index, 'completedTasks')">Delete</a>
                             <a @click.stop="openInviteModal(task)">Share</a>
                           </template>
                           <template v-else>
-                            <a href="#" @click.stop="leaveTrip(task.id, index, 'activeUpcomingTasks')">Leave</a>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'completedTasks')">Leave</a>
                           </template>
                         </div>
                       </div>
@@ -300,75 +300,167 @@
 
       <!-- Invited Tab -->
       <!-- Invited Tab -->
-<div v-if="activeTab === 'invited'" class="row mx-0 mt-5">
-  
-  <div v-if="invitedTasks.length">
-    <div v-for="(task, index) in invitedTasks" :key="index" class="col-12 px-0">
-      
-      <!-- Debugging Output -->
-      {{ console.log("Task Data:", task) }}
-      
+    <div v-if="activeTab === 'invited'" class="row justify-content-start">
 
-      <!-- Invitation Card -->
-      <div class="card mb-3 border-0 shadow-sm rounded-4 w-100 invite-card">
-        <div class="card-body invite-body">
-          <!-- NEW WRAPPER START -->
-          <div class="invite-main">
-            <!-- Profile Picture -->
-            <div class="inviter-img">
-              <img :src="task.profilePic" alt="Inviter Profile Picture" class="rounded-circle" />
-            </div>
-
-            <!-- Content & Time Ago -->
-            <div class="invite-text">
-              <div class="content">
-                <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
-                <p class="card-text" v-html="task.content"></p>
-              </div>
-              <div class="time-ago">
-                <small><em>{{ timeAgo(task.date) }}</em></small>
-              </div>
-            </div>
-          </div>
-          <!-- NEW WRAPPER END -->
-
-          <!-- Action Buttons -->
-          <div class="invite-actions">
-              <template v-if="!task.status">
-                <div
-                  class="btn btn-light fw-bold fs-5 approve-btn"
-                  @click="updateInviteStatus(task.id, 'approved')"
-                  style="background-color: #089dcf; color: white"
-                >
-                  Accept
-                </div>
-                <div
-                  class="btn btn-light fw-bold fs-5 decline-btn"
-                  @click="updateInviteStatus(task.id, 'declined')"
-                  style="background-color: #666; color: white"
-                >
-                  Decline
-                </div>
-              </template>
-              <template v-else>
-                <p class="fw-semibold" :style="{ color: task.status === 'approved' ? '#089dcf' : '#666' }">
-                  You {{ task.status === 'approved' ? 'accepted' : 'declined' }} this invite.
-                </p>
-              </template>
-          </div>
-        </div>
-
+      <div class="status-container">
+        <h5 class="status-title">Invites</h5>
+        <div class="underline"></div>
       </div>
 
+      <div v-if="invitedTasks.length">
+        <div class="responsive-scroll-container">
+          <div class="responsive-scroll-inner">
+
+            <div class="card-grid" v-for="(task, index) in invitedTasks" :key="index">
+
+              <div class="result-card-inv h-100">
+                    
+                    <img :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'" class="invite-img" />
+
+                    <div class="card-body">
+                      <div class="card-name">
+                          <!-- NEW WRAPPER START -->
+                        <div class="invite-main">
+                          <!-- Profile Picture -->
+                          <div class="inviter-img">
+                            <img :src="task.profilePic" alt="Inviter Profile Picture" class="rounded-circle" />
+                          </div>
+
+                          <!-- Content & Time Ago -->
+                          <div class="invite-text">
+                            <div class="content">
+                              <h5 class="card-title fw-bold mb-1">{{ task.title }}</h5>
+                              <p class="card-text" v-html="task.content"></p>
+                            </div>
+                            <div class="time-ago">
+                              <small><em>{{ timeAgo(task.date) }}</em></small>
+                            </div>
+                          </div>
+                        </div>
+
+
+                      </div>
+                        
+                      <div class="invite-actions">
+                        <template v-if="!task.status">
+                          <div
+                            class="btn btn-light fw-bold fs-5 approve-btn"
+                            @click="updateInviteStatus(task.id, 'approved')"
+                            style="background-color: #089dcf; color: white"
+                          >
+                            Accept
+                          </div>
+                          <div
+                            class="btn btn-light fw-bold fs-5 decline-btn"
+                            @click="updateInviteStatus(task.id, 'declined')"
+                            style="background-color: #666; color: white"
+                          >
+                            Decline
+                          </div>
+                        </template>
+                        <template v-else>
+                          <p class="fw-semibold" :style="{ color: task.status === 'approved' ? '#089dcf' : '#666' }">
+                            You {{ task.status === 'approved' ? 'accepted' : 'declined' }} this invite.
+                          </p>
+                        </template>
+                      </div>
+                      
+                    </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else class="text-center w-100 my-4">
+        <img
+          src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+          alt="No result"
+          class="No-Result"
+        />
+        <p class="text-muted">No invites found.</p>
+      </div>
+
+      
+        <div class="status-container">
+          <h5 class="status-title">Shared Trips</h5>
+          <div class="underline"></div>
+        </div>
+        
+        <div v-if="sharedTasks.length"> 
+          <div class="responsive-scroll-container">
+            <div class="responsive-scroll-inner">
+              <div class="card-grid" v-for="(task, index) in sharedTasks" :key="index">
+                <div class="result-card h-100">
+                      <!-- Three dots menu (top-right corner over image) -->
+                      <div
+                        class="trip-menu position-absolute top-0 end-0 m-2"
+                        @click.stop="toggleMenu(task.id)"
+                      >
+                        <i class="bi bi-three-dots fs-5"></i>
+
+                        <div v-if="showMenus[task.id]" class="menu-options">
+                          <template v-if="task.ownerId == user.id">
+                            <a href="#" @click.stop="deletePost(task.id, index, 'invitedTasks')">Delete</a>
+                            <a @click.stop="openInviteModal(task)">Share</a>
+                          </template>
+                          <template v-else>
+                            <a href="#" @click.stop="leaveTrip(task.id, index, 'invitedTasks')">Leave</a>
+                          </template>
+                        </div>
+                      </div>
+
+                      <!-- Image -->
+                      <img
+                        :src="task.image || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                        @click="navigateToEditItinerary(task.id)"
+                        class="card-img-top"
+                        style="cursor: pointer;"
+                      />
+
+                      <div class="card-body">
+                        <div class="card-name">
+                          <!-- Title field -->
+                          <input
+                            type="text"
+                            class="form-control-plaintext p-0 m-0"
+                            :value="task.title"
+                            readonly
+                            style="font-weight: 600;"
+                          />
+
+                          <!-- Pencil icon -->
+                          <span class="edit-icon ms-2">
+                            <i class="bi bi-pencil-fill text-secondary"></i>
+                          </span>
+
+                          <!-- Underline on hover -->
+                          <div class="underline-hover"></div>
+                        </div>
+              
+                        <p class="category">
+                          {{ task.content }} <span class="mx-1">●</span> {{ task.date }}
+                        </p>
+
+                        
+                      </div>
+
+                    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center w-100 my-4">
+          <img
+            src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//No%20Data.png"
+            alt="No result"
+            class="No-Result"
+          />
+          <p class="text-muted">No trips found.</p>
+        </div>
+
     </div>
-  </div>
-
-  <!-- No Results Message -->
-  <div v-else class="text-center w-100 my-5">
-    <p class="text-muted fs-5">No invitations at the moment.</p>
-  </div>
-
-</div>
 
 
       </div>
@@ -573,7 +665,8 @@
         activeNowTasks: [],
         activeUpcomingTasks: [],
         completedTasks: [],
-        invitedTasks: [], 
+        invitedTasks: [],
+        sharedTasks:[], 
         showMenus: {},
 
       }
@@ -604,6 +697,7 @@
         this.profilePic = profile.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg"; // Fallback image
       
         await this.fetchTasks();
+        await this.fetchSharedTrips();
         await this.fetchInvites();  
       }
     }
@@ -785,7 +879,6 @@
             }
 
             console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
-
             // Step 5: Fetch current user's profile
             const { data: profileData, error: profileError } = await supabase
               .from("profiles")
@@ -835,6 +928,7 @@
         
         // Refresh lists
         this.fetchInvites();
+        this.fetchSharedTrips();
         this.fetchTasks();
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -884,8 +978,8 @@
 
         // Reset the task lists
         this.activeNowTasks = [];
-        this.activeUpcomingTasks = [];
         this.completedTasks = [];
+        this.activeUpcomingTasks = [];
 
         // Categorize trips based on date
         allTrips.forEach(trip => {
@@ -923,6 +1017,44 @@
         this.errorMessage = "Something went wrong.";
       }
     },
+
+    async fetchSharedTrips() {
+      try {
+        // Fetch itineraries where the user is a member (not owner)
+        const { data: memberTrips, error: memberError } = await supabase
+          .from("itinerary_members")
+          .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(id, owner_id, name, start_date, end_date, cover_pic_url, place)")
+          .eq("user_id", this.user.id)
+          .neq("itineraries.owner_id", this.user.id); // Exclude owned itineraries
+
+        if (memberError) {
+          console.error("Error fetching shared trips:", memberError);
+          this.errorMessage = "Failed to load shared trips.";
+          return;
+        }
+
+        // Map the shared trips into task format
+        const sharedTripsFormatted = memberTrips.map((entry) => {
+          const trip = entry.itineraries;
+          return {
+            id: trip.id,
+            title: trip.name,
+            ownerId: trip.owner_id,
+            date: `${trip.start_date} - ${trip.end_date}`,
+            content: trip.place,
+            image: trip.cover_pic_url || ""
+          };
+        });
+
+        // Push to sharedTasks
+        this.sharedTasks = sharedTripsFormatted;
+        console.log("Shared Trips:", this.sharedTasks);
+      } catch (err) {
+        console.error("Unexpected error fetching shared trips:", err);
+        this.errorMessage = "Something went wrong.";
+      }
+    },
+
 
     async fetchInvites() {
       try {
@@ -965,7 +1097,7 @@
             // Fetch trip details
             const { data: tripData } = await supabase
               .from("itineraries")
-              .select("name")
+              .select("name, cover_pic_url")
               .eq("id", invite.trip_id)
               .single();
 
@@ -980,6 +1112,7 @@
               content: `${inviterProfile?.username} invited you to join "<strong>${tripData?.name}</strong>"`,
               date: invite.time_stamp,
               profilePic: inviterProfile?.profile_pic_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
+              image: tripData?.cover_pic_url || "",
               id: invite.id,
               status: null // can be 'approved' or 'declined'
             };
@@ -1011,203 +1144,202 @@
     },
 
     async sendInvite() {
-    if (!this.tripMembers) return;
+      if (!this.tripMembers) return;
 
-    const membersArray = this.tripMembers.split(",").map((item) => item.trim());
-    let allInvitesValid = true; // Flag to check if all invites are valid
-    let validInvites = []; // To store valid invite data that will be sent later
-    let invalidItems = []; // To track invalid items for the alert message
+      const membersArray = this.tripMembers.split(",").map((item) => item.trim());
+      let allInvitesValid = true; // Flag to check if all invites are valid
+      let validInvites = []; // To store valid invite data that will be sent later
+      let invalidItems = []; // To track invalid items for the alert message
 
-    for (const item of membersArray) {
-      if (!item) continue;
+      for (const item of membersArray) {
+        if (!item) continue;
 
-      // Email mode
-      if (this.selectedTab === 'email') {
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(item)) {
-          invalidItems.push(`"${item}" is not a valid email address.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        if (item === this.user.email) {
-          invalidItems.push("You cannot invite yourself.");
-          allInvitesValid = false;
-          continue;
-        }
-
-        // Check if the user has already been invited (this is the double check part)
-        const { data: existingInviteData, error: inviteError } = await supabase
-          .from("trip_invites")
-          .select("invited_email")
-          .eq("invited_email", item)
-          .eq("trip_id", this.selectedItem.id);
-
-        if (inviteError) {
-          console.error("Error checking if invite exists:", inviteError.message);
-          invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        // If there's already an existing invite for this email and trip_id
-        if (existingInviteData && existingInviteData.length > 0) {
-          invalidItems.push(`"${item}" has already been invited.`);
-          allInvitesValid = false;
-          continue;
-        } else {
-          // No existing invite, proceed with sending invite
-          console.log(`No invite found for "${item}"`);
-        }
-
-        // Check if the email is registered
-        const { data: userData, error: userError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("email", item)
-          .single();
-
-        if (userError || !userData) {
-          invalidItems.push(`The email "${item}" is not registered.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        // If all checks pass, add this invite to validInvites
-        validInvites.push({
-          trip_id: this.selectedItem.id,
-          invited_email: item,
-          inviter_id: this.user.id,
-          status: "pending",
-          time_stamp: new Date().toISOString(),
-        });
-      }
-
-      // Username mode
-      else if (this.selectedTab === 'username') {
-        if (item === this.user.username) {
-          invalidItems.push("You cannot invite yourself.");
-          allInvitesValid = false;
-          continue;
-        }
-
-        // Get the user's email from their username
-        const { data: userData, error: userError } = await supabase
-          .from("profiles")
-          .select("username, email")
-          .eq("username", item)
-          .single();
-
-        if (userError || !userData) {
-          invalidItems.push(`The username "${item}" is not registered.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        const invitedEmail = userData.email;
-
-        // Check if the user has already been invited using their email
-        const { data: existingInviteData, error: inviteError } = await supabase
-          .from("trip_invites")
-          .select("invited_email")
-          .eq("invited_email", invitedEmail)
-          .eq("trip_id", this.selectedItem.id);
-
-        if (inviteError) {
-          console.error("Error checking if invite exists:", inviteError.message);
-          invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        if (existingInviteData && existingInviteData.length > 0) {
-          invalidItems.push(`"${item}" has already been invited.`);
-          allInvitesValid = false;
-          continue;
-        }
-
-        // If all checks pass, add this invite to validInvites
-        validInvites.push({
-          trip_id: this.selectedItem.id,
-          invited_email: invitedEmail, // use their email for the invite
-          inviter_id: this.user.id,
-          status: "pending",
-          time_stamp: new Date().toISOString(),
-        });
-      }
-    }
-
-    if (allInvitesValid) {
-      // Send all valid invites together
-      const { error: inviteInsertError } = await supabase.from("trip_invites").insert(validInvites);
-
-      if (inviteInsertError) {
-        console.error("Error sending invites:", inviteInsertError.message);
-        alert("There was an error sending the invites. Please try again.");
-      } else {
-        // Fetch sender's profile for username and profile picture
-        const { data: senderProfile, error: senderError } = await supabase
-          .from("profiles")
-          .select("username, profile_pic_url")
-          .eq("id", this.user.id)
-          .single();
-
-        if (senderError || !senderProfile) {
-          console.error("Failed to fetch sender's profile data:", senderError?.message);
-          alert("Invites were sent, but notifications may not have been fully created.");
-          return;
-        }
-
-        const notificationsPayload = [];
-
-        for (const invite of validInvites) {
-          // Get the user ID of the invited person
-          const { data: invitedUser, error: profileError } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("email", invite.invited_email)
-            .single();
-
-          if (profileError || !invitedUser) {
-            console.warn(`Could not find user ID for ${invite.invited_email}, skipping notification.`);
+        // Email mode
+        if (this.selectedTab === 'email') {
+          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailPattern.test(item)) {
+            invalidItems.push(`"${item}" is not a valid email address.`);
+            allInvitesValid = false;
             continue;
           }
 
-          notificationsPayload.push({
-            user_id: invitedUser.id, // The invited user
-            type: "invite",
-            message: `${senderProfile.username} invited you to join the itinerary "${this.selectedItem.title}"`,
-            itinerary_id: invite.trip_id,
-            sender_id: this.user.id,
-            image_url: senderProfile.profile_pic_url, // Include sender's profile pic
-            itinerary_name: this.selectedItem.title, // Include itinerary title
-            created_at: new Date().toISOString(),
-            is_read: false,
+          if (item === this.user.email) {
+            invalidItems.push("You cannot invite yourself.");
+            allInvitesValid = false;
+            continue;
+          }
+
+          // Check if the user has already been invited (this is the double check part)
+          const { data: existingInviteData, error: inviteError } = await supabase
+            .from("trip_invites")
+            .select("invited_email")
+            .eq("invited_email", item)
+            .eq("trip_id", this.selectedItem.id);
+
+          if (inviteError) {
+            console.error("Error checking if invite exists:", inviteError.message);
+            invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
+            allInvitesValid = false;
+            continue;
+          }
+
+          // If there's already an existing invite for this email and trip_id
+          if (existingInviteData && existingInviteData.length > 0) {
+            invalidItems.push(`"${item}" has already been invited.`);
+            allInvitesValid = false;
+            continue;
+          } else {
+            // No existing invite, proceed with sending invite
+            console.log(`No invite found for "${item}"`);
+          }
+
+          // Check if the email is registered
+          const { data: userData, error: userError } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("email", item)
+            .single();
+
+          if (userError || !userData) {
+            invalidItems.push(`The email "${item}" is not registered.`);
+            allInvitesValid = false;
+            continue;
+          }
+
+          // If all checks pass, add this invite to validInvites
+          validInvites.push({
+            trip_id: this.selectedItem.id,
+            invited_email: item,
+            inviter_id: this.user.id,
+            status: "pending",
+            time_stamp: new Date().toISOString(),
           });
         }
 
-        if (notificationsPayload.length > 0) {
-          const { error: notificationError } = await supabase
-            .from("notifications")
-            .insert(notificationsPayload);
+        // Username mode
+        else if (this.selectedTab === 'username') {
+          if (item === this.user.username) {
+            invalidItems.push("You cannot invite yourself.");
+            allInvitesValid = false;
+            continue;
+          }
 
-          if (notificationError) {
-            console.error("Error inserting notifications:", notificationError.message);
+          // Get the user's email from their username
+          const { data: userData, error: userError } = await supabase
+            .from("profiles")
+            .select("username, email")
+            .eq("username", item)
+            .single();
+
+          if (userError || !userData) {
+            invalidItems.push(`The username "${item}" is not registered.`);
+            allInvitesValid = false;
+            continue;
           }
-          else{
-            console.log("send succ");
+
+          const invitedEmail = userData.email;
+
+          // Check if the user has already been invited using their email
+          const { data: existingInviteData, error: inviteError } = await supabase
+            .from("trip_invites")
+            .select("invited_email")
+            .eq("invited_email", invitedEmail)
+            .eq("trip_id", this.selectedItem.id);
+
+          if (inviteError) {
+            console.error("Error checking if invite exists:", inviteError.message);
+            invalidItems.push(`There was an error while checking if "${item}" has already been invited. Please try again later.`);
+            allInvitesValid = false;
+            continue;
           }
+
+          if (existingInviteData && existingInviteData.length > 0) {
+            invalidItems.push(`"${item}" has already been invited.`);
+            allInvitesValid = false;
+            continue;
+          }
+
+          // If all checks pass, add this invite to validInvites
+          validInvites.push({
+            trip_id: this.selectedItem.id,
+            invited_email: invitedEmail, // use their email for the invite
+            inviter_id: this.user.id,
+            status: "pending",
+            time_stamp: new Date().toISOString(),
+          });
         }
-        alert("Invites have been sent!"); // Show popup
-        this.showInviteModal = false;
-        this.isEditMode = false;
       }
-    } else {
-      // Show all invalid items with appropriate alerts
-      alert(`Some invitations could not be sent:\n\n${invalidItems.join("\n")}`);
-    }
-  },
 
+      if (allInvitesValid) {
+        // Send all valid invites together
+        const { error: inviteInsertError } = await supabase.from("trip_invites").insert(validInvites);
+
+        if (inviteInsertError) {
+          console.error("Error sending invites:", inviteInsertError.message);
+          alert("There was an error sending the invites. Please try again.");
+        } else {
+          // Fetch sender's profile for username and profile picture
+          const { data: senderProfile, error: senderError } = await supabase
+            .from("profiles")
+            .select("username, profile_pic_url")
+            .eq("id", this.user.id)
+            .single();
+
+          if (senderError || !senderProfile) {
+            console.error("Failed to fetch sender's profile data:", senderError?.message);
+            alert("Invites were sent, but notifications may not have been fully created.");
+            return;
+          }
+
+          const notificationsPayload = [];
+
+          for (const invite of validInvites) {
+            // Get the user ID of the invited person
+            const { data: invitedUser, error: profileError } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("email", invite.invited_email)
+              .single();
+
+            if (profileError || !invitedUser) {
+              console.warn(`Could not find user ID for ${invite.invited_email}, skipping notification.`);
+              continue;
+            }
+
+            notificationsPayload.push({
+              user_id: invitedUser.id, // The invited user
+              type: "invite",
+              message: `${senderProfile.username} invited you to join the itinerary "${this.selectedItem.title}"`,
+              itinerary_id: invite.trip_id,
+              sender_id: this.user.id,
+              image_url: senderProfile.profile_pic_url, // Include sender's profile pic
+              itinerary_name: this.selectedItem.title, // Include itinerary title
+              created_at: new Date().toISOString(),
+              is_read: false,
+            });
+          }
+
+          if (notificationsPayload.length > 0) {
+            const { error: notificationError } = await supabase
+              .from("notifications")
+              .insert(notificationsPayload);
+
+            if (notificationError) {
+              console.error("Error inserting notifications:", notificationError.message);
+            }
+            else{
+              console.log("send succ");
+            }
+          }
+          alert("Invites have been sent!"); // Show popup
+          this.showInviteModal = false;
+          this.isEditMode = false;
+        }
+      } else {
+        // Show all invalid items with appropriate alerts
+        alert(`Some invitations could not be sent:\n\n${invalidItems.join("\n")}`);
+      }
+    },
 
     async fetchOwnerProfile() {
       try {
@@ -1305,12 +1437,26 @@
         }
 
         // Proceed with deletion if user is the owner
-        const { error: deleteError } = await supabase
+        const { error: deleteError1  } = await supabase
+          .from("potential_activities")
+          .delete()
+          .eq("itinerary_id", itinerary_id);
+
+        if (deleteError1 ) {
+          console.error("Error deleting itinerary:", deleteError);
+          this.showMenus[index] = false;
+          alert("Failed to delete itinerary. Try again.");
+          
+          return;
+        }
+
+        // Proceed with deletion if user is the owner
+        const { error: deleteError2 } = await supabase
           .from("itineraries")
           .delete()
           .eq("id", itinerary_id);
 
-        if (deleteError) {
+        if (deleteError2) {
           console.error("Error deleting itinerary:", deleteError);
           this.showMenus[index] = false;
           alert("Failed to delete itinerary. Try again.");
