@@ -13,30 +13,35 @@
     </div>
         
     <!-- Notification List -->
-    <div class="notification-scroll-container">
-        <ul class="list-group mt-3">
-          <li 
-            v-for="(notification, index) in notifications" 
-            :key="index" 
-            class="list-group-item notification-item"
-          >
-            <div class="notification-media">
-              <div class="circle-indicator" v-if="!notification.isRead" title="Unread"></div>
-              <img :src="notification.image" alt="avatar" class="profile-image" />
-            </div>
+     <div v-if="!loading"> 
+        <div class="notification-scroll-container">
+            <ul class="list-group mt-3">
+              <li 
+                v-for="(notification, index) in notifications" 
+                :key="index" 
+                class="list-group-item notification-item"
+              >
+                <div class="notification-media">
+                  <div class="circle-indicator" v-if="!notification.isRead" title="Unread"></div>
+                  <img :src="notification.image" alt="avatar" class="profile-image" />
+                </div>
 
-            <div class="notification-content">
-              <div class="notification-text" v-html="notification.formattedMessage"></div>
-              <span class="time-badge">{{ notification.time }}</span>
-            </div>
-          </li>
+                <div class="notification-content">
+                  <div class="notification-text" v-html="notification.formattedMessage"></div>
+                  <span class="time-badge">{{ notification.time }}</span>
+                </div>
+              </li>
 
-          <li v-if="notifications.length === 0" class="list-group-item text-center text-muted">
-            No notifications.
-          </li>
-        </ul>
-    </div>
-
+              <li v-if="notifications.length === 0" class="list-group-item text-center text-muted notification-item">
+                No notifications.
+              </li>
+            </ul>
+        </div>
+     </div>
+     <div v-if="loading" class="loading-item">
+        loading ...
+     </div>
+    
     <div v-if="ClearModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -80,6 +85,7 @@ const userId = ref('')
 const userEmail = ref('')
 const ClearModal = ref(false)
 const isChild = ref(true)
+const loading = ref(true)
 
 
 const fetchUserProfile = async () => {
@@ -135,6 +141,7 @@ const fetchNotifications = async () => {
     .order('created_at', { ascending: false })
 
   if (error) {
+    loading.value = false
     console.error('Error fetching notifications:', error)
     return
   }
@@ -162,6 +169,7 @@ const fetchNotifications = async () => {
       isRead: item.is_read
     }
   })
+  loading.value = false
 }
 
 const clearAll = async () => {
@@ -245,6 +253,7 @@ onMounted(async () => {
 
 .notification-item {
   display: flex;
+  min-width: auto;
   align-items: center;
   gap: 12px;
 }
@@ -318,8 +327,9 @@ onMounted(async () => {
     font-size: 0.7rem;
     padding: 2px 6px;
   }
-  .notification-scroll-container {
+  .notification-scroll-container, .loading-item {
       max-height: 750px !important; 
+      min-width: 200px !important;
   }   
 
 
@@ -327,6 +337,7 @@ onMounted(async () => {
 
 .notification-scroll-container {
   max-height: 600px; /* adjust as needed */
+  min-width: 400px;
   overflow-y: auto;
   border: 1px solid #dee2e6;
   border-radius: 0.375rem;
@@ -341,7 +352,12 @@ onMounted(async () => {
   background-color: #c0c0c0;
   border-radius: 10px;
 }
-
+.loading-item{
+ max-height: 600px; /* adjust as needed */
+ min-height: 600px;
+ min-width: 400px; 
+ align-items: center ;
+}
 
 </style>
 

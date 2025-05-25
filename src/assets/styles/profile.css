@@ -116,3 +116,7 @@ body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
 .menu-options a:hover {
   background: #f8d7da;
 }
+
+.card{
+  border: None !important;
+}

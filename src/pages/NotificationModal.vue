@@ -40,7 +40,7 @@ function close() {
   position: absolute; /* position relative to .modal-wrapper */
   top: 0;
   left: 0;
-  width: auto; /* shrink to fit */
+  width: 480; /* shrink to fit */
   max-width: 480px;
   height: 100%; /* fill height of modal-wrapper */
   background: white; /* or your modal background */
@@ -59,7 +59,6 @@ function close() {
   overflow-y: auto;
   background: white;
   border-radius: 24px;
-  padding: 1.5rem;
   /* box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); */
 }
 

@@ -594,7 +594,6 @@
                 </div>
               </div>
             </div>
-
             <!-- Show Loading Spinner while loading -->
             <div v-if="loading" class="modal-body">
               <p>Loading...</p> <!-- Add your loading spinner here -->
