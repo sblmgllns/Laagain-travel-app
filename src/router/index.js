@@ -56,7 +56,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Redirect authenticated users away from login/signup pages
   if (to.meta.guestOnly && user) {
-    return next("/home");
+    return next("/dashboard");
   }
 
   return next();

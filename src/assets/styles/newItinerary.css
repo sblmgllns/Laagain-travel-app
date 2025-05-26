@@ -20,7 +20,7 @@
   border-radius: 16px;
   border: 1px solid #ccc;
   width: 400px;       /* fixed width */
-  height: 200px;      /* fixed height, adjust as needed */
+  height: 150px;      /* fixed height, adjust as needed */
   object-fit: cover;  /* cover to fill area, cropping if needed */
   display: block;     /* removes inline gap below image */
 }
@@ -56,7 +56,7 @@
 .field textarea,
 .field select {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.50rem;
   border: 1px solid #03AED2;
   border-radius: 10px;
   font-size: 16px;
