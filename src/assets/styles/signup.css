@@ -15,9 +15,7 @@ html, body {
 .card {
     border-radius: 46px !important; 
     background: #FFF;
-    padding: 32px !important; /* Adjust padding for spacing */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Soft shadow */
-    width: 350px !important;
+    padding: 32px !important; /* Adjust padding for spacing */    width: 350px !important;
 }
 
 
@@ -26,7 +24,6 @@ html, body {
 .full-page-container {
     min-height: 100vh;
     width: 100vw;
-    background-color: #03AED2; /* Blue background */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,10 +38,10 @@ html, body {
     font-weight: 700;
     line-height: normal;
     letter-spacing: 1.44px;
-    text-align: left;
+    text-align: center;
     
-    margin-top: 40px !important; /* Space above the title */
-    margin-bottom: 35px !important; /* Space below the title */
+    margin-top: 10px !important; /* Space above the title */
+    margin-bottom: 20px !important; /* Space below the title */
     padding-left: 10px !important;
 }
 
@@ -155,7 +152,7 @@ p.mt-3.text-start {
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     width: 400px;
-    text-align: center;
+    text-align: justify;
   }
   
   .close {
@@ -198,4 +195,9 @@ input, button {
 
 p.mt-3.text-start.text-danger {
     color: #dc3545 !important; /* Override your default gray color */
+}
+
+.modal-header img{
+    height: 4rem; 
+    width: 4rem;
 }

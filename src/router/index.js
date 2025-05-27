@@ -15,10 +15,11 @@ import newItinerary from "../pages/newItinerary.vue";
 import EditItinerary from "../pages/EditItinerary.vue";
 import Explore from "../pages/Explore.vue";
 import Notifications from "../pages/Notifications.vue";
+import Landing from "../pages/Landing.vue";
 
 // Define routes
 const routes = [
-  { path: "/", redirect: "/login", meta: { title: "Laagain - Log In" } },
+  { path: "/", redirect: "/landing", meta:{title: "Welcome to Laagain!"}  },
 
   { path: "/login", component: LogInPage, meta: { title: "Laagain - Log In", layout: 'none', guestOnly: true } },
   { path: "/signup", component: SignUpPage, meta: { title: "Laagain - Sign Up", layout: 'none', guestOnly: true } },
@@ -35,6 +36,7 @@ const routes = [
   { path: "/edit-itinerary", component: EditItinerary, meta: { layout: 'none', requiresAuth: true } },
   { path: "/explore", component: Explore, meta: { requiresAuth: true } },
   { path: "/notifications", component: Notifications, meta: { requiresAuth: true } },
+  {path: "/landing", component: Landing},
 ];
 
 // Create the router

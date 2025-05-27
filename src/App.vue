@@ -5,17 +5,29 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import MainLayout from './pages/MainLayout.vue'
 
 const route = useRoute()
+const router = useRouter()
 
-// Check if current route has a "layout" or defaults to MainLayout
+// Determine layout: if route.meta.layout is 'none', use 'div'; otherwise, use MainLayout
 const layout = computed(() => {
   return route.meta.layout === 'none' ? 'div' : MainLayout
 })
+
+// Remove Bootstrap modal artifacts after route changes
+onMounted(() => {
+  router.afterEach(() => {
+    document.body.classList.remove('modal-open')
+    document.body.style.overflow = ''
+    const backdrops = document.querySelectorAll('.modal-backdrop')
+    backdrops.forEach(backdrop => backdrop.remove())
+  })
+})
 </script>
+
 
 <style>
 

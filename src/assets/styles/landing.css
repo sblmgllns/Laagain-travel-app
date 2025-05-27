@@ -1,0 +1,173 @@
+/* ==========================================================================
+   CSS SECTION OVERVIEW 
+   ==========================================================================
+
+   1. Global Container Styles
+   2. Typography (Headings, Text)
+   3. Media Queries for Typography
+   4. Button Styles (Warning, Hover Effects)
+   5. Image and Graphic Styling
+   6. Responsive Text Alignment (Mobile)
+   7. Layout Heights (Row, Columns)
+   8. Text Container Styling
+   9. Auth Button Group Styles
+   10. Modal Dialogs and Content
+   11. Padding Utility (p-6)
+   12. Placeholder for #loginModal Customizations
+
+   ==========================================================================
+*/
+
+
+/* ==========================================================================
+   1. Global Container Styles
+   ========================================================================== */
+   .container-fluid {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    background: #fafaf9;
+  }
+  
+  /* ==========================================================================
+     2. Typography (Headings, Text)
+     ========================================================================== */
+  .display-5 {
+    font-size: 2.5rem;
+  }
+  
+  /* ==========================================================================
+     3. Media Queries for Typography
+     ========================================================================== */
+  @media (min-width: 768px) {
+    .display-5 {
+      font-size: 3rem;
+    }
+  }
+  
+  /* ==========================================================================
+     4. Button Styles (Warning, Hover Effects)
+     ========================================================================== */
+  .btn-warning {
+    background-color: #ff8800;
+    border: none;
+  }
+  .btn-warning:hover {
+    background-color: #e67e00;
+  }
+  
+  /* ==========================================================================
+     5. Image and Graphic Styling
+     ========================================================================== */
+  .graphic {
+    display: block;
+    margin: 0 5% 0 auto;
+    max-height: 90%;
+    max-width: 100%;
+  }
+  
+  /* ==========================================================================
+     6. Responsive Text Alignment (Mobile)
+     ========================================================================== */
+  @media (max-width: 767.98px) {
+    .text-start {
+      text-align: left !important;
+    }
+  }
+  
+  /* ==========================================================================
+     7. Layout Heights (Row, Columns)
+     ========================================================================== */
+  .row {
+    height: 80vh;
+  }
+  
+  /* ==========================================================================
+     8. Text Container Styling
+     ========================================================================== */
+  #textContainer {
+    z-index: 10;
+    /* padding-top: 10%;
+    padding-left: 5%; */
+    height: 45%;
+  }
+  
+  /* ==========================================================================
+     9. Auth Button Group Styles
+     ========================================================================== */
+  .btn-group.custom-auth-buttons {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 50px;
+    overflow: hidden;
+    display: inline-flex;
+    border: 1px solid #ddd;
+  }
+  
+  .btn-group.custom-auth-buttons .btn {
+    /* padding: 0.6rem 2.5rem; */
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 0;
+  }
+  
+  .btn-group.custom-auth-buttons .btn:first-child {
+    border-top-left-radius: 50px;
+    border-bottom-left-radius: 50px;
+    color: #333;
+    background-color: #f8f9fa;
+  }
+  
+  .btn-group.custom-auth-buttons .btn:first-child:hover {
+    background-color: #e2e6ea;
+  }
+  
+  .btn-group.custom-auth-buttons .btn:last-child {
+    border-top-right-radius: 50px;
+    border-bottom-right-radius: 50px;
+    background-color: #03AED2;
+    color: white;
+  }
+  
+  .btn-group.custom-auth-buttons .btn:last-child:hover {
+    background-color: #03AED2;
+    color: white;
+  }
+  
+  /* ==========================================================================
+     10. Modal Dialogs and Content
+     ========================================================================== */
+  .modal-dialog.modal-sm {
+    max-width: 380px;
+  }
+  
+  #loginModal .modal-content {
+    /* aspect-ratio: 2 / 3; Portrait ratio */
+    padding: 1rem;
+  }
+  
+  #signupModal .modal-content {
+    aspect-ratio: 2 / 3;
+    padding: 1rem;
+  }
+  
+  .modal-body {
+    overflow: auto;
+    /* background-color: pink; */
+    padding: 0px;
+  }
+  
+  /* ==========================================================================
+     11. Padding Utility (p-6)
+     ========================================================================== */
+  .p-6 {
+    padding-left: 5% !important;
+    padding-top: 8% !important;
+  }
+  
+  /* ==========================================================================
+     12. Placeholder for #loginModal Customizations
+     ========================================================================== */
+  #loginModal {
+    /* Add login modal-specific styles here if needed */
+  }
+  
