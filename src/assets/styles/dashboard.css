@@ -1,128 +1,685 @@
 body, .container-fluid, .nav-link, .card-title, .card-text, h4, h2, h5, h6, p {
-    font-family: 'Sarabun', sans-serif;
-  }
-  
-.profile-pic {
-    width: 250px;
-    height: 200px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
+font-family: 'Sarabun', sans-serif;
+}
 
-  .text-gray {
-    color: #b0b0b0; /* Default gray color */
-    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
-  }
+.container-fluid{
+  margin-bottom: 24px;
+}
 
-  .nav-item:hover i,
-  .nav-item:hover p {
-    color: #03AED2 !important; /* Blue when hovered */
-    transform: scale(1.1); /* Slight zoom effect */
-  }
+.text-gray {
+color: #b0b0b0; /* Default gray color */
+transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
 
-  .nav-link {
-    color: #808080;
-    font-weight: bold;
-  }
-  
-  .nav-link:hover {
-    color: #03AED2;
-  }
-  
-  /* Combine both .tripCard selectors */
-  .tripCard {
-    position: relative; /* Ensure the tripCard is a positioned element for absolute positioning of the icon */
-    height: 300px; /* Height of the card */
-  }
+.nav-item:hover i,
+.nav-item:hover p {
+color: #03AED2 !important; /* Blue when hovered */
+transform: scale(1.1); /* Slight zoom effect */
+}
 
-  .trip-icon {
-    position: absolute;
-    bottom: 35px; /* Adjust the vertical position of the icon */
-    right: 40px; /* Adjust the horizontal position of the icon */
-    font-size: 24px; /* Adjust the icon size */
-    color: white; /* Icon color */
-    z-index: 2; /* Make sure the icon appears above the card */
-    cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
+.nav-link {
+color: #808080;
+font-weight: bold;
+}
+
+.nav-link:hover {
+color: #03AED2;
+}
+
+/* Combine both .tripCard selectors */
+.tripCard {
+position: relative; /* Ensure the tripCard is a positioned element for absolute positioning of the icon */
+height: 300px; /* Height of the card */
+}
+
+.trip-icon {
+position: absolute;
+bottom: 35px; /* Adjust the vertical position of the icon */
+right: 40px; /* Adjust the horizontal position of the icon */
+font-size: 24px; /* Adjust the icon size */
+color: white; /* Icon color */
+z-index: 2; /* Make sure the icon appears above the card */
+cursor: pointer;
+transition: transform 0.2s ease, color 0.2s ease;
 }
 
 .trip-icon:hover {
-  transform: scale(1.2);
+transform: scale(1.2);
 }
 
-  
-  .nav-link.active {
-    border-bottom: 4px solid #03AED2 !important;
-    color: #089dcf !important;
-  }
 
-  .nav-link.tab-spacing {
-    letter-spacing: 0.04em; /* Adjust the value to fit your need */
-  }
-  
-  .card-body {
-    color: white;
-    text-align: left;
-  }
-  
-  /* Apply this to the parent container of tab-content if needed */
+.nav-link.active {
+border-bottom: 4px solid #03AED2 !important;
+color: #089dcf !important;
+}
+
+.nav-link.tab-spacing {
+letter-spacing: 0.04em; /* Adjust the value to fit your need */
+}
+
+.card-body {
+color: white;
+text-align: left;
+}
+
+/* Apply this to the parent container of tab-content if needed */
 .tab-content {
-  background-color: #ebe9e9; /* Gray background only for tab content */
-  min-height: 100vh; /* Use full viewport height */
-  padding-bottom: 15vh;
-  box-sizing: border-box; /* Ensure padding is inside the element */
+background-color: #ebe9e9; /* Gray background only for tab content */
+min-height: 100vh; /* Use full viewport height */
+padding-bottom: 15vh;
+box-sizing: border-box; /* Ensure padding is inside the element */
+}
+
+/* Hide menu by default */
+.result-card .trip-menu {
+  display: none;
+}
+
+/* Show on card hover */
+.result-card:hover .trip-menu {
+  display: inline-block;
+}
+
+/* Style the menu icon */
+.trip-menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: white;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  z-index: 5;
+    border-radius: 8px;
+
 }
 
 .trip-menu i {
-  cursor: pointer;
+  color:#333 ;
   transition: transform 0.2s ease, color 0.2s ease;
-  display: inline-block; /* Ensures the element can scale */
+  display: inline-block;
 }
 
-.trip-menu i:hover {
-  transform: scale(1.4); /* Enlarges the icon */
+.icon-container span {
+font-size: 25px; /* Reduced font size for a smaller icon */
+margin: 0;
 }
 
+.card-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+gap: 1.5rem;
+}
+
+.result-card, .result-card-inv {
+border: 1px solid #ddd;
+border-radius: 8px;
+
+position: relative;
+overflow: hidden;
+transition: transform 0.2s;
+background: #fff;
+}
+
+.result-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.card-img-top, .invite-img {
+width: 100%;
+height: 160px;
+object-fit: cover;
+box-shadow: inset 0 8px 12px rgba(0, 0, 0, 0.1), inset 0 -12px 12px rgba(0, 0, 0, 0.15);
+border-radius: 8px 8px 0 0; /* Optional: rounded top corners */
+}
+
+.card-img-top:hover {
+box-shadow: inset 0 4px 12px rgba(0, 0, 0, 1);
+}
+
+.card-body {
+padding: 14px 14px 0 14px;
+}
+
+.category {
+color: #777;
+font-size: 0.85rem;
+}
+
+.card-title {
+position: absolute;
+font-weight: 600;
+color: #777;
+}
+
+.rating {
+font-size: 0.85rem;
+color: #444;
+margin-bottom: 0.5rem;
+}
+
+.tripCard {
+cursor: pointer;
+transition: transform 0.2s ease;
+}
+
+/* Dropdown menu */
 .menu-options {
   position: absolute;
   right: 0;
+  top: 100%;
   background: white;
   border: 1px solid #ddd;
   border-radius: 5px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.15);
   padding: 5px;
+  margin-top: 5px;
   z-index: 10;
 }
 
 .menu-options a {
-  display: block;
-  padding: 5px 10px;
-  color: red;
-  text-decoration: none;
+display: block;
+text-decoration: none;
+padding: 1px 1px;
+color: #333;
 }
 
 .menu-options a:hover {
-  background: #f8d7da;
+background-color: #f1f1f1;
 }
 
-  .icon-container {
+.card-name {
+display: flex;
+align-items: center;
+width: 100%; /* Force it to fill the parent */
+position: relative;
+}
+
+.card-name input {
+flex: 1;
+min-width: 0;
+}
+
+.card-name:hover .underline-hover {
+width: 100%;
+}
+
+.card-name:hover .edit-icon {
+opacity: 1;
+}
+
+.underline-hover {
+height: 1px;
+background-color: gray;
+position: absolute;
+bottom: 0;
+left: 0;
+width: 0;
+transition: width 0.2s ease;
+}
+
+.edit-icon {
+opacity: 0;
+transition: opacity 0.2s ease;
+}
+
+.my-trips-container {
+  padding: 16px;  
+}
+
+.my-trips-title {
+  color: #03AED2;
+  font-weight: bold;
+  font-style:italic;
+  margin: 0;           /* removes default margin */
+  padding: 0;
+  text-align: left;    /* or center, depending on your preference */
+}
+
+.custom-row {
+  display: flex;      /* Bootstrap row uses flex */
+  flex-wrap: wrap;    /* allows wrapping of child elements */
+  gap: 16px;          /* g-4 means gap 1.5rem (~24px), but here we do 16px */
+  padding: 16px;      /* applies 16px padding on all sides (top, right, bottom, left) */
+}
+
+.status-container {
+  margin: 16px 16px 0 16px;
+  position: relative; /* Needed for .underline to position itself at the bottom */
+}
+
+.status-title {
+  padding: 8px;
+  color: #FDDE55;
+  font-weight: bold;
+  font-style: italic;
+  text-align: left;
+}
+
+.underline {
+  height: 1px;
+  
+  background-color: #FDDE55;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%; /* Changed from 0 to 100% */
+  transition: width 0.2s ease;
+}
+
+.responsive-scroll-container {
+  overflow-x: auto;
+  padding: 16px;
+}
+
+.responsive-scroll-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .responsive-scroll-inner {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+  }
+
+  .grid-item {
+    flex: 0 0 auto;
+    width: 80%; /* or 100%, 90%, etc. depending on how much you want to show */
+    scroll-snap-align: start;
+    transition: transform 0.3s ease-in-out;
+  }
+  .Header-container {
+    width: 100%;
+    height: 250px; /* or adjust based on desired visual height */
+    overflow: hidden;
+    border-bottom: 24px;
+  }
+  .container-fluid{
+    margin-bottom: 80px;
+  }
+
+  .result-card .trip-menu {
+    display: inline-block;
+  }
+
+  .headline{
+    font-size: 25px !important;
+    margin-bottom: 0px;
+
+  }
+  .subhead{
+    display: none;
+  }
+
+  .header-overlay{
+    z-index: 0.5;
+  }
+}
+
+/* Optional: Style scrollbars (for webkit browsers) */
+.responsive-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+.responsive-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 8px;
+}
+
+.tab-section {
+  display: flex;
+  justify-content: left;
+  padding: 16px;
+}
+
+.underline-tabs {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.underline-tab {
+  font-size: 18px	; /* h3 size */
+  font-weight: 500;
+  color: #666;
+  padding: 8px 4px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.underline-tab::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #FDDE55;
+  transition: width 0.3s ease;
+}
+
+.underline-tab:hover {
+  color: #222;
+}
+
+.underline-tab.active {
+  font-weight: 600;
+}
+
+.underline-tab.active::after {
+  width: 100%;
+}
+
+/* DEFAULT STYLES */
+.container-parent {
+  padding: 0;
+  overflow-x: hidden; /* Ensures no horizontal scroll */
+}
+
+.Header-container {
+  position: relative;
+  margin: 24px;
+  border-radius: 24px;
+  height: 250px;
+  overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+
+.header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* MOBILE OPTIMIZATION */
+@media (max-width: 599px) {
+  .Header-container {
+    margin: 0;
+    border-radius: 0;
+    height: 250px;
+    width: 100%;
+  }
+}
+
+
+
+.No-Result{
+  height: 100px;
+  width: 100px;
+  filter: grayscale();
+}
+
+/* Remove absolute centering to allow natural vertical stacking */
+.search-form {
+  width: 100%;
+  max-width: 700px;
+  z-index: 2;
+}
+
+/* Make sure the input field stretches well */
+#searchQueryContainer {
+  display: flex;
+  flex: 1;
+  background-color: #089dcf;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Search icon area */
+#searchIconContainer {
+  background-color: white;
+  border-top-left-radius: 50px;
+  border-bottom-left-radius: 50px;
+  padding: 10px;
+  width: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+
+}
+
+/* Button and input spacing */
+.search-btn {
+  background-color: #FDDE55;
+  border: none;
+  font-weight: bold;
+  color: white;
+  border-radius: 0 50px 50px 0;
+  height: 100%;
+  width: 100%;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+
+}
+
+.search-btn:hover {
+  background-color: #E6C73B	;
+}
+
+.search-box{
+  outline: none;
+  transition: outline 0.2s ease;
+}
+
+.search-box:has(.inputField:focus) {
+  outline: 2px solid #E6C73B;
+  border-radius: 24px;
+  transition: outline 0.2s ease;
+
+}
+
+.search-box .inputField {   
+  border: none !important;
+  outline: none !important;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  color: #666;           /* Set text color */
+  font-size: 16px;        /* Optional: adjust font size */
+}
+
+/* Container overlay that holds heading + form */
+.header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.headline {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: 16px;
+  margin-bottom: 4px;
+  color: white; /* High contrast */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Adds depth */
+}
+
+.subhead {
+  font-size: 1.1rem;
+  font-weight: bold;
+
+  max-width: 700px;
+  margin: 0;
+  color: #f0f0f0; /* Softer white */
+}
+
+/* Hide navbar by default */
+.mobile-navbar {
+  display: none;
+}
+
+/* Show and style navbar on small screens (≤600px) */
+@media (max-width: 600px) {
+  .mobile-navbar {
     display: flex;
     justify-content: center;
-    align-items: center;
-    width: 40px; /* Reduced size */
-    height: 40px; /* Reduced size */
-    border-radius: 10px; /* Slightly smaller border radius for a more subtle circle */
-    border: 2px solid #ddd; /* Light border around the icon */
-    margin: 0;
-  }
-
-  .icon-container span {
-    font-size: 25px; /* Reduced font size for a smaller icon */
-    margin: 0;
-  }
-
-  #contentSection {
     background-color: #ffffff;
+    padding: 10px 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 24px;
   }
+
+  .mobile-navbar ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .mobile-navbar li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    padding: 8px 12px;
+  }
+}
+
+/* Invitation Card Styles */
+
+.inviter-img {
+  flex: 0 0 auto;
+}
+
+.inviter-img img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin-right: 16px;
+}
+
+.invite-text {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.invite-text .card-title {
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #000;
+}
+
+.invite-text .card-text {
+  font-size: 1rem;
+  color: #000;
+  word-wrap: break-word;
+}
+
+.invite-text .time-ago {
+  color: #333;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.invite-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.approve-btn, .decline-btn {
+  width: 140px;
+  height: auto ;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.approve-btn:hover{
+  background-color: #19b0e3 !important;
+}
+
+.decline-btn:hover{
+  background-color: #999 !important;
+}
+
+/* Default: stack everything on big screens */
+.invite-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Don't use flex for .invite-main by default */
+.invite-main {
+  display: contents; /* acts like it's not there, so img + text stay in main flow */
+  margin-bottom: auto;
+}
+
+/* Small screens layout */
+@media (max-width: 576px) {
+  .invite-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .invite-main {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .inviter-img img {
+    width: 48px;
+    height: 48px;
+  }
+
+  .invite-actions {
+    justify-content: center;
+    margin-top: 8px;
+  }
+}
+
+.invite-actions-container{
+  width: 100%;
+  height: 160px;
+  position: absolute;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.5s ease;
+  z-index: 5;
+  border-radius: 8px;
+  display: none;
+  transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+
+}

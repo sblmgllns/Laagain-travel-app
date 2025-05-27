@@ -52,10 +52,6 @@
                     <span>Change Password</span>
                     <i class="bi bi-chevron-right"></i>
           </router-link> 
-          <div class="d-flex justify-content-between align-items-center mt-3 btn btn-light">
-            <span>Two-Factor Authentication</span>
-            <i class="bi bi-chevron-right"></i>
-          </div>
       </div>
 
       <hr style="border: 1px solid #ddd; margin: 10px 0;">
