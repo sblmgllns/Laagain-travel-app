@@ -309,7 +309,7 @@ export default {
     },
     async logout() {
       await supabase.auth.signOut();
-      this.$router.replace("/login");
+      this.$router.replace("/landing");
     },
     async DeleteAccount() {
       try {

@@ -36,7 +36,7 @@ const routes = [
   { path: "/edit-itinerary", component: EditItinerary, meta: { layout: 'none', requiresAuth: true } },
   { path: "/explore", component: Explore, meta: { requiresAuth: true } },
   { path: "/notifications", component: Notifications, meta: { requiresAuth: true } },
-  {path: "/landing", component: Landing},
+  {path: "/landing", component: Landing, meta:  {layout: 'none', guestOnly: true }},
 ];
 
 // Create the router
