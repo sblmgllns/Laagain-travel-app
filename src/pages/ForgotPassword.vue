@@ -1,7 +1,15 @@
 <template>
   <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100" id="maincontainer">
     <div class="card p-4 shadow-lg" style="width: 350px;">
+      
+      <div class="d-flex justify-content-center">   
+          <img
+              src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//forgot_password_icon.png"
+              alt="Laagain Logo"
+              />
+      </div>
       <h2 class="forgot-password-title">Forgot Password</h2>
+
       <form @submit.prevent="submitEmail">
         <div class="mb-3">
           <label class="form-label custom-label">Email</label>
@@ -9,14 +17,17 @@
         </div>
 
         <button type="submit" class="btn btn-primary w-100 mb-6">Send Password Reset Link</button>
-
       </form>
 
-      <p class="mt-3 text-start">
+      <!-- <p class="mt-3 text-start">
         Remembered your password? &nbsp; <router-link to="/login" class="text-primary">Log In</router-link>
       </p>
       <p class="mt-3 text-start">
         Don't have an account? &nbsp; <router-link to="/signup" class="text-primary">Sign Up</router-link>
+      </p> -->
+
+      <p class="mt-3 text-start">
+        Back to &nbsp; <router-link to="/landing" class="text-primary">Home Page</router-link>
       </p>
 
       <p v-if="successMessage" class="text-success text-center mt-successerror">{{ successMessage }}</p>

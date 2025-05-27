@@ -12,10 +12,11 @@ import newItinerary from "../pages/newItinerary.vue";
 import EditItinerary from "../pages/EditItinerary.vue";
 import Explore from "../pages/Explore.vue";
 import Notifications from "../pages/Notifications.vue";
+import Landing from "../pages/Landing.vue";
 
 const routes = [
   //{ path: "/", redirect: "/edit-itinerary", meta:{title: "Laagain - Log In"}  }, // Redirect "/" to login
-  { path: "/", redirect: "/login", meta:{title: "Laagain - Log In"}  },
+  { path: "/", redirect: "/landing", meta:{title: "Welcome to Laagain!"}  },
   { path: "/login", component: LogInPage, meta: {title: "Laagain - Log In"} },
   { path: "/signup", component: SignUpPage, meta: {title: "Laagain - Sign Up"} },
   { path: "/home", component: HomePage },
@@ -29,6 +30,7 @@ const routes = [
   { path: "/edit-itinerary", component: EditItinerary},
   { path: "/explore", component: Explore},
   { path: "/notifications", component: Notifications},
+  {path: "/landing", component: Landing},
 ];
 
 const router = createRouter({

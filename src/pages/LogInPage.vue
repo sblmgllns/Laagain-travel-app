@@ -1,6 +1,12 @@
 <template>
-    <div class="container-fluid d-flex justify-content-center align-items-center" id="maincontainer">
-        <div class="card p-4 shadow-lg" style="width: 350px;">
+    <!-- <div class="container-fluid d-flex justify-content-center align-items-center" id="maincontainer"> -->
+        <div class="card p-4" style="width: 350px;">
+            <div class="d-flex justify-content-center align-items-center">   
+                <img
+                    src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//laagain_logo.png"
+                    alt="Laagain Logo"
+                    />
+            </div>
             <h2 class="signup-title">WELCOME BACK!</h2>
             <form @submit.prevent="logIn">
                 <div class="mb-5">
@@ -9,10 +15,10 @@
                 </div>
 
                 <!-- Sign Up Link -->
-                <div class="mt-3 text-start mb-3 ms-4">
+                <!-- <div class="mt-3 text-start mb-3 ms-4">
                     <span class="mt-3 text-start">Don't have an account? &nbsp;</span>
                     <router-link to="/signup" class="mt-3 text-start text-primary">Sign up here</router-link>
-                </div>
+                </div> -->
                 <div class="mb-3">
                     <label class="form-label custom-label">Password</label>
                     <input type="password" v-model="password" class="form-control" placeholder="Enter your password" required />
@@ -39,7 +45,7 @@
             </form>
             <p v-if="errorMessage" class="text-danger text-center mt-error mt-3">{{ errorMessage }}</p>
         </div>
-    </div>
+    <!-- </div> -->
 </template>
 
 
@@ -139,7 +145,9 @@ export default {
             }
 
             // Redirect user to home page
-            this.$router.push("/profile");
+            // this.$router.push("/profile");
+            this.$emit('redirect', '/profile');
+            console.log("Emitting redirect event")
         },
 
     },

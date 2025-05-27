@@ -19,15 +19,22 @@ html, body {
 .card {
     border-radius: 46px !important; 
     background: #FFF;
-    padding: 32px !important; /* Adjust padding for spacing */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Soft shadow */
+    padding: 32px !important; 
+    /* box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); Optional: Soft shadow */
     width: 350px !important;
+    border: 0px !important;
+}
+
+.card img{
+    height: 4rem; 
+    width: 4rem;
+    /* width: 65px; */
 }
 
 #maincontainer{
-    background-color: #03AED2;
-    height: 100vh;
-    width: 100vw;
+    /* background-color: #03AED2; */
+    /* height: 100vh;
+    width: 100vw; */
 }
 
 /* Full-screen centering */
@@ -51,9 +58,9 @@ html, body {
     font-weight: 700;
     line-height: normal;
     letter-spacing: 1.44px;
-    text-align: left;
+    text-align: center;
     
-    margin-top: 40px !important; /* Space above the title */
+    margin-top: 10px !important; /* Space above the title */
     margin-bottom: 35px !important; /* Space below the title */
     padding-left: 10px !important;
 }
@@ -107,7 +114,7 @@ html, body {
     color: #fff  !important; /* Blue text */
     font-size: 13px !important;
     font-weight: 500 !important;
-
+    width: 250px !important;
 }
 
 /* Ensure hover effect for Log In button */
@@ -119,9 +126,9 @@ html, body {
 }
 
 .custom-signup-btn, .custom-login-btn {
-    width: auto !important; /* Adjust the width to be equal */
+    width: 250px; /* Adjust the width to be equal */
     min-width: 140px; /* Ensure they don't shrink too much */
-    min-height: 50px;
+    min-height: 45px;
     text-align: center; /* Align text properly */
     padding: 10px; /* Ensure consistency */
     display: inline-block; /* Prevent full-width stretching */
