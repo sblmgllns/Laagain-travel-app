@@ -1,86 +1,91 @@
 <script setup>
 import { supabase } from "../supabase";
-import { useRoute } from 'vue-router';
-import { ref, shallowRef, watch, computed, onMounted, nextTick } from 'vue';
+import { useRoute } from "vue-router";
+import NewActivity from "./CreateNewActivity.vue"; // Adjust the path if needed
+import EditItineraryDetails from "./EditItineraryDetails.vue";
+import InviteModal from "./InviteModal.vue";
+import {
+  ref,
+  shallowRef,
+  watch,
+  computed,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from "vue";
+import { useRouter } from "vue-router";
+import { calendars } from "./calendar.ts";
 
-import { ScheduleXCalendar } from '@schedule-x/vue';
+import { ScheduleXCalendar } from "@schedule-x/vue";
 import {
   createCalendar,
   createViewDay,
   createViewMonthAgenda,
   createViewMonthGrid,
   createViewWeek,
-} from '@schedule-x/calendar';
-import { createDragAndDropPlugin } from '@schedule-x/drag-and-drop';
-import '@schedule-x/theme-default/dist/index.css';
-
+} from "@schedule-x/calendar";
+import { createDragAndDropPlugin } from "@schedule-x/drag-and-drop";
+//import "@schedule-x/theme-default/dist/index.css";
+import "../assets/styles/schedule-x-theme.css";
 import VueToggles from "vue-toggles";
-import { formatDistanceToNow, format } from 'date-fns';
-import { createResizePlugin } from '@schedule-x/resize'
-import { createCurrentTimePlugin } from '@schedule-x/current-time'
-import Explore from './Explore.vue';
+import { formatDistanceToNow, format } from "date-fns";
+import { createResizePlugin } from "@schedule-x/resize";
+import { createCurrentTimePlugin } from "@schedule-x/current-time";
+import Explore from "./Explore.vue";
 
-
+////CONST
+const selectedActivityTab = ref("details");
+const activityPicName = ref("");
+const isSaving = ref(false);
+const isMobile = ref(window.innerWidth < 768);
 const route = useRoute();
 const tripId = route.query.id;
+const router = useRouter();
+const isCollapsed = ref(false);
+const itineraryName = ref("");
+const place = ref("");
+const startDate = ref("");
+const endDate = ref("");
+const coverPicUrl = ref("");
 
-const itineraryName = ref('');
-const place = ref('');
-const startDate = ref('');
-const endDate = ref('');
 const calendarApp = shallowRef(null); // ✅ Use shallowRef!
 const calendarEvents = ref([]);
 let eventId = null;
-const currentUser = ref(null)
+const currentUser = ref(null);
 const totalMembers = ref(1);
+const originalActivity = ref({});
 const isEditingActivity = ref(false);
-const activeTab = ref('trips')      // default tab
-const drafts = ref(true)            // true when 'Drafts' tab is active
+const activeTab = ref("trips"); // default tab
+const drafts = ref(true); // true when 'Drafts' tab is active
 
-// Fetch itinerary data including start_date
-const fetchItineraryData = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('itineraries')
-      .select('name, place, start_date, end_date')
-      .eq('id', tripId);
+////ON MOUNTED
 
-    if (error) {
-      console.error('Error fetching itinerary data:', error);
-      return;
-    }
-
-    if (data && data.length > 0) {
-      itineraryName.value = data[0].name;
-      startDate.value = data[0].start_date || '2023-11-30';
-      place.value = data[0].place;
-      endDate.value = data[0].end_date;
-    }
-  } catch (err) {
-    console.error('Error during fetch:', err);
-  }
-};
+////HANDLE RESIZE
+function handleResize() {
+  isMobile.value = window.innerWidth < 768;
+}
 
 onMounted(async () => {
-  
+  window.addEventListener("resize", handleResize);
   fetchItineraryData();
   fetchPotentialActivities();
+  fetchOwnerProfile(); // Fetch the data for the trip
 
-  if (tripId) {
-    fetchOwnerProfile(); // Fetch the data for the trip
-  }
-
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error) {
-    console.error('Failed to get user:', error.message);
+    console.error("Failed to get user:", error.message);
   } else {
     currentUser.value = user;
-    console.log('User:', user);
+    console.log("User:", user); // confirm it's working
+    console.log("User ID:", user?.id); // check ID here
   }
 });
 
-// Watch for startDate and create calendar once ready
+///// Watch for startDate and create calendar once ready
 watch(startDate, async (val) => {
   if (!val) return;
 
@@ -89,66 +94,85 @@ watch(startDate, async (val) => {
   await nextTick();
 
   calendarApp.value = createCalendar({
-    plugins: [createDragAndDropPlugin(),     
-              createResizePlugin(15), // 15 minute intervals when resizing
-              createCurrentTimePlugin()],
+    plugins: [
+      createDragAndDropPlugin(),
+      createResizePlugin(15), // 15 minute intervals when resizing
+      createCurrentTimePlugin(),
+    ],
     callbacks: {
       onEventUpdate(event) {
         // Optionally update Supabase when an event is moved/changed
-        console.log('Event updated:', event);
+        console.log("Event updated:", event);
         // Example Supabase update
         supabase
-          .from('activities')
+          .from("activities")
           .update({
             start_time: event.start,
             end_time: event.end,
-            date: event.start.split(' ')[0]
+            date: event.start.split(" ")[0],
           })
-          .eq('id', event.id)
+          .eq("id", event.id)
           .then(({ error }) => {
             if (error) {
-              console.error('Error updating event:', error);
+              console.error("Error updating event:", error);
             } else {
-              console.log('Successfully updated event:', event.id);
+              console.log("Successfully updated event:", event.id);
             }
           });
       },
-        // < -- to show event details when clicked,, we can change the modal  --> 
-        onEventClick(event) {
+      // < -- to show event details when clicked,, we can change the modal  -->
+      onEventClick(event) {
         console.log("Clicked event:", event);
-          // Optional: pre-fill modal with event data
-          newActivity.value = {
-            id: event.id, 
-            title: event.title,
-            description: event.description, // You can fetch or attach this if available
-            location: event.location, // same here
-            date: event.start.split(' ')[0],
-            startTime: event.start.split(' ')[1],
-            endTime: event.end.split(' ')[1],   
-          };
+        // Optional: pre-fill modal with event data
+        const baseData = {
+          id: event.id,
+          title: event.title,
+          description: event.description || "",
+          location: event.location || "",
+          date: event.start.split(" ")[0],
+          startTime: event.start.split(" ")[1],
+          endTime: event.end.split(" ")[1],
+          activity_pic_url: event.activity_pic_url || "",
+          type: event.type || "",
+        };
+
+        newActivity.value = { ...baseData };
+        originalActivity.value = { ...baseData };
+        newActivity.value = {
+          id: event.id,
+          title: event.title,
+          description: event.description, // You can fetch or attach this if available
+          location: event.location, // same here
+          date: event.start.split(" ")[0],
+          startTime: event.start.split(" ")[1],
+          endTime: event.end.split(" ")[1],
+          activity_pic_url: event.activity_pic_url,
+          type: event.type,
+        };
         eventId = event.id;
         fetchUserVote(eventId);
         fetchVoteCounts(eventId);
         fetchComments(eventId);
         showActivityModal.value = true;
       },
-      // < -- resizing events by dragging their top or bottom edges   --> 
+      // < -- resizing events by dragging their top or bottom edges   -->
       onEventDidMount({ event, el }) {
-        const topResizer = document.createElement('div');
-        topResizer.classList.add('resizer', 'top');
-        const bottomResizer = document.createElement('div');
-        bottomResizer.classList.add('resizer', 'bottom');
+        const topResizer = document.createElement("div");
+        topResizer.classList.add("resizer", "top");
+        const bottomResizer = document.createElement("div");
+        bottomResizer.classList.add("resizer", "bottom");
 
         el.appendChild(topResizer);
         el.appendChild(bottomResizer);
 
-        addResizeListeners(topResizer, 'top', event);
-        addResizeListeners(bottomResizer, 'bottom', event);
+        addResizeListeners(topResizer, "top", event);
+        addResizeListeners(bottomResizer, "bottom", event);
       },
     },
+    calendars,
     selectedDate: val,
-    minDate: startDate.value,  //  Apply min date
-    maxDate: endDate.value,    //  Apply max date
+    minDate: startDate.value, //  Apply min date
+    maxDate: endDate.value, //  Apply max date
     views: [
       createViewDay(),
       createViewWeek(),
@@ -159,56 +183,500 @@ watch(startDate, async (val) => {
   });
 });
 
+/////ONBEFOREUNMOUNT
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", handleResize);
+});
+
 createCurrentTimePlugin({
   // Whether the indicator should be displayed in the full width of the week. Defaults to false
   fullWeekWidth: true,
- 
+
   // Time zone offset in minutes. Can be any offset valid according to UTC (-720 to 840)
-  timeZoneOffset: 120
-})
+  timeZoneOffset: 120,
+});
+
+const setupRealtime = () => {
+  supabase
+    .channel("public:activities")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "activities",
+        filter: `itinerary_id=eq.${tripId}`,
+      },
+      async (payload) => {
+        console.log("Realtime change:", payload);
+        await fetchActivities();
+        // Refresh calendar with new data
+        // calendarApp.value?.setEvents(calendarEvents.value);
+        calendarApp.value?.setEvents([...calendarEvents.value]);
+      }
+    )
+    .subscribe();
+};
+
+////DATE FORMAT
+function formatDate(dateString) {
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  const formatted = new Date(dateString).toLocaleDateString("en-US", options);
+  return formatted.replace(",", "").toUpperCase(); // returns e.g. "APRIL 14 2025"
+}
+
+///TIME FORMAT
+function formatPotentialTime(timeStr) {
+  // Assume timeStr is in "HH:mm" format (e.g., "01:00", "13:45")
+  if (!timeStr) return "";
+  const [hourStr, minute] = timeStr.split(":");
+  let hour = parseInt(hourStr, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+
+  hour = hour % 12;
+  if (hour === 0) hour = 12; // 12 AM or 12 PM
+
+  return `${hour}:${minute} ${ampm}`;
+}
+
+////// Fetch itinerary data including start_date
+const fetchItineraryData = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("itineraries")
+      .select("name, place, start_date, end_date, cover_pic_url")
+      .eq("id", tripId);
+
+    if (error) {
+      console.error("Error fetching itinerary data:", error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      itineraryName.value = data[0].name;
+      startDate.value = data[0].start_date || "2023-11-30";
+      place.value = data[0].place;
+      endDate.value = data[0].end_date;
+      coverPicUrl.value = data[0].cover_pic_url || "";
+    }
+  } catch (err) {
+    console.error("Error during fetch:", err);
+  }
+};
+
+// mode can be either 'edit' or 'new'
+async function handleImageUpload(event, mode = "new") {
+  const file = event.target.files[0];
+  console.log("Selected file:", file);
+
+  if (!file) return;
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+  if (!allowedTypes.includes(file.type)) {
+    console.error("Invalid file type. Please upload a JPG or PNG.");
+    return;
+  }
+
+  const fileExt = file.name.split(".").pop();
+  const filePath = `itinerary-assets/${
+    currentUser.value.id
+  }-${Date.now()}.${fileExt}`;
+
+  // Upload the file
+  const { error: uploadError } = await supabase.storage
+    .from("itinerary-assets")
+    .upload(filePath, file, {
+      upsert: true,
+      contentType: file.type,
+    });
+
+  if (uploadError) {
+    console.error("❌ Error uploading image:", uploadError.message);
+    return;
+  }
+
+  // Get Public URL
+  const { data } = supabase.storage
+    .from("itinerary-assets")
+    .getPublicUrl(filePath);
+
+  const publicUrl = data?.publicUrl;
+
+  if (!publicUrl) {
+    console.error("❌ Failed to retrieve public URL.");
+    return;
+  }
+
+  // Set image URL based on mode
+  if (mode === "edit") {
+    editItinerary.value.cover_pic_url = publicUrl;
+    console.log("📸 Updated editItinerary.cover_pic_url:", publicUrl);
+  } else if (mode === "new") {
+    newActivity.value.activity_pic_url = publicUrl;
+    console.log("📸 Updated newActivity.activity_pic_url:", publicUrl);
+  } else {
+    console.warn("⚠️ Unknown mode passed to handleImageUpload");
+  }
+
+  console.log("✅ Image uploaded successfully!", publicUrl);
+}
 
 ///////MODAL PARTS//////////////////////////////////////////
 
 // Modal Visibitlity state for Activity Modal
-const showActivityModal = ref(false)
-const isEditMode = ref(false)
+const showActivityModal = ref(false);
+const isEditMode = ref(false);
 // Modal visibility state
-const showModal = ref(false)
+const showModal = ref(false);
+const originalPotentialActivity = ref(null);
 
 // Form data
 const newActivity = ref({
-  title: '',
-  description: '',
-  location: '',
-  date: '',
-  startTime: '',
-  endTime: '',
-})
+  title: "",
+  description: "",
+  location: "",
+  date: "",
+  startTime: "",
+  endTime: "",
+  type: "",
+  activity_pic_url: "",
+});
 
 // Reset form when opening modal
 const openModal = () => {
-  showModal.value = true
+  showModal.value = true;
   newActivity.value = {
-    title: '',
-    description: '',
-    location: '',
-    date: '',
-    startTime: '',
-    endTime: '',
-  }
-}
+    title: "",
+    description: "",
+    location: "",
+    date: "",
+    startTime: "",
+    endTime: "",
+    type: "",
+    activity_pic_url: "",
+  };
+};
 
 const closeModal = () => {
-  showModal.value = false
+  showModal.value = false;
+  isEditingActivity.value = false;
+  isEditMode.value = false;
+};
+
+const closeActivityModal = () => {
+  showActivityModal.value = false;
+  isEditMode.value = false;
+  isEditingActivity.value = false;
+};
+///////EDIT ITINERARY DETAILS//////////////////////////////////////////
+const showEditModal = ref(false);
+const editItinerary = ref({
+  name: "",
+  location: "",
+  start_date: "",
+  end_date: "",
+  cover_pic_url: "",
+});
+
+const originalItineraryDetails = ref({
+  name: "",
+  location: "",
+  start_date: "",
+  end_date: "",
+  cover_pic_url: "",
+});
+
+const openEditModal = () => {
+  fetchItineraryData();
+  fetchOwnerProfile();
+  showEditModal.value = true;
+
+  editItinerary.value = {
+    name: itineraryName.value,
+    location: place.value, // If your itinerary has a location field
+    start_date: startDate.value,
+    end_date: endDate.value, // Add if your table has it
+    cover_pic_url: coverPicUrl.value || "",
+  };
+  originalItineraryDetails.value = {
+    name: itineraryName.value,
+    location: place.value, // If your itinerary has a location field
+    start_date: startDate.value,
+    end_date: endDate.value, // Add if your table has it
+    cover_pic_url: coverPicUrl.value || "", //
+  };
+};
+// Parent component
+const hasChangesItinerary = computed(() => {
+  return !deepEqual(editItinerary.value, originalItineraryDetails.value);
+});
+
+// Add this deep comparison function
+function deepEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
-const closeActivityModal = () =>{
-  showActivityModal.value = false
+const closeEditModal = () => {
+  showEditModal.value = false;
+};
+const saveItineraryChanges = async (updatedItinerary) => {
+  try {
+    console.log("Saving itinerary:", updatedItinerary);
+
+    // 1. Update local state immediately for responsive UI
+    editItinerary.value = { ...updatedItinerary };
+
+    // 2. Handle date changes and activity cleanup if needed
+    const originalStart = new Date(originalItineraryDetails.value.start_date);
+    const originalEnd = new Date(originalItineraryDetails.value.end_date);
+    const newStart = new Date(updatedItinerary.start_date);
+    const newEnd = new Date(updatedItinerary.end_date);
+
+    // Only check if dates were narrowed (not expanded)
+    if (newStart > originalStart || newEnd < originalEnd) {
+      const { data: activities, error: activityError } = await supabase
+        .from("activities")
+        .select("id, date")
+        .eq("itinerary_id", tripId);
+
+      if (activityError) throw activityError;
+
+      const outOfRangeActivities = activities.filter((activity) => {
+        const activityDate = new Date(activity.date);
+        return activityDate > newEnd || activityDate < newStart;
+      });
+
+      if (outOfRangeActivities.length > 0) {
+        const confirmed = confirm(
+          `Changing dates will delete ${outOfRangeActivities.length} activities. Continue?`
+        );
+        if (!confirmed) return;
+
+        // Delete in transaction
+        const { error: deleteError } = await supabase.rpc(
+          "delete_activities_and_votes",
+          {
+            activity_ids: outOfRangeActivities.map((a) => a.id),
+          }
+        );
+
+        if (deleteError) throw deleteError;
+      }
+    }
+
+    // 3. Update database
+    const { error: updateError } = await supabase
+      .from("itineraries")
+      .update({
+        name: updatedItinerary.name,
+        place: updatedItinerary.location,
+        start_date: updatedItinerary.start_date,
+        end_date: updatedItinerary.end_date,
+        cover_pic_url: updatedItinerary.cover_pic_url || "",
+      })
+      .eq("id", tripId);
+
+    if (updateError) throw updateError;
+
+    // 4. Update local state and close modal
+    originalItineraryDetails.value = { ...updatedItinerary };
+    showEditModal.value = false;
+
+    // 5. Refresh any dependent data
+    await fetchPotentialActivities(); // Your existing data fetching function
+    await fetchActivities();
+    window.location.reload();
+    console.log("Successfully saved itinerary");
+  } catch (error) {
+    console.error("Error saving itinerary:", error);
+    // Revert local changes if save failed
+    editItinerary.value = { ...originalItineraryDetails.value };
+    alert("Failed to save changes. Please try again.");
+  }
+};
+///////NEW ACTIVITY//////////////////////////////////////////
+// Use this to apply a calendar theme based on activity type
+function applyThemeByType(type) {
+  const calendarArray = Object.entries(calendars).map(([id, data]) => ({
+    id,
+    ...data,
+  }));
+
+  const calendarExists = calendarArray.find((c) => c.id === type.toLowerCase());
+  if (!calendarExists) {
+    console.warn(`Unknown activity type: ${type}. Cannot apply theme.`);
+    return;
+  }
+
+  // You no longer need addCalendar() if you've passed all calendars to createCalendar.
+  // Just assign calendarId when creating the event instead.
 }
 
+const addActivity = async (index) => {
+  const selectedActivity = potentialActivities.value[index];
+  console.log("Adding activity:", selectedActivity);
+
+  if (!selectedActivity.date || selectedActivity.date.trim() === "") {
+    alert("Date is required to add this activity.");
+    return;
+  }
+
+  const activityDate = new Date(selectedActivity.date);
+  const itineraryStart = new Date(originalItineraryDetails.value.start_date);
+  const itineraryEnd = new Date(originalItineraryDetails.value.end_date);
+
+  if (
+    activityDate.getTime() < itineraryStart.getTime() ||
+    activityDate.getTime() > itineraryEnd.getTime()
+  ) {
+    alert("You can't add an activity outside your itinerary's date range.");
+    return;
+  }
+
+  if (
+    !selectedActivity.start_time ||
+    selectedActivity.start_time.trim() === ""
+  ) {
+    alert("Start time is required.");
+    return;
+  }
+
+  if (!selectedActivity.end_time || selectedActivity.end_time.trim() === "") {
+    alert("End time is required.");
+    return;
+  }
+
+  const startTimestamp = `${selectedActivity.date} ${selectedActivity.start_time}:00`;
+  const endTimestamp = `${selectedActivity.date} ${selectedActivity.end_time}:00`;
+
+  const { error } = await supabase.from("activities").insert([
+    {
+      itinerary_id: tripId,
+      name: selectedActivity.name,
+      description: selectedActivity.description,
+      location: selectedActivity.location,
+      date: selectedActivity.date,
+      start_time: startTimestamp,
+      end_time: endTimestamp,
+    },
+  ]);
+
+  if (error) {
+    console.error("Failed to insert activity:", error);
+    return;
+  }
+
+  const { error: deleteError } = await supabase
+    .from("potential_activities")
+    .delete()
+    .eq("id", selectedActivity.id);
+
+  if (deleteError) {
+    console.error("Failed to delete from potential_activities:", deleteError);
+    return;
+  }
+
+  applyThemeByType(selectedActivity.type);
+
+  await fetchPotentialActivities();
+  await fetchActivities();
+  window.location.reload();
+};
+
+//for getting exisiting activities from supabase, for calendar reflection
+const fetchActivities = async () => {
+  const { data, error } = await supabase
+    .from("activities")
+    .select("id, name, date, start_time, end_time, description, location")
+    .eq("itinerary_id", tripId);
+
+  if (error) {
+    console.error("Error fetching activities:", error);
+    return;
+  }
+
+  calendarEvents.value = data.map((a) => {
+    if (!a.start_time && !a.end_time) {
+      // if no stat and end time,, automatic all day
+      return {
+        id: a.id,
+        title: a.name,
+        start: `${a.date} 00:00`,
+        end: `${a.date} 23:59`,
+        description: a.description,
+        location: a.location,
+      };
+    } else {
+      return {
+        // with specific start time and end time
+        id: a.id,
+        title: a.name,
+        description: a.description,
+        location: a.location,
+        start: `${a.date} ${a.start_time?.slice(11, 16)}`,
+        end: `${a.date} ${a.end_time?.slice(11, 16)}`,
+      };
+    }
+  });
+};
+
+const hasActivityChanged = computed(() => {
+  console.log(
+    "New Activity:",
+    newActivity.value,
+    "Original Activity:",
+    originalActivity.value
+  );
+  const newA = newActivity.value;
+  const origA = originalActivity.value;
+
+  return (
+    newA.title !== origA.title ||
+    newA.location !== origA.location ||
+    newA.description !== origA.description ||
+    newA.date !== origA.date ||
+    (!isChecked.value &&
+      (newA.startTime !== origA.startTime || newA.endTime !== origA.endTime))
+  );
+});
+
+const saveEditedActivity = async () => {
+  // Combine date and time to make valid timestamp strings
+  console.log("Saving edited activity:", newActivity.value);
+  const startTimestamp = `${newActivity.value.date}T${newActivity.value.startTime}:00`;
+  const endTimestamp = `${newActivity.value.date}T${newActivity.value.endTime}:00`;
+
+  const { error } = await supabase
+    .from("activities")
+    .update({
+      name: newActivity.value.title,
+      description: newActivity.value.description,
+      location: newActivity.value.location,
+      date: newActivity.value.date,
+      start_time: startTimestamp,
+      end_time: endTimestamp,
+    })
+    .eq("id", newActivity.value.id);
+
+  if (error) {
+    console.error("Error saving activity:", error);
+  } else {
+    console.log("Activity updated successfully!", newActivity);
+    showActivityModal.value = false;
+    await fetchActivities(); // Refresh the calendar
+    window.location.reload();
+  }
+};
+
+const isTimeInvalid = computed(() => {
+  if (!newActivity.value.startTime || !newActivity.value.endTime) return false;
+  return newActivity.value.endTime <= newActivity.value.startTime;
+});
+
+///////VIEW ACTIVITY//////////////////////////////////////////
 const editActivity = async () => {
-  isEditMode.value = true
-}
+  isEditMode.value = true;
+};
 
 const deleteActivity = async () => {
   if (!newActivity.value.id) {
@@ -216,7 +684,9 @@ const deleteActivity = async () => {
     return;
   }
 
-  const confirmed = window.confirm("Are you sure you want to delete this activity?");
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this activity?"
+  );
   if (!confirmed) return;
 
   const activityId = newActivity.value.id;
@@ -258,6 +728,102 @@ const deleteActivity = async () => {
   }
 };
 
+///////POTENTIAL ACTIVITY//////////////////////////////////////////
+const potentialActivities = ref([]);
+const saveActivity = async () => {
+  if (isSaving.value) return; // prevent double submission
+  isSaving.value = true;
+  const startTime = newActivity.value.startTime;
+  const endTime = newActivity.value.endTime;
+
+  const isAllDay =
+    !startTime || startTime === "None" || !endTime || endTime === "None";
+
+  const start_time = isAllDay ? "00:00" : startTime;
+  const end_time = isAllDay ? "23:59" : endTime;
+
+  console.log("start_time", start_time);
+  console.log("end_time", end_time);
+
+  const { data: profileData, error: profilePicError } = await supabase
+    .from("profiles")
+    .select("profile_pic_url")
+    .eq("id", currentUser.value.id)
+    .single();
+
+  if (profilePicError) {
+    console.error("Error fetching profile picture:", profilePicError);
+    return;
+  }
+  const profilePicUrl =
+    profileData.profile_pic_url ??
+    "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg";
+
+  const { error } = await supabase.from("potential_activities").insert([
+    {
+      name: newActivity.value.title,
+      description: newActivity.value.description,
+      location: newActivity.value.location,
+      date: newActivity.value.date,
+      start_time,
+      end_time,
+      itinerary_id: tripId,
+      username: currentUser.value.user_metadata.username,
+      profile_pic_url: profilePicUrl,
+      type: newActivity.value.type,
+      activity_pic_url: newActivity.value.activity_pic_url,
+    },
+  ]);
+
+  if (error) {
+    console.error("Error saving potential activity:", error);
+    alert("Failed to save activity. Please try again.");
+    return;
+  }
+  closeModal();
+  await fetchPotentialActivities();
+};
+
+const fetchPotentialActivities = async () => {
+  const { data, error } = await supabase
+    .from("potential_activities")
+    .select("*") // Optionally filter by user/org
+    .eq("itinerary_id", tripId);
+
+  if (error) {
+    console.error("Error fetching potential activities:", error);
+    return;
+  }
+
+  potentialActivities.value = data;
+  console.log("Potential activities:", potentialActivities.value);
+};
+
+const removeActivity = async (index) => {
+  const selectedActivity = potentialActivities.value[index]; // Access with `.value`
+  console.log("Removing activity:", selectedActivity.id);
+  try {
+    const { error: deleteError } = await supabase
+      .from("potential_activities")
+      .delete()
+      .eq("id", selectedActivity.id);
+
+    if (deleteError) {
+      console.error("Failed to delete from potential_activities:", deleteError);
+      return;
+    } else {
+      console.log("Successfully removed");
+      await fetchPotentialActivities();
+      await fetchActivities();
+    }
+
+    // calendarApp.value?.setEvents([...calendarEvents.value]);
+  } catch (err) {
+    console.error("Unexpected error during deletion:", err);
+  }
+};
+
+///////EDIT POTENTIAL ACTIVITY//////////////////////////////////////////
 const editPotentialActivity = (index) => {
   const activity = potentialActivities.value[index];
   newActivity.value = {
@@ -267,62 +833,55 @@ const editPotentialActivity = (index) => {
     location: activity.location || "",
     date: activity.date || "",
     startTime: activity.start_time || "",
-    endTime: activity.end_time || ""
+    endTime: activity.end_time || "",
+    type: activity.type || "",
+    activity_pic_url: activity.activity_pic_url || "",
   };
-  isChecked.value = !activity.start_time && !activity.end_time;
+  originalPotentialActivity.value = {
+    id: activity.id,
+    title: activity.name || "",
+    description: activity.description || "",
+    location: activity.location || "",
+    date: activity.date || "",
+    startTime: activity.start_time || "",
+    endTime: activity.end_time || "",
+    type: activity.type || "",
+    activity_pic_url: activity.activity_pic_url || "",
+  };
+  isChecked.value =
+    (activity.start_time === "00:00" || activity.start_time === "00:00:00") &&
+    (activity.end_time === "23:59" || activity.end_time === "23:59:00");
   showModal.value = true;
 };
 
-const saveActivity = async () => {
-  const startTime = newActivity.value.startTime;
-  const endTime = newActivity.value.endTime;
-
-  const isAllDay =
-    !startTime || startTime === 'None' ||
-    !endTime || endTime === 'None';
-
-  const start_time = isAllDay ? '00:00' : startTime;
-  const end_time = isAllDay ? '23:59' : endTime;
-
-  console.log("start_time", start_time);
-  console.log("end_time", end_time);
-
-  const { error } = await supabase
-    .from("potential_activities")
-    .insert([
-      {
-        name: newActivity.value.title,
-        description: newActivity.value.description,
-        location: newActivity.value.location,
-        date: newActivity.value.date,
-        start_time,
-        end_time,
-        itinerary_id: tripId,
-      },
-    ]);
-
-  if (error) {
-    console.error("Error saving potential activity:", error);
-    alert("Failed to save activity. Please try again.");
-    return;
-  }
-
-  await fetchPotentialActivities();
-  closeModal();
-};
-
-
+const hasChangesPotential = computed(() => {
+  console.log(
+    "New Activity:",
+    newActivity.value,
+    "Original Potential Activity:",
+    originalPotentialActivity.value
+  );
+  console.log(
+    "Has Changes:",
+    JSON.stringify(newActivity.value) !==
+      JSON.stringify(originalPotentialActivity.value)
+  );
+  return (
+    JSON.stringify(newActivity.value) !==
+    JSON.stringify(originalPotentialActivity.value)
+  );
+});
 
 const saveEditedPotentialActivity = async () => {
+  console.log("HERE");
   const startTime = newActivity.value.startTime;
   const endTime = newActivity.value.endTime;
 
   const isAllDay =
-    !startTime || startTime === 'None' ||
-    !endTime || endTime === 'None';
+    !startTime || startTime === "None" || !endTime || endTime === "None";
 
-  const start_time = isAllDay ? '00:00' : startTime;
-  const end_time = isAllDay ? '23:59' : endTime;
+  const start_time = isAllDay ? "00:00" : startTime;
+  const end_time = isAllDay ? "23:59" : endTime;
 
   console.log("start_time", start_time);
   console.log("end_time", end_time);
@@ -336,6 +895,8 @@ const saveEditedPotentialActivity = async () => {
       date: newActivity.value.date,
       start_time,
       end_time,
+      type: newActivity.value.type,
+      activity_pic_url: newActivity.value.activity_pic_url,
     })
     .eq("id", newActivity.value.id);
 
@@ -348,298 +909,94 @@ const saveEditedPotentialActivity = async () => {
   }
 };
 
-const potentialActivities = ref([]);
+////////////EDIT ITINERARY NAME PART//////////////////
+const tripName = ref("My Itinerary");
 
-const fetchPotentialActivities = async () => {
-  const { data, error } = await supabase
-    .from("potential_activities")
-    .select("*") // Optionally filter by user/org
-    .eq('itinerary_id', tripId);
-
-  if (error) {
-    console.error("Error fetching potential activities:", error);
-    return;
-  }
-
-  potentialActivities.value = data;
-};
-const addActivity = async (index) => {
-  const selectedActivity = potentialActivities.value[index];
-  console.log("Adding activity:", selectedActivity);
-
-  //Check for missing date
-  if (!selectedActivity.date || selectedActivity.date.trim() === "") {
-    alert("Date is required to add this activity.");
-    return;
-  }
-
-  // Determine timestamps
-  let startTimestamp = null;
-  let endTimestamp = null;
-
-  
-    // Check for missing start time
-    if (!selectedActivity.start_time || selectedActivity.start_time.trim() === "") {
-      alert("Start time is required.");
-      return;
-    }
-
-    // Check for missing end time
-    if (!selectedActivity.end_time || selectedActivity.end_time.trim() === "") {
-      alert("End time is required.");
-      return;
-    }
-
-    startTimestamp = `${selectedActivity.date} ${selectedActivity.start_time}:00`;
-    endTimestamp = `${selectedActivity.date} ${selectedActivity.end_time}:00`;
-
-
-  // Insert into "activities"
-  const { error } = await supabase
-    .from("activities")
-    .insert([
-      {
-        itinerary_id: tripId,
-        name: selectedActivity.name,
-        description: selectedActivity.description,
-        location: selectedActivity.location,
-        date: selectedActivity.date,
-        start_time: startTimestamp,
-        end_time: endTimestamp,
-      },
-    ]);
-
-  if (error) {
-    console.error("Failed to insert activity:", error);
-  } else {
-    console.log("Activity successfully inserted!");
-  }
-
-  // Remove from potential_activities
-  const { error: deleteError } = await supabase
-    .from("potential_activities")
-    .delete()
-    .eq("id", selectedActivity.id);
-
-  if (deleteError) {
-    console.error("Failed to delete from potential_activities:", deleteError);
-    return;
-  }
-
-  // Refresh UI
-  window.location.reload();
-  await fetchPotentialActivities();
-  await fetchActivities();
-  calendarApp.value?.setEvents([...calendarEvents.value]);
-  
-};
-
-
-
-const removeActivity = async (index) => {
-  const selectedActivity = potentialActivities.value[index];  // Access with `.value`
-  console.log("Removing activity:", selectedActivity.id);
-  try {
-    const { error: deleteError } = await supabase
-      .from("potential_activities")
-      .delete()
-      .eq("id", selectedActivity.id);
-
-    if (deleteError) {
-      console.error("Failed to delete from potential_activities:", deleteError);
-      return;
-    }
-    else{
-      console.log("Successfully removed");
-      window.location.reload();
-      await fetchPotentialActivities();
-      await fetchActivities();
-    }
-  
-  // calendarApp.value?.setEvents([...calendarEvents.value]);
-  } catch (err) {
-    console.error("Unexpected error during deletion:", err);
-  }
-
-};
-
-//for getting exisiting activities from supabase, for calendar reflection
-const fetchActivities = async () => {
-  const { data, error } = await supabase
-    .from('activities')
-    .select('id, name, date, start_time, end_time, description, location')
-    .eq('itinerary_id', tripId);
-
-  if (error) {
-    console.error('Error fetching activities:', error);
-    return;
-  }
-
-  calendarEvents.value = data.map((a) => {
-    if (!a.start_time && !a.end_time) { // if no stat and end time,, automatic all day  
-      return {
-        id: a.id,
-        title: a.name,
-        start: `${a.date} 00:00`,
-        end: `${a.date} 23:59`,
-        description: a.description,
-        location: a.location,
-      };
-    } else {
-      return { // with specific start time and end time 
-        id: a.id,
-        title: a.name,
-        description: a.description,
-        location: a.location,
-        start: `${a.date} ${a.start_time?.slice(11, 16)}`,
-        end: `${a.date} ${a.end_time?.slice(11, 16)}`,
-      };
-    }
-  });
-
-};
-
-//////EDIT ITINERARY NAME PART
-const isEditingName = ref(false)
-const editableSpan = ref(null)
+const isEditingName = ref(false);
+const editableSpan = ref(null);
 
 const startEditingName = () => {
-  isEditingName.value = true
-  // Optional: auto-select the text
+  isEditingName.value = true;
   nextTick(() => {
-    const el = editableSpan.value
+    const el = editableSpan.value;
     if (el) {
-      const range = document.createRange()
-      const sel = window.getSelection()
-      range.selectNodeContents(el)
-      sel.removeAllRanges()
-      sel.addRange(range)
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(el);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
-  })
-}
-
-const updateName = (e) => {
-  itineraryName.value = e.target.innerText.trim()
-}
-
-const saveName = async () => {
-  isEditingName.value = false
-
-  const { error } = await supabase
-    .from('itineraries')
-    .update({ name: itineraryName.value })
-    .eq('id', tripId)
-
-  if (error) {
-    console.error('Error updating itinerary name:', error)
-  } else {
-    console.log('Itinerary name updated successfully')
-  }
-}
-
-const setupRealtime = () => {
-  supabase
-    .channel('public:activities')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'activities',
-        filter: `itinerary_id=eq.${tripId}`,
-      },
-      async (payload) => {
-        console.log('Realtime change:', payload);
-        await fetchActivities();
-        // Refresh calendar with new data
-        // calendarApp.value?.setEvents(calendarEvents.value);
-        calendarApp.value?.setEvents([...calendarEvents.value]);
-      }
-    )
-    .subscribe();
+  });
 };
 
-////////EDIT DETAILS MODAL STUFF
-const showEditModal = ref(false)
+const updateName = (event) => {
+  tripName.value = event.target.innerText;
+};
 
-const editItinerary = ref({
-  name: '',
-  location: '',
-  start_date: '',
-  end_date: '',
-})
+const saveName = async () => {
+  isEditingName.value = false;
 
-const openEditModal = () => {
-  showEditModal.value = true
-
-  editItinerary.value = {
-    name: itineraryName.value,
-    location: place.value, // If your itinerary has a location field
-    start_date: startDate.value,
-    end_date: endDate.value, // Add if your table has it
-  }
-}
-
-const closeEditModal = () => {
-  showEditModal.value = false
-}
-
-const saveItineraryChanges = async () => {
   const { error } = await supabase
-    .from('itineraries')
-    .update({
-      name: editItinerary.value.name,
-      place: editItinerary.value.location,
-      start_date: editItinerary.value.start_date,
-      end_date: editItinerary.value.end_date,
-    })
-    .eq('id', tripId)
+    .from("itineraries")
+    .update({ name: itineraryName.value })
+    .eq("id", tripId);
 
   if (error) {
-    console.error('Failed to update itinerary:', error)
-    return
+    console.error("Error updating itinerary name:", error);
+  } else {
+    console.log("Itinerary name updated successfully");
   }
+};
 
-  // Update UI with new values
-  itineraryName.value = editItinerary.value.name
-  startDate.value = editItinerary.value.start_date
-
-  closeEditModal()
-}
-
-//////MEMBERS PART 
-
-const ownerProfile = ref({ name: '', username: '', picture: '' });
+//////////////MEMBERS PART//////////////////
+const showMenu = ref({});
+const tripMembersInput = ref(""); // Stores the current input email
+const tripMembers = ref([]);
+const isEmailSelected = ref(true);
+const isEditMemberMode = ref(false);
+const loading = ref(false);
+const ownerProfile = ref({ name: "", username: "", picture: "", id: "" });
 const members = ref([]);
 const showMembersModal = ref(false);
 
 const openMembersModal = async () => {
   showMembersModal.value = true;
+  showMenu.value = false;
   await fetchOwnerProfile();
 };
 
+function toggleMenu() {
+  showMenu.value = !showMenu.value;
+}
+
 const closeMembersModal = () => {
   showMembersModal.value = false;
+  showMenu.value = false;
+};
+
+const editField = () => {
+  isEditMemberMode.value = !isEditMemberMode.value;
 };
 
 const fetchOwnerProfile = async () => {
   try {
+    console.log("owner", currentUser.value.id);
     console.log("Fetching owner profile for tripId:", tripId);
 
     // Step 1: Fetch the owner_id from the itineraries table
     const { data: itineraryData, error: itineraryError } = await supabase
-      .from('itineraries')  // Replace 'itineraries' with your actual table name
-      .select('owner_id')  // Assuming 'owner_id' is the column for the owner's ID
-      .eq('id', tripId)  // Filter by the tripId to get the corresponding itinerary
-      .single();  // Ensure you get a single result
+      .from("itineraries") // Replace 'itineraries' with your actual table name
+      .select("owner_id") // Assuming 'owner_id' is the column for the owner's ID
+      .eq("id", tripId) // Filter by the tripId to get the corresponding itinerary
+      .single(); // Ensure you get a single result
 
     if (itineraryError) {
-      console.error('Error fetching itinerary data:', itineraryError);
+      console.error("Error fetching itinerary data:", itineraryError);
       return;
     }
 
     if (!itineraryData) {
-      console.error('No itinerary data found for tripId:', tripId);
+      console.error("No itinerary data found for tripId:", tripId);
       return;
     }
 
@@ -648,23 +1005,24 @@ const fetchOwnerProfile = async () => {
 
     // Step 2: Fetch the owner's profile using the owner_id
     const { data: ownerData, error: ownerError } = await supabase
-      .from('profiles')  // Replace 'profiles' with your actual profiles table name
-      .select('full_name, username, profile_pic_url')  // Select the required fields
-      .eq('id', ownerId)  // Use the owner_id obtained from the itinerary
-      .single();  // Ensure you get a single result
+      .from("profiles") // Replace 'profiles' with your actual profiles table name
+      .select("full_name, username, profile_pic_url") // Select the required fields
+      .eq("id", ownerId) // Use the owner_id obtained from the itinerary
+      .single(); // Ensure you get a single result
 
     if (ownerError) {
-      console.error('Error fetching owner profile:', ownerError);
+      console.error("Error fetching owner profile:", ownerError);
       return;
     }
 
     if (!ownerData) {
-      console.error('No owner data found for owner_id:', ownerId);
+      console.error("No owner data found for owner_id:", ownerId);
       return;
     }
 
     // Store the owner profile data
     ownerProfile.value = {
+      id: ownerId,
       picture: ownerData.profile_pic_url,
       name: ownerData.full_name,
       username: ownerData.username,
@@ -674,18 +1032,18 @@ const fetchOwnerProfile = async () => {
 
     // Now fetch members' profiles (if needed)
     const { data: memberIds, error: memberIdsError } = await supabase
-      .from('itinerary_members')
-      .select('user_id')
-      .eq('itinerary_id', tripId);  // Use tripId to fetch the members for this itinerary
+      .from("itinerary_members")
+      .select("user_id")
+      .eq("itinerary_id", tripId); // Use tripId to fetch the members for this itinerary
 
     if (memberIdsError) throw memberIdsError;
 
-    const userIds = memberIds.map(member => member.user_id);
+    const userIds = memberIds.map((member) => member.user_id);
 
     const { data: membersData, error: membersError } = await supabase
-      .from('profiles')
-      .select('full_name, username, profile_pic_url')
-      .in('id', userIds);
+      .from("profiles")
+      .select("full_name, username, profile_pic_url, id")
+      .in("id", userIds);
 
     if (membersError) throw membersError;
 
@@ -693,24 +1051,505 @@ const fetchOwnerProfile = async () => {
       totalMembers.value = membersData.length;
     }
 
-    members.value = membersData.map(member => ({
+    members.value = membersData.map((member) => ({
+      id: member.id,
       username: member.username,
       full_name: member.full_name,
-      profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg',  // Default if no profile pic
+      profile_pic_url:
+        member.profile_pic_url ||
+        "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg", // Default if no profile pic
     }));
 
-    console.log("Fetched Members Info:", members.value);
-
+    console.log("SUCCESFULLY GOT OWNER", ownerProfile.value);
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 };
 
-//////VOTING PART
-const yesVotes = ref(0);  // Current "Yes" vote count
-const noVotes = ref(0);   // Current "No" vote count
-const userVoted = ref(false);  // Track if user has voted
-const userVote = ref('');  // Track user's vote ("yes" or "no")
+const removeMember = async (username) => {
+  try {
+    const memberToRemove = members.value.find(
+      (member) => member.username === username
+    );
+    if (!memberToRemove) {
+      console.warn("Member not found");
+      return;
+    }
+
+    // Use tripId from the setup context
+    // Use itineraryName as tripName fallback
+    const tripName = itineraryName.value || "a trip";
+
+    console.log("Removing from trip:", tripId, memberToRemove.id);
+
+    // Delete the member from the itinerary_members table
+    const { error: deleteError } = await supabase
+      .from("itinerary_members")
+      .delete()
+      .eq("user_id", memberToRemove.id)
+      .eq("itinerary_id", tripId);
+
+    if (deleteError) throw deleteError;
+
+    // Insert a notification to the removed member
+    const { error: notifyError } = await supabase.from("notifications").insert([
+      {
+        user_id: memberToRemove.id,
+        type: "removed",
+        message: `${ownerProfile.value.username} removed you from the itinerary "${tripName}"`,
+        itinerary_id: tripId,
+        sender_id: ownerProfile.value.id,
+        image_url: ownerProfile.value.picture,
+        itinerary_name: tripName,
+        created_at: new Date().toISOString(),
+        is_read: false,
+      },
+    ]);
+
+    if (notifyError) {
+      console.warn(
+        "Member removed, but notification insert failed:",
+        notifyError.message
+      );
+    }
+
+    // Update frontend
+    members.value = members.value.filter(
+      (member) => member.username !== username
+    );
+    isEditMemberMode.value = false;
+  } catch (err) {
+    isEditMemberMode.value = false;
+    console.error("Error removing member:", err.message);
+    alert("Could not remove member.");
+  }
+};
+
+function switchInviteTab(type) {
+  if (type === "email") {
+    console.log("Switched to email");
+    isEmailSelected.value = true;
+    // Optionally, set a selectedTab ref if needed
+  } else {
+    console.log("Switched to username");
+    isEmailSelected.value = false;
+    // Optionally, set a selectedTab ref if needed
+  }
+}
+
+const sendInvite = async (tripMembers) => {
+  console.log("Sending invite with members:", tripMembers);
+  console.log("tripMembers:", tripMembers);
+  console.log("type of tripMembers:", typeof tripMembers);
+
+  if (!tripMembers) return;
+
+  const membersArray = tripMembers
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+
+  const membersMap = new Map(membersArray.map((m) => [m, true]));
+
+  console.log("✅ Final membersMap:", membersMap);
+  // You can now send `membersMap` to your backend or use it as needed.
+  if (!tripMembers) return;
+  let allInvitesValid = true; // Flag to check if all invites are valid
+  let validInvites = []; // To store valid invite data that will be sent later
+  let invalidItems = []; // To track invalid items for the alert message
+
+  for (const item of membersArray) {
+    if (!item) continue;
+
+    // Email mode
+    if (isEmailSelected.value) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(item)) {
+        invalidItems.push(`"${item}" is not a valid email address.`);
+        allInvitesValid = false;
+        continue;
+      }
+
+      if (
+        currentUser.value &&
+        (item === currentUser.value.email ||
+          item === currentUser.value.username)
+      ) {
+        invalidItems.push("You cannot invite yourself.");
+        allInvitesValid = false;
+        continue;
+      }
+
+      // Check if the user has already been invited (this is the double check part)
+      const { data: existingInviteData, error: inviteError } = await supabase
+        .from("trip_invites")
+        .select("invited_email")
+        .eq("invited_email", item)
+        .eq("trip_id", tripId);
+
+      if (inviteError) {
+        console.error("Error checking if invite exists:", inviteError.message);
+        invalidItems.push(
+          `There was an error while checking if "${item}" has already been invited. Please try again later.`
+        );
+        allInvitesValid = false;
+        continue;
+      }
+
+      // If there's already an existing invite for this email and trip_id
+      if (existingInviteData && existingInviteData.length > 0) {
+        invalidItems.push(`"${item}" has already been invited.`);
+        allInvitesValid = false;
+        continue;
+      } else {
+        // No existing invite, proceed with sending invite
+        console.log(`No invite found for "${item}"`);
+      }
+
+      // Check if the email is registered
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", item)
+        .single();
+
+      if (userError || !userData) {
+        invalidItems.push(`The email "${item}" is not registered.`);
+        allInvitesValid = false;
+        continue;
+      }
+
+      // If all checks pass, add this invite to validInvites
+      validInvites.push({
+        trip_id: tripId,
+        invited_email: item,
+        inviter_id: currentUser.value.id,
+        status: "pending",
+        time_stamp: new Date().toISOString(),
+      });
+    }
+
+    // Username mode
+    else {
+      if (currentUser.value && item === currentUser.value.username) {
+        invalidItems.push("You cannot invite yourself.");
+        allInvitesValid = false;
+        continue;
+      }
+
+      // Get the user's email from their username
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("username, email")
+        .eq("username", item)
+        .single();
+
+      if (userError || !userData) {
+        invalidItems.push(`The username "${item}" is not registered.`);
+        allInvitesValid = false;
+        continue;
+      }
+
+      const invitedEmail = userData.email;
+
+      // Check if the user has already been invited using their email
+      const { data: existingInviteData, error: inviteError } = await supabase
+        .from("trip_invites")
+        .select("invited_email")
+        .eq("invited_email", invitedEmail)
+        .eq("trip_id", tripId);
+
+      if (inviteError) {
+        console.error("Error checking if invite exists:", inviteError.message);
+        invalidItems.push(
+          `There was an error while checking if "${item}" has already been invited. Please try again later.`
+        );
+        allInvitesValid = false;
+        continue;
+      }
+
+      if (existingInviteData && existingInviteData.length > 0) {
+        invalidItems.push(`"${item}" has already been invited.`);
+        allInvitesValid = false;
+        continue;
+      }
+
+      // If all checks pass, add this invite to validInvites
+      validInvites.push({
+        trip_id: tripId,
+        invited_email: invitedEmail, // use their email for the invite
+        inviter_id: currentUser.value.id,
+        status: "pending",
+        time_stamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  if (allInvitesValid) {
+    // Send all valid invites together
+    const { error: inviteInsertError } = await supabase
+      .from("trip_invites")
+      .insert(validInvites);
+
+    if (inviteInsertError) {
+      console.error("Error sending invites:", inviteInsertError.message);
+      alert("There was an error sending the invites. Please try again.");
+    } else {
+      // Fetch sender's profile for username and profile picture
+      const { data: senderProfile, error: senderError } = await supabase
+        .from("profiles")
+        .select("username, profile_pic_url")
+        .eq("id", currentUser.value.id)
+        .single();
+
+      if (senderError || !senderProfile) {
+        console.error(
+          "Failed to fetch sender's profile data:",
+          senderError?.message
+        );
+        alert(
+          "Invites were sent, but notifications may not have been fully created."
+        );
+        return;
+      }
+
+      const notificationsPayload = [];
+
+      for (const invite of validInvites) {
+        // Get the user ID of the invited person
+        const { data: invitedUser, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", invite.invited_email)
+          .single();
+
+        if (profileError || !invitedUser) {
+          console.warn(
+            `Could not find user ID for ${invite.invited_email}, skipping notification.`
+          );
+          continue;
+        }
+
+        notificationsPayload.push({
+          user_id: invitedUser.id, // The invited user
+          type: "invite",
+          message: `${senderProfile.username} invited you to join the itinerary "${itineraryName.value}"`,
+          itinerary_id: invite.trip_id,
+          sender_id: currentUser.value.id,
+          image_url: senderProfile.profile_pic_url, // Include sender's profile pic
+          itinerary_name: itineraryName.value, // Include itinerary title
+          created_at: new Date().toISOString(),
+          is_read: false,
+        });
+      }
+
+      if (notificationsPayload.length > 0) {
+        const { error: notificationError } = await supabase
+          .from("notifications")
+          .insert(notificationsPayload);
+
+        if (notificationError) {
+          console.error(
+            "Error inserting notifications:",
+            notificationError.message
+          );
+        } else {
+          console.log("send succ");
+        }
+      }
+      console.log("Invites sent successfully:", validInvites);
+      showMenu.value = false;
+      showMembersModal.value = false;
+      alert("Invites have been sent!"); // Show popup
+      // Optionally reset modal state here
+    }
+  } else {
+    // Show all invalid items with appropriate alerts
+    alert(`Some invitations could not be sent:\n\n${invalidItems.join("\n")}`);
+  }
+};
+
+const deletePost = async () => {
+  try {
+    // Ask for confirmation before deleting
+    if (!confirm("Are you sure you want to delete this itinerary?")) {
+      showMenu.value = false;
+      return;
+    }
+
+    // 1️⃣ Fetch all activity IDs under this itinerary
+    const { data: activities, error: fetchActivitiesError } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("itinerary_id", tripId);
+    if (fetchActivitiesError) {
+      console.error("Error fetching activities:", fetchActivitiesError);
+      return;
+    }
+    const activityIds = activities.map((a) => a.id);
+
+    // 2️⃣ Delete comments on those activities
+    if (activityIds.length) {
+      const { error: commentsDeleteError } = await supabase
+        .from("comments")
+        .delete()
+        .in("activity_id", activityIds);
+      if (commentsDeleteError) {
+        console.error("Error deleting comments:", commentsDeleteError);
+        return;
+      }
+
+      // 3️⃣ **Delete votes on those same activities** ← NEW
+      const { error: activityVotesDeleteError } = await supabase
+        .from("votes")
+        .delete()
+        .in("activity_id", activityIds);
+      if (activityVotesDeleteError) {
+        console.error(
+          "Error deleting votes for activities:",
+          activityVotesDeleteError
+        );
+        return;
+      }
+    }
+
+    // 4️⃣ Delete the activities themselves
+    const { error: activitiesDeleteError } = await supabase
+      .from("activities")
+      .delete()
+      .eq("itinerary_id", tripId);
+    if (activitiesDeleteError) {
+      console.error("Error deleting activities:", activitiesDeleteError);
+      return;
+    }
+
+    // 5️⃣ Delete votes that are directly on the itinerary
+    const { error: votesDeleteError } = await supabase
+      .from("votes")
+      .delete()
+      .eq("itinerary_id", tripId);
+    if (votesDeleteError) {
+      console.error("Error deleting itinerary-level votes:", votesDeleteError);
+      return;
+    }
+
+    // 6️⃣ Delete any potential_activities for this trip
+    const { error: potentialDeleteError } = await supabase
+      .from("potential_activities")
+      .delete()
+      .eq("itinerary_id", tripId);
+    if (potentialDeleteError) {
+      console.error(
+        "Error deleting potential activities:",
+        potentialDeleteError
+      );
+      return;
+    }
+
+    // 7️⃣ Finally delete the itinerary itself
+    const { error: deleteError } = await supabase
+      .from("itineraries")
+      .delete()
+      .eq("id", tripId);
+    if (deleteError) {
+      console.error("Error deleting itinerary:", deleteError);
+      showMenu.value = false;
+      alert("Failed to delete itinerary. Try again.");
+      return;
+    }
+
+    showMenu.value = false;
+    alert("Itinerary deleted successfully!");
+    router.push("/dashboard");
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    showMenu.value = false;
+    alert("Something went wrong.");
+  }
+};
+
+const leaveTrip = async () => {
+  if (!confirm("Are you sure you want to leave this trip?")) return;
+
+  try {
+    // Check if the current user is the owner of the trip
+    const { data: trip, error: tripError } = await supabase
+      .from("itineraries")
+      .select("owner_id, name")
+      .eq("id", tripId)
+      .single();
+
+    if (tripError) {
+      console.error("Error checking trip ownership:", tripError.message);
+      alert("Unable to verify your ownership of the trip.");
+      return;
+    }
+
+    if (trip.owner_id === currentUser.value.id) {
+      alert("You can't leave this trip because you are the owner.");
+      return;
+    }
+
+    // Proceed to delete membership
+    const { error } = await supabase
+      .from("itinerary_members")
+      .delete()
+      .eq("user_id", currentUser.value.id)
+      .eq("itinerary_id", tripId);
+
+    if (error) {
+      console.error("Error leaving trip:", error.message);
+      alert("There was an issue leaving the trip. Please try again.");
+      return;
+    }
+
+    // Fetch user profile to get username and profile_pic_url
+    const { data: senderProfile, error: profileError } = await supabase
+      .from("profiles")
+      .select("username, profile_pic_url")
+      .eq("id", currentUser.value.id)
+      .single();
+
+    if (profileError) {
+      console.error("Failed to fetch sender profile:", profileError.message);
+    }
+
+    // Send notification to the owner
+    const { error: notifError } = await supabase.from("notifications").insert([
+      {
+        user_id: trip.owner_id,
+        sender_id: currentUser.value.id,
+        type: "left",
+        message: `${
+          senderProfile?.username || "Someone"
+        } left your itinerary "${trip.name}"`,
+        itinerary_id: tripId,
+        image_url:
+          senderProfile?.profile_pic_url ||
+          "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg",
+        itinerary_name: trip.name,
+        created_at: new Date().toISOString(),
+        is_read: false,
+      },
+    ]);
+
+    if (notifError) {
+      console.error("Failed to send notification:", notifError.message);
+    }
+
+    alert("You have successfully left the trip.");
+    router.push("/dashboard");
+  } catch (err) {
+    console.error("Unexpected error while leaving trip:", err);
+    alert("An unexpected error occurred.");
+  }
+};
+
+//////VOTING PART//////////////////////////////
+const yesVotes = ref(0); // Current "Yes" vote count
+const noVotes = ref(0); // Current "No" vote count
+const userVoted = ref(false); // Track if user has voted
+const userVote = ref(""); // Track user's vote ("yes" or "no")
 
 // Function to check if the user has already voted for this event
 const checkUserVote = async () => {
@@ -724,16 +1563,17 @@ const checkUserVote = async () => {
   console.log("Checking vote for:", userId, tripId, eventId);
 
   const { data, error } = await supabase
-    .from('votes')
-    .select('vote')
-    .eq('itinerary_id', tripId)
-    .eq('activity_id', eventId)
-    .eq('user_id', userId)
+    .from("votes")
+    .select("vote")
+    .eq("itinerary_id", tripId)
+    .eq("activity_id", eventId)
+    .eq("user_id", userId)
     .single();
 
   if (error) {
-    if (error.code !== 'PGRST116') { // PGRST116 = no rows found (handled case)
-      console.error('Error checking user vote:', error);
+    if (error.code !== "PGRST116") {
+      // PGRST116 = no rows found (handled case)
+      console.error("Error checking user vote:", error);
     }
     return null;
   }
@@ -756,16 +1596,16 @@ const fetchUserVote = async (eventId) => {
   const userId = currentUser.value.id;
 
   const { data, error } = await supabase
-    .from('votes')
-    .select('vote')
-    .eq('itinerary_id', tripId)
-    .eq('activity_id', eventId)
-    .eq('user_id', userId)
+    .from("votes")
+    .select("vote")
+    .eq("itinerary_id", tripId)
+    .eq("activity_id", eventId)
+    .eq("user_id", userId)
     .single(); // Since the user can only have one vote per event
 
   if (error) {
-    if (error.code !== 'PGRST116') {
-      console.error('Error fetching user vote:', error);
+    if (error.code !== "PGRST116") {
+      console.error("Error fetching user vote:", error);
     }
     return;
   }
@@ -790,11 +1630,11 @@ const vote = async (voteType) => {
     // If the user is changing their vote, update the existing vote
     if (userVote.value !== voteType) {
       const { error: updateError } = await supabase
-        .from('votes')
+        .from("votes")
         .update({ vote: voteType })
-        .eq('itinerary_id', tripId)
-        .eq('activity_id', eventId)
-        .eq('user_id', userId);
+        .eq("itinerary_id", tripId)
+        .eq("activity_id", eventId)
+        .eq("user_id", userId);
 
       if (updateError) {
         console.error("Error updating vote:", updateError);
@@ -804,10 +1644,10 @@ const vote = async (voteType) => {
       userVote.value = voteType;
 
       // Adjust the vote counts locally
-      if (voteType === 'yes') {
+      if (voteType === "yes") {
         yesVotes.value++;
         noVotes.value--;
-      } else if (voteType === 'no') {
+      } else if (voteType === "no") {
         noVotes.value++;
         yesVotes.value--;
       }
@@ -821,14 +1661,14 @@ const vote = async (voteType) => {
     }
   } else {
     // Insert a new vote
-    const { error: insertError } = await supabase
-      .from('votes')
-      .insert([{
+    const { error: insertError } = await supabase.from("votes").insert([
+      {
         itinerary_id: tripId,
         activity_id: eventId,
         user_id: userId,
         vote: voteType,
-      }]);
+      },
+    ]);
 
     if (insertError) {
       console.error("Error submitting vote:", insertError);
@@ -838,9 +1678,9 @@ const vote = async (voteType) => {
     userVoted.value = true;
     userVote.value = voteType;
 
-    if (voteType === 'yes') {
+    if (voteType === "yes") {
       yesVotes.value++;
-    } else if (voteType === 'no') {
+    } else if (voteType === "no") {
       noVotes.value++;
     }
 
@@ -852,10 +1692,10 @@ const vote = async (voteType) => {
 
 const fetchVoteCounts = async (eventId) => {
   const { data, error } = await supabase
-    .from('votes')
-    .select('vote')  // Select only the 'vote' column
-    .eq('itinerary_id', tripId)  // Filter by tripId
-    .eq('activity_id', eventId);  // Filter by eventId
+    .from("votes")
+    .select("vote") // Select only the 'vote' column
+    .eq("itinerary_id", tripId) // Filter by tripId
+    .eq("activity_id", eventId); // Filter by eventId
 
   if (error) {
     console.error("Error fetching vote counts:", error);
@@ -868,10 +1708,10 @@ const fetchVoteCounts = async (eventId) => {
 
   // Loop through the data to manually count "yes" and "no" votes
   if (data) {
-    data.forEach(vote => {
-      if (vote.vote === 'yes') {
+    data.forEach((vote) => {
+      if (vote.vote === "yes") {
         yesVotesCount++;
-      } else if (vote.vote === 'no') {
+      } else if (vote.vote === "no") {
         noVotesCount++;
       }
     });
@@ -890,52 +1730,54 @@ const yesPercentage = computed(() => {
   return Math.min(100, Math.round(percentage * 10) / 10); // Rounded to 1 decimal
 });
 
-
 const noPercentage = computed(() => {
   const total = totalMembers.value + 1;
   const percentage = (noVotes.value / total) * 100;
   return Math.min(100, Math.round(percentage * 10) / 10);
 });
 
-
 const isChecked = ref(false); // Starts unchecked
 
-//////COMMENTS PART
-const comments = ref([])
-const newComment = ref('') // Reactive variable to bind the input
+//////COMMENTS PART//////////////////////////////
+const comments = ref([]);
+const newComment = ref(""); // Reactive variable to bind the input
 
 const fetchComments = async (activityId) => {
   // Step 1: Fetch comments
   const { data: commentsData, error: commentsError } = await supabase
-    .from('comments')
-    .select('*')
-    .eq('activity_id', activityId)
-    .order('created_at', { ascending: true });
+    .from("comments")
+    .select("*")
+    .eq("activity_id", activityId)
+    .order("created_at", { ascending: true });
 
   if (commentsError) {
-    console.error('Error fetching comments:', commentsError.message);
+    console.error("Error fetching comments:", commentsError.message);
     return [];
   }
 
   // Step 2: Extract unique commenter IDs
-  const commenterIds = [...new Set(commentsData.map(comment => comment.commenter_id))];
+  const commenterIds = [
+    ...new Set(commentsData.map((comment) => comment.commenter_id)),
+  ];
 
   // Step 3: Fetch profiles manually
   const { data: profilesData, error: profilesError } = await supabase
-    .from('profiles')
-    .select('id, username, profile_pic_url')
-    .in('id', commenterIds);
+    .from("profiles")
+    .select("id, username, profile_pic_url")
+    .in("id", commenterIds);
 
   if (profilesError) {
-    console.error('Error fetching commenter profiles:', profilesError.message);
+    console.error("Error fetching commenter profiles:", profilesError.message);
     return [];
   }
 
   // Step 4: Create a map of profiles
-  const profileMap = Object.fromEntries(profilesData.map(profile => [profile.id, profile]));
+  const profileMap = Object.fromEntries(
+    profilesData.map((profile) => [profile.id, profile])
+  );
 
   // Step 5: Merge comments with corresponding profile
-  const enrichedComments = commentsData.map(comment => ({
+  const enrichedComments = commentsData.map((comment) => ({
     ...comment,
     commenter: profileMap[comment.commenter_id] || null,
   }));
@@ -948,185 +1790,425 @@ const fetchComments = async (activityId) => {
 
 // Function to add comment to Supabase
 const addComment = async () => {
-  if (!newComment.value.trim()) return // Prevent submitting empty comments
+  if (!newComment.value.trim()) return; // Prevent submitting empty comments
 
-  const commentText = newComment.value.trim()
+  const commentText = newComment.value.trim();
 
-  const { data, error } = await supabase
-    .from('comments')
-    .insert([
-      { 
-        activity_id: eventId, 
-        commenter_id: currentUser.value.id, 
-        comment: commentText 
-      }
-    ])
+  const { data, error } = await supabase.from("comments").insert([
+    {
+      activity_id: eventId,
+      commenter_id: currentUser.value.id,
+      comment: commentText,
+    },
+  ]);
 
   if (error) {
-    console.error('Error adding comment:', error.message)
+    console.error("Error adding comment:", error.message);
   } else {
-    console.log('Comment added:', data)
-    newComment.value = '' // Clear the input after success
+    console.log("Comment added:", data);
+    newComment.value = ""; // Clear the input after success
   }
 
-  fetchComments(eventId)
-}
+  fetchComments(eventId);
+};
 
 const formatTime = (timestamp) => {
-  if (!timestamp) return '';
+  if (!timestamp) return "";
   const date = new Date(timestamp);
   const diff = Date.now() - date.getTime();
 
   return diff < 1000 * 60 * 60 * 24
     ? formatDistanceToNow(date, { addSuffix: true }) // e.g. "5 minutes ago"
-    : format(date, 'MMM d'); // e.g. "Apr 30"
+    : format(date, "MMM d"); // e.g. "Apr 30"
 };
-
-const startEditingActivity = () => {
-  isEditingActivity.value = true;
-};
-
-const cancelEditingActivity = () => {
-  isEditingActivity.value = false;
-};
-
-const saveEditedActivity = async () => {
-  // Combine date and time to make valid timestamp strings
-  const startTimestamp = `${newActivity.value.date}T${newActivity.value.startTime}:00`;
-  const endTimestamp = `${newActivity.value.date}T${newActivity.value.endTime}:00`;
-
-  const { error } = await supabase
-    .from("activities")
-    .update({
-      name: newActivity.value.title,
-      description: newActivity.value.description,
-      location: newActivity.value.location,
-      date: newActivity.value.date,
-      start_time: startTimestamp,
-      end_time: endTimestamp,
-    })
-    .eq("id", newActivity.value.id);
-
-  if (error) {
-    console.error("Error saving activity:", error);
-  } else {
-    console.log("Activity updated successfully!");
-    isEditingActivity.value = false;
-    await fetchActivities(); // Refresh the calendar
-    showActivityModal.value = false;
-    window.location.reload();
-  }
-};
-
-const isTimeInvalid = computed(() => {
-  if (!newActivity.value.startTime || !newActivity.value.endTime) return false;
-  return newActivity.value.endTime <= newActivity.value.startTime;
-});
-
 
 function switchTab(tab) {
-  activeTab.value = tab
-  drafts.value = (tab === 'trips')
+  activeTab.value = tab;
+  drafts.value = tab === "trips";
 }
-
-
 </script>
 
-
-
 <template>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
 
   <div class="app-container">
     <!-- Top Menu Bar inside a rounded box -->
-    <div class="menu-bar">
+    <div
+      class="menu-bar d-flex justify-content-between align-items-center px-3 py-2 text-white"
+    >
+      <!-- LEFT SIDE -->
+      <div class="d-flex align-items-center">
+        <!-- Logo -->
+        <router-link to="/dashboard" class="mx-">
+          <img
+            src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/sign/email-assets/laagain-logo.PNG?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJlbWFpbC1hc3NldHMvbGFhZ2Fpbi1sb2dvLlBORyIsImlhdCI6MTc0MDQ1MDcxMSwiZXhwIjoxNzcxOTg2NzExfQ.jShJl7Z3QdCG-kE9akSg5hIC_Ws6dzu54OCFKMXGkps"
+            alt="File Icon"
+            class="menu-icon"
+          />
+        </router-link>
 
-        <div class="menu-item">
-          <router-link to="/dashboard">
-            <div class="menu-item">
-              <img 
-                src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/sign/email-assets/laagain-logo.PNG?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJlbWFpbC1hc3NldHMvbGFhZ2Fpbi1sb2dvLlBORyIsImlhdCI6MTc0MDQ1MDcxMSwiZXhwIjoxNzcxOTg2NzExfQ.jShJl7Z3QdCG-kE9akSg5hIC_Ws6dzu54OCFKMXGkps" 
-                alt="File Icon" 
-                class="menu-icon" 
-              />
-            </div>
-          </router-link>
-                <span
-                    class="file-name"
-                    :contenteditable="isEditingName"
-                    @click="startEditingName"
-                    @blur="saveName"
-                    @input="updateName"
-                    ref="editableSpan"
-                  >{{ itineraryName }}</span>
+        <!-- File Text -->
+        <span
+          class="mx-2 fw-medium text-white file-hover"
+          @click="openEditModal"
+          >File</span
+        >
 
+        <!-- Divider -->
+        <div class="vr-white mx-1"></div>
+
+        <!-- Undo / Redo Icons -->
+        <i class="bi bi-arrow-counterclockwise text-white menu-icon"></i>
+        <i class="bi bi-arrow-clockwise text-white menu-icon"></i>
+
+        <!-- Divider -->
+        <div class="vr-white mx-1"></div>
+
+        <!-- Cloud Check Icon -->
+        <i class="bi bi-cloud-check-fill text-white mx-1 menu-icon"></i>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="d-flex align-items-center">
+        <!-- Itinerary Name -->
+        <span
+          class="file-name itinerary-editable-name"
+          :contenteditable="isEditingName"
+          @click="startEditingName"
+          @blur="saveName"
+          @input="updateName"
+          ref="editableSpan"
+          v-text="itineraryName"
+          style="font-weight: 500; font-size: 16px"
+        ></span>
+
+        <!-- Divider -->
+        <div class="vr-white mx-2"></div>
+
+        <!-- History Icon with 1px white border, centered -->
+        <div
+          class="menu-icon-container rounded px-2 mx-1 justify-content-center"
+          style="border: 1px solid white; width: 28px"
+        >
+          <i class="bi bi-clock-history text-white menu-icon-right"></i>
         </div>
 
-      <!-- <div class="menu-item">Edit Details</div> -->
-      <div class="menu-item" @click="openEditModal">Edit Details</div>
-      <div class="menu-item" @click="openMembersModal">Members</div>
-      <!-- <div class="menu-item">Help</div> -->
+        <!-- Chat Icon with 3px white border -->
+        <div
+          class="menu-icon-container rounded px-2 mx-1"
+          style="border: 1px solid white; width: 28px"
+        >
+          <i class="bi bi-chat-dots text-white menu-icon-right"></i>
+        </div>
+
+        <!-- Divider -->
+        <div class="vr-white mx-2"></div>
+
+        <!-- Share Button -->
+        <div
+          class="menu-item share-btn text-white mx-1"
+          @click="openMembersModal"
+        >
+          Share
+        </div>
+      </div>
     </div>
 
     <!-- Main Content (Left & Right sections) -->
-    <div class="main-content">
+    <div class="main-content" :class="{ collapsed: isCollapsed }">
       <!-- Left Section -->
-        <div class="left-section">
-          <!-- Tabs -->
-          <ul class="nav nav-tabs nav-fill">
-            <li class="nav-item">
-              <a class="nav-link fs-4" :class="{ active: activeTab === 'trips' }" @click="switchTab('trips')">
-                <i class="bi bi-file-earmark"></i> Drafts
-              </a>
+      <div class="left-section">
+        <button class="create-btn" @click="openModal">
+          <span v-if="!isCollapsed">New Activity</span>
+          <span v-else><i class="bi bi-plus-lg"></i></span>
+        </button>
+        <div class="tab-section full-width">
+          <ul class="underline-tabs">
+            <li
+              class="underline-tab"
+              :class="{ active: activeTab === 'trips' }"
+              @click="switchTab('trips')"
+            >
+              <i class="me-1"></i> Activities
             </li>
-            <li class="nav-item">
-              <a class="nav-link fs-4" :class="{ active: activeTab === 'guides' }" @click="switchTab('guides')">
-                <i class="bi bi-map"></i> Explore
-              </a>
+            <li
+              class="underline-tab"
+              :class="{ active: activeTab === 'guides' }"
+              @click="switchTab('guides')"
+            >
+              <i class="me-1"></i> Explore
             </li>
           </ul>
+        </div>
+        <div style="margin-bottom: 15px; margin-left: 5px; margin-right: 5px">
+          <div v-if="drafts">
+            <!-- Divider Line -->
+            <div class="divider-wrapper"></div>
 
-          <div style="margin-top: 15px; margin-bottom: 15px; margin-left: 5px; margin-right: 5px;">
-            <div v-if="drafts">
-              <!-- Drafts content -->
-                        <!-- Create Button -->
-                <button class="create-btn" @click="openModal">New Activity</button>
-                <!-- Divider Line -->
-                <hr class="divider" />
-                <!-- Search Bar -->
-                <div class="search-bar">
-                    <input type="text" placeholder="Search events..." />
-                    <button>🔍</button>
-                </div>
-                <!-- Potential Activities -->
-                <div class="activity-list">
-                <div
-                  v-for="(activity, index) in potentialActivities"
-                  :key="activity.id"
-                  class="activity-card position-relative"
-                  @click="editPotentialActivity(index)">
-                  <button class="remove-btn" @click.stop="removeActivity(index)">×</button>
-                  <div class="activity-header">
-                    <h2 class="activity-name">{{ activity.name }}</h2>
+            <!-- Accommodation Section -->
+            <h5 class="activity-category-title text-start">Accommodation</h5>
+            <div class="activity-list">
+              <div
+                v-for="(activity, index) in potentialActivities.filter(
+                  (a) => a.type === 'accommodation'
+                )"
+                :key="activity.id"
+                class="activity-card accommodation"
+                @click="editPotentialActivity(index)"
+              >
+                <div class="activity-content-columns">
+                  <!-- Left Column -->
+                  <div class="activity-column-left">
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-image-wrapper">
+                      <img
+                        :src="activity.activity_pic_url"
+                        alt="Activity Image"
+                        class="activity-image"
+                      />
+                      <div class="activity-text-overlay">
+                        <p class="activity-location">{{ activity.location }}</p>
+                        <p class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </p>
+                        <p class="activity-time">
+                          {{ formatPotentialTime(activity.start_time) }}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <p class="activity-description">{{ activity.description }}</p>
-                  <p class="activity-location">Location: {{ activity.location }}</p>
-                  <p class="activity-date">Date: {{ activity.date }}</p>
-                  <p class="activity-time">Time: {{ activity.start_time }}</p>
 
-                  <button class="add-btn" @click.stop="addActivity(index)">Add</button>
+                  <!-- Right Column -->
+                  <div class="activity-column-right">
+                    <h2 class="activity-name">{{ activity.name }}</h2>
+                    <div class="suggested-by">
+                      <img
+                        :src="activity.profile_pic_url"
+                        alt="Profile"
+                        class="profile-pic"
+                      />
+                      <span class="suggested-name">{{
+                        activity.username
+                      }}</span>
+                    </div>
+                    <p class="activity-description">
+                      {{ activity.description }}
+                    </p>
+                    <button class="add-btn" @click.stop="addActivity(index)">
+                      Add
+                    </button>
+                  </div>
                 </div>
-                </div>
+              </div>
             </div>
-            <div class="left-section" v-else>
-              <!-- Explore content -->
-               <Explore></Explore>
+
+            <!-- Transportation Section -->
+            <h5 class="activity-category-title text-start">Transportation</h5>
+            <div class="activity-list">
+              <div
+                v-for="(activity, index) in potentialActivities.filter(
+                  (a) => a.type === 'transportation'
+                )"
+                :key="activity.id"
+                class="activity-card transportation"
+                @click="editPotentialActivity(index)"
+              >
+                <div class="activity-content-columns">
+                  <!-- Left Column -->
+                  <div class="activity-column-left">
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-image-wrapper">
+                      <img
+                        :src="activity.activity_pic_url"
+                        alt="Activity Image"
+                        class="activity-image"
+                      />
+                      <div class="activity-text-overlay">
+                        <p class="activity-location">{{ activity.location }}</p>
+                        <p class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </p>
+                        <p class="activity-time">
+                          {{ formatPotentialTime(activity.start_time) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="activity-column-right">
+                    <h2 class="activity-name">{{ activity.name }}</h2>
+                    <div class="suggested-by">
+                      <img
+                        :src="activity.profile_pic_url"
+                        alt="Profile"
+                        class="profile-pic"
+                      />
+                      <span class="suggested-name">{{
+                        activity.username
+                      }}</span>
+                    </div>
+                    <p class="activity-description">
+                      {{ activity.description }}
+                    </p>
+                    <button class="add-btn" @click.stop="addActivity(index)">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Food Section -->
+            <h5 class="activity-category-title text-start">Food</h5>
+            <div class="activity-list">
+              <div
+                v-for="(activity, index) in potentialActivities.filter(
+                  (a) => a.type === 'food'
+                )"
+                :key="activity.id"
+                class="activity-card food"
+                @click="editPotentialActivity(index)"
+              >
+                <div class="activity-content-columns">
+                  <!-- Left Column -->
+                  <div class="activity-column-left">
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-image-wrapper">
+                      <img
+                        :src="activity.activity_pic_url"
+                        alt="Activity Image"
+                        class="activity-image"
+                      />
+                      <div class="activity-text-overlay">
+                        <p class="activity-location">{{ activity.location }}</p>
+                        <p class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </p>
+                        <p class="activity-time">
+                          {{ formatPotentialTime(activity.start_time) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="activity-column-right">
+                    <h2 class="activity-name">{{ activity.name }}</h2>
+                    <div class="suggested-by">
+                      <img
+                        :src="activity.profile_pic_url"
+                        alt="Profile"
+                        class="profile-pic"
+                      />
+                      <span class="suggested-name">{{
+                        activity.username
+                      }}</span>
+                    </div>
+                    <p class="activity-description">
+                      {{ activity.description }}
+                    </p>
+                    <button class="add-btn" @click.stop="addActivity(index)">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attraction Section -->
+            <h5 class="activity-category-title text-start">Attraction</h5>
+            <div class="activity-list">
+              <div
+                v-for="(activity, index) in potentialActivities.filter(
+                  (a) => a.type === 'attraction'
+                )"
+                :key="activity.id"
+                class="activity-card attraction"
+                @click="editPotentialActivity(index)"
+              >
+                <div class="activity-content-columns">
+                  <!-- Left Column -->
+                  <div class="activity-column-left">
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-image-wrapper">
+                      <img
+                        :src="activity.activity_pic_url"
+                        alt="Activity Image"
+                        class="activity-image"
+                      />
+                      <div class="activity-text-overlay">
+                        <p class="activity-location">{{ activity.location }}</p>
+                        <p class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </p>
+                        <p class="activity-time">
+                          {{ formatPotentialTime(activity.start_time) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Right Column -->
+                  <div class="activity-column-right">
+                    <h2 class="activity-name">{{ activity.name }}</h2>
+                    <div class="suggested-by">
+                      <img
+                        :src="activity.profile_pic_url"
+                        alt="Profile"
+                        class="profile-pic"
+                      />
+                      <span class="suggested-name">{{
+                        activity.username
+                      }}</span>
+                    </div>
+                    <p class="activity-description">
+                      {{ activity.description }}
+                    </p>
+                    <button class="add-btn" @click.stop="addActivity(index)">
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-
-
+          <div class="left-section" v-else>
+            <!-- Explore content -->
+            <Explore></Explore>
+          </div>
         </div>
+      </div>
+      <!-- Collapse Button -->
+      <button class="collapse-btn" @click="isCollapsed = !isCollapsed">
+        <span class="collapse-arrow">
+          {{ isCollapsed ? (isMobile ? "↓" : "→") : isMobile ? "↑" : "←" }}
+        </span>
+      </button>
 
       <!-- Right Section -->
       <div v-if="calendarApp" class="right-section">
@@ -1136,383 +2218,466 @@ function switchTab(tab) {
     </div>
 
     <!-- Modal  -->
-    <!-- create/edit activity modal -->
-    <div v-if="showModal" class="modal-overlay">
-      <div class="modal">
-        <h2>{{ newActivity.id ? "Edit Activity" : "New Activity" }}</h2>
-
-        <div class="container-bar">
-          <input v-model="newActivity.title" placeholder="Activity Title" />
-        </div>
-
-        <div class="container-bar">
-          <textarea v-model="newActivity.description" placeholder="Description"></textarea>
-        </div>
-
-        <div class="container-bar">
-          <input v-model="newActivity.location" placeholder="Location" />
-        </div>
-
-        <div class="container-bar">
-          <input 
-            type="date" 
-            v-model="newActivity.date" 
-            :min="startDate" 
-            :max="endDate" 
-          />
-        </div>
-
-        <div class="container-bar">
-          <div class="start-date">All day</div>
-          <VueToggles v-model="isChecked" />
-        </div>
-
-        <div v-if="!isChecked">
-          <div class="container-bar">
-            <div class="start-date">Start</div>
-            <div class="datetime-wrapper">
-              <input type="time" v-model="newActivity.startTime" />
-            </div>
-          </div>
-
-          <div class="container-bar">
-            <div class="start-date">End</div>
-            <div class="datetime-wrapper">
-              <input type="time" v-model="newActivity.endTime" />
-            </div>
-          </div>
-        </div>
-
-        <!-- 🟥 Error Message: End time earlier than start time -->
-        <p v-if="isTimeInvalid" style="color: red; font-size: 0.9rem; margin-left: 10px;">
-          End time cannot be earlier than start time.
-        </p>
-
-        <div class="modal-actions">
-         <button 
-            @click="newActivity.id ? saveEditedPotentialActivity() : saveActivity()"
-            :disabled="
-              !newActivity.title || 
-              newActivity.title.trim() === '' || 
-              !newActivity.location || 
-              !newActivity.date || 
-              (!isChecked && (!newActivity.startTime || !newActivity.endTime)) ||
-                (!isChecked && isTimeInvalid)
-            "
-          >
-            Save
-          </button>
-          <button @click="closeModal">Cancel</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Itinerary Modal -->
-    <div v-if="showEditModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Edit Itinerary Details</h2>
-        <div class="container-bar">
-        <input v-model="editItinerary.name" placeholder="Itinerary Name" />
-        </div>
-        <div class="container-bar">
-        <input v-model="editItinerary.location" placeholder="Location" />
-        </div>
-        <div class="container-bar">
-          <input
-            type="date"
-            v-model="editItinerary.start_date"
-          />
-        </div>
-        <div class="container-bar">
-            <input
-              type="date"
-              v-model="editItinerary.end_date"
-              :min="editItinerary.start_date"
-            />
-        </div>
-        <div class="modal-actions">
-          <button @click="saveItineraryChanges" >Save Changes</button>
-          <button @click="closeEditModal">Cancel</button>
-        </div>``
-      </div>
-    </div>
-
-    <!-- View Members Modal -->
-    <div v-if="showMembersModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Members</h2>
-        
-        <!-- Owner Info -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
-          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-            <img :src="ownerProfile.picture" alt="Owner's Profile Picture"
-                style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
-            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
-                {{ ownerProfile.name }}
-              </span>
-              <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
-                @{{ ownerProfile.username }}
-              </span>
-            </div>
-          </div>
-          <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #03AED2; font-weight: 800;">
-            Owner
-          </span>
-        </div>
-
-        <!-- Members List -->
-        <div v-for="member in members" :key="member.username"
-            style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 0 20px;">
-          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-            <img :src="member.profile_pic_url" alt="Member's Profile Picture"
-                style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%;">
-            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              <span style="font-family: 'Sarabun', sans-serif; font-weight: 800; font-size: 12px; color: #000; display: block;">
-                {{ member.full_name }}
-              </span>
-              <span style="font-family: 'Sarabun', sans-serif; font-size: 12px; color: #A8A6A6; display: block;">
-                @{{ member.username }}
-              </span>
-            </div>
-          </div>
-          <span style="font-family: 'Sarabun', sans-serif; font-size: 14px; color: #A8A6A6;">
-            Member
-          </span>
-        </div>
-
-        <div class="modal-actions">
-          <button @click="closeMembersModal">Close</button>
-        </div>
-      </div>
-    </div>
-
+    <NewActivity
+      v-if="showModal"
+      :showModal="showModal"
+      :newActivity="newActivity"
+      :activityPicName="activityPicName"
+      :isChecked="isChecked"
+      :startDate="startDate"
+      :endDate="endDate"
+      :isTimeInvalid="isTimeInvalid"
+      :isSaving="isSaving"
+      :hasChangesPotential="hasChangesPotential"
+      @closeModal="closeModal"
+      @saveActivity="saveActivity"
+      @imageUpload="handleImageUpload"
+      @saveEditedPotentialActivity="saveEditedPotentialActivity"
+    />
+    <EditItineraryDetails
+      :show="showEditModal"
+      :itinerary="editItinerary"
+      :originalItinerary="originalItineraryDetails"
+      :ownerProfile="ownerProfile"
+      :hasChangesItinerary="hasChangesItinerary"
+      @close="closeEditModal"
+      @save="saveItineraryChanges"
+    />
   </div>
 
   <!-- Show Activity Modal -->
   <div v-if="showActivityModal" class="activity-modal-overlay">
-    <div class="activity-modal" style="max-height: 90vh; padding: 1rem;">
-      
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h3 class="modal-title text-center">
-          <template v-if="!isEditingActivity">{{ newActivity.title }}</template>
-          <input
-            v-else
-            v-model="newActivity.title"
-            class="form-control"
-            placeholder="Enter activity title"
-          />
-        </h3>
+    <div class="activity-modal" style="max-height: 90vh; padding: 1rem">
+      <div class="modal-header activity-modal-header px-3">
+        <!-- Title on the left -->
+        <h5 class="modal-title mb-0">{{ newActivity.title }}</h5>
+
+        <!-- Centered Tabs -->
+        <div class="tab-buttons d-flex justify-content-center flex-grow-1">
+          <button
+            class="btn custom-tab"
+            :class="{ 'active-tab': selectedActivityTab === 'details' }"
+            @click="selectedActivityTab = 'details'"
+          >
+            Details
+          </button>
+          <button
+            class="btn custom-tab"
+            :class="{ 'active-tab': selectedActivityTab === 'votes' }"
+            @click="selectedActivityTab = 'votes'"
+          >
+            Votes
+          </button>
+          <button
+            class="btn custom-tab"
+            :class="{ 'active-tab': selectedActivityTab === 'notes' }"
+            @click="selectedActivityTab = 'notes'"
+          >
+            Notes
+          </button>
+        </div>
+        <button
+          type="button"
+          class="btn-close"
+          @click="closeActivityModal"
+        ></button>
       </div>
 
       <!-- Modal Body -->
-      <div class="modal-body" style="overflow-y: auto; padding: 20px;">
-        <div>  
-          <!-- Details -->
+      <div class="modal-body" style="overflow-y: auto; padding: 20px">
+        <div v-if="selectedActivityTab === 'details'">
+          <!-- your details fields like title, description, date, etc. -->
+          <div class="activity-form-wrapper">
+            <!-- TOP ROW: Photo | Title + Location -->
+            <div class="activity-top-row">
+              <!-- Activity Photo -->
+              <!-- Title and Location on the left -->
+              <div class="activity-text-info">
+                <!-- Title -->
+                <div class="field-box">
+                  <label class="field-label">Activity Title</label>
+                  <input
+                    v-model="newActivity.title"
+                    type="text"
+                    class="field-input"
+                    placeholder="Enter activity title"
+                  />
+                </div>
+
+                <!-- Location -->
+                <div class="field-box">
+                  <label class="field-label">Location</label>
+                  <input
+                    v-model="newActivity.location"
+                    type="text"
+                    class="field-input"
+                    placeholder="Enter location"
+                  />
+                </div>
+                <div class="field-box">
+                  <label class="field-label">Description</label>
+                  <div class="textarea-wrapper">
+                    <textarea
+                      v-model="newActivity.description"
+                      maxlength="70"
+                      class="field-input description-textarea"
+                      rows="2"
+                      placeholder="Enter description"
+                    ></textarea>
+                    <span class="char-counter"
+                      >{{ newActivity.description.length }}/70</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Activity Photo on the right -->
+              <div class="activity-photo-wrapper">
+                <div class="trip-edit-center-wrapper">
+                  <label class="trip-edit-dropzone">
+                    <!-- If image is uploaded -->
+                    <div
+                      v-if="newActivity.activity_pic_url"
+                      class="trip-edit-img-wrapper"
+                    >
+                      <img
+                        :src="newActivity.activity_pic_url"
+                        alt="Activity Image"
+                        class="trip-edit-current-img"
+                      />
+                      <button
+                        class="trip-edit-remove-img"
+                        @click.stop.prevent="removePhoto"
+                        aria-label="Remove activity image"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <!-- If no image yet -->
+                    <div v-else class="trip-edit-placeholder">
+                      <img
+                        src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets/default_trip_photo.jpeg"
+                        alt="Default Placeholder"
+                        class="trip-edit-default-icon"
+                      />
+                      <span class="trip-edit-placeholder-text">
+                        Upload your activity image
+                      </span>
+                    </div>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      @change="onImageChange"
+                      class="trip-edit-file-hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- The rest below (Description, Date, Time, Type) -->
+            <!-- Description -->
+
+            <!-- Date -->
+                <div class="field-box">
+                  <label class="field-label">Date</label>
+                  <input
+                    v-model="newActivity.date"
+                    type="date"
+                    :min="startDate"
+                    :max="endDate"
+                    class="field-input"
+                  />
+                </div>
+            <!-- Start and End Time -->
+            <div class="time-row">
+              <div class="field-box">
+                <label class="field-label">Start Time</label>
+                <input
+                  v-model="newActivity.startTime"
+                  type="time"
+                  class="field-input"
+                />
+              </div>
+
+              <div class="field-box">
+                <label class="field-label">End Time</label>
+                <input
+                  v-model="newActivity.endTime"
+                  type="time"
+                  class="field-input"
+                />
+              </div>
+            </div>
+
+            <!-- Time error -->
+            <p v-if="isTimeInvalid && isEditingActivity" class="time-error">
+              End time cannot be earlier than start time.
+            </p>
+
+            <!-- Type Selection -->
+            <div class="type-options-row">
+              <div
+                class="type-box transportation"
+                :class="{ selected: newActivity.type === 'transportation' }"
+                @click="newActivity.type = 'transportation'"
+              >
+                Transportation
+              </div>
+              <div
+                class="type-box accommodation"
+                :class="{ selected: newActivity.type === 'accommodation' }"
+                @click="newActivity.type = 'accommodation'"
+              >
+                Accommodation
+              </div>
+              <div
+                class="type-box attraction"
+                :class="{ selected: newActivity.type === 'attraction' }"
+                @click="newActivity.type = 'attraction'"
+              >
+                Attraction
+              </div>
+              <div
+                class="type-box food"
+                :class="{ selected: newActivity.type === 'food' }"
+                @click="newActivity.type = 'food'"
+              >
+                Food
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="selectedActivityTab === 'votes'">
+          <!-- Votes -->
           <div class="details-header">
-            <strong>Details</strong>
+            <strong>Votes</strong>
           </div>
 
-          <!-- Description -->
-          <div class="detail-item" style="text-align: left; margin-left: 10px;">
-            <strong style="color: #3f3e3e; font-size: 1rem;">Description:</strong>
-            <template v-if="!isEditingActivity">
-              {{ newActivity.description || '-' }}
-            </template>
-            <textarea
-              v-else
-              v-model="newActivity.description"
-              class="form-control"
-              rows="2"
-              placeholder="Enter description"
-            ></textarea>
-          </div>
-
-          <!-- Location -->
-          <div class="detail-item" style="text-align: left; margin-left: 10px;">
-            <strong style="color: #3f3e3e; font-size: 1rem;">Location:</strong>
-            <template v-if="!isEditingActivity">
-              {{ newActivity.location || '-' }}
-            </template>
-            <input
-              v-else
-              v-model="newActivity.location"
-              class="form-control"
-              placeholder="Enter location"
-            />
-          </div>
-
-          <!-- Date -->
-          <div class="detail-item" style="text-align: left; margin-left: 10px;">
-            <strong style="color: #3f3e3e; font-size: 1rem;">Date:</strong>
-            <template v-if="!isEditingActivity">
-              {{ newActivity.date || '-' }}
-            </template>
-            <input
-              v-else
-              v-model="newActivity.date"
-              type="date"
-              class="form-control"
-              :min="startDate" 
-              :max="endDate" 
-            />
-          </div>
-
-          <!-- Start Time -->
-          <div class="detail-item" style="text-align: left; margin-left: 10px;">
-            <strong style="color: #3f3e3e; font-size: 1rem;">Start Time:</strong>
-            <template v-if="!isEditingActivity">
-              {{ newActivity.startTime || '-' }}
-            </template>
-            <input
-              v-else
-              v-model="newActivity.startTime"
-              type="time"
-              class="form-control"
-            />
-          </div>
-
-          <!-- End Time -->
-          <div class="detail-item" style="text-align: left; margin-left: 10px;">
-            <strong style="color: #3f3e3e; font-size: 1rem;">End Time:</strong>
-            <template v-if="!isEditingActivity">
-              {{ newActivity.endTime || '-' }}
-            </template>
-            <input
-              v-else
-              v-model="newActivity.endTime"
-              type="time"
-              class="form-control"
-            />
-          </div>
-
-          <!-- 🟥 Error Message: End time earlier than start time -->
-          <p v-if="isTimeInvalid && isEditingActivity" style="color: red; font-size: 0.9rem; margin-left: 10px; margin-top: 50px;">
-            End time cannot be earlier than start time.
-          </p>
-
-        </div>
-        <!-- Votes -->
-        <div class="details-header" style="margin-top: 1.5rem;">
-          <strong>Votes</strong>
-        </div>
-
-        <div class="d-flex justify-content-center mt-3">
-          <div style="width: 100%; max-width: 600px; padding: 1rem; border: 1px solid #ddd; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background-color: #fff;">
-            
-            <!-- Vote Bars -->
-            <div class="mb-3">
-              <div class="d-flex align-items-center mb-2">
-                <span style="width: 50px;" class="text-end pe-2">Yes</span>
-                <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                  <div class="bg-success rounded-pill shadow-sm" 
-                    :style="{ height: '100%', width: yesPercentage + '%', transition: 'width 0.3s' }"
-                  ></div>
+          <div class="d-flex justify-content-center mt-3">
+            <div
+              style="
+                width: 100%;
+                max-width: 600px;
+                padding: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                background-color: #fff;
+              "
+            >
+              <!-- Vote Bars -->
+              <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                  <span style="width: 50px" class="text-end pe-2">Yes</span>
+                  <div
+                    class="flex-grow-1 bg-light rounded-pill shadow-sm"
+                    style="height: 12px; position: relative"
+                  >
+                    <div
+                      class="bg-success rounded-pill shadow-sm"
+                      :style="{
+                        height: '100%',
+                        width: yesPercentage + '%',
+                        transition: 'width 0.3s',
+                      }"
+                    ></div>
+                  </div>
+                  <span class="ms-2 text-muted small"
+                    >{{ yesVotes }} votes</span
+                  >
                 </div>
-                <span class="ms-2 text-muted small">{{ yesVotes }} votes</span>
+                <div class="d-flex align-items-center">
+                  <span style="width: 50px" class="text-end pe-2">No</span>
+                  <div
+                    class="flex-grow-1 bg-light rounded-pill shadow-sm"
+                    style="height: 12px; position: relative"
+                  >
+                    <div
+                      class="bg-danger rounded-pill shadow-sm"
+                      :style="{
+                        height: '100%',
+                        width: noPercentage + '%',
+                        transition: 'width 0.3s',
+                      }"
+                    ></div>
+                  </div>
+                  <span class="ms-2 text-muted small">{{ noVotes }} votes</span>
+                </div>
               </div>
-              <div class="d-flex align-items-center">
-                <span style="width: 50px;" class="text-end pe-2">No</span>
-                <div class="flex-grow-1 bg-light rounded-pill shadow-sm" style="height: 12px; position: relative;">
-                  <div class="bg-danger rounded-pill shadow-sm" 
-                    :style="{ height: '100%', width: noPercentage + '%', transition: 'width 0.3s' }"
-                  ></div>
-                </div>
-                <span class="ms-2 text-muted small">{{ noVotes }} votes</span>
+
+              <!-- Voting Buttons -->
+              <div class="d-flex justify-content-center gap-2">
+                <button
+                  class="btn btn-outline-success btn-sm px-3"
+                  @click="vote('yes')"
+                >
+                  Yes
+                </button>
+                <button
+                  class="btn btn-outline-danger btn-sm px-3"
+                  @click="vote('no')"
+                >
+                  No
+                </button>
+              </div>
+
+              <!-- Vote Status -->
+              <div class="text-center mt-2 text-muted small" v-if="!userVoted">
+                You haven't voted yet.
+              </div>
+              <div class="text-center mt-2 text-muted small" v-else>
+                You voted: {{ userVote }}.
               </div>
             </div>
-
-            <!-- Voting Buttons -->
-            <div class="d-flex justify-content-center gap-2">
-              <button class="btn btn-outline-success btn-sm px-3" @click="vote('yes')">Yes</button>
-              <button class="btn btn-outline-danger btn-sm px-3" @click="vote('no')">No</button>
-            </div>
-
-            <!-- Vote Status -->
-            <div class="text-center mt-2 text-muted small" v-if="!userVoted">
-              You haven't voted yet.
-            </div>
-            <div class="text-center mt-2 text-muted small" v-else>
-              You voted: {{ userVote }}.
-            </div>
           </div>
         </div>
 
-        <!-- Comments -->
-        <div class="details-header mt-4">
-          <strong>Notes</strong>
-        </div>
+        <div v-if="selectedActivityTab === 'notes'">
+          <!-- Comments -->
+          <div class="details-header">
+            <strong>Notes</strong>
+          </div>
 
-        <div class="mt-3 d-flex" style="width: 100%; max-width: 600px;">
-          <input
-            v-model="newComment"
-            type="text"
-            id="noteInput"
-            placeholder="Add a comment..."
-            style="flex-grow: 1; height: 40px; padding: 10px; border: 1px solid #ccc; border-radius: 15px; font-size: 14px; margin-left: 25px; width: calc(100% - 60px); box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);"
-          />
-          <button class="btn btn-outline-primary ms-2" @click="addComment" type="submit">
-            <i class="fas fa-pencil-alt"></i>
-          </button>
-        </div>
+          <div class="mt-3 d-flex" style="width: 100%; max-width: 600px">
+            <input
+              v-model="newComment"
+              type="text"
+              id="noteInput"
+              placeholder="Add a comment..."
+              style="
+                flex-grow: 1;
+                height: 40px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 15px;
+                font-size: 14px;
+                margin-left: 25px;
+                width: calc(100% - 60px);
+                box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+              "
+            />
+            <button
+              class="btn btn-outline-primary ms-2"
+              @click="addComment"
+              type="submit"
+            >
+              <i
+                class="fas fa-pencil-alt"
+                style="color: #03aed2; border-color: #03aed2"
+              ></i>
+            </button>
+          </div>
 
-        <!-- Comment List -->
-        <div class="mt-3 d-flex flex-column align-items-center" v-if="comments.length">
+          <!-- Comment List -->
           <div
-            v-for="comment in comments"
-            :key="comment.id"
-            class="note-card shadow-sm mb-3"
-            style="width: 80%; max-width: 800px; padding: 15px; border-radius:20px; background-color: #f0f0f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);"
+            class="mt-3 d-flex flex-column align-items-center"
+            v-if="comments.length"
           >
-            <div class="d-flex align-items-start">
-              <img
-                :src="comment.commenter?.profile_pic_url || 'default-avatar.png'"
-                alt="Profile Picture"
-                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px;"
-              />
-              <div style="flex: 1;">
-                <div class="d-flex justify-content-between">
-                  <small class="text-muted">
-                    {{ comment.commenter?.username || 'Anonymous' }}
-                  </small>
-                  <small class="text-muted">
-                    {{ formatTime(comment.created_at) }}
-                  </small>
-                </div>
-                <div class="mt-1" style="text-align: left;">
-                  {{ comment.comment }}
+            <div
+              v-for="comment in comments"
+              :key="comment.id"
+              class="note-card shadow-sm mb-3"
+              style="
+                width: 80%;
+                max-width: 800px;
+                padding: 15px;
+                border-radius: 20px;
+                background-color: #f0f0f0;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+              "
+            >
+              <div class="d-flex align-items-start">
+                <img
+                  :src="
+                    comment.commenter?.profile_pic_url || 'default-avatar.png'
+                  "
+                  alt="Profile Picture"
+                  style="
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    margin-right: 10px;
+                  "
+                />
+                <div style="flex: 1">
+                  <div class="d-flex justify-content-between">
+                    <small class="text-muted">
+                      {{ comment.commenter?.username || "Anonymous" }}
+                    </small>
+                    <small class="text-muted">
+                      {{ formatTime(comment.created_at) }}
+                    </small>
+                  </div>
+                  <div class="mt-1" style="text-align: left">
+                    {{ comment.comment }}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <div
+            class="mt-3 text-muted"
+            v-else
+            style="text-align: center; font-style: italic"
+          >
+            No notes here.
+          </div>
         </div>
-
-      </div> <!-- end modal-body -->
+      </div>
+      <!-- end modal-body -->
 
       <!-- Modal Footer -->
-      <div class="modal-footer">
-        <button v-if="isEditingActivity" class="btn btn-danger" @click="deleteActivity">Delete</button>
-        <button v-if="!isEditingActivity" class="btn btn-primary" @click="startEditingActivity">Edit</button>
-        <button v-if="isEditingActivity"     
-            :disabled="isTimeInvalid || !newActivity.startTime || !newActivity.endTime"
-            class="btn btn-success" 
-            @click="saveEditedActivity">
-            Save
-            </button>
-        <button v-if="isEditingActivity" class="btn btn-warning" @click="cancelEditingActivity">Cancel</button>
-        <button class="btn btn-secondary" @click="closeActivityModal">Close</button>
+      <div class="modal-footer-act justify-content-between border-top">
+        <button class="btn custom-delete" @click="deleteActivity">
+          <i class="bi bi-trash-fill me-1 delete-icon"></i> Delete
+        </button>
+
+        <button
+          class="btn custom-save"
+          :disabled="
+            !newActivity.title ||
+            newActivity.title.trim() === '' ||
+            !newActivity.location ||
+            !newActivity.description ||
+            !newActivity.date ||
+            (!isChecked && (!newActivity.startTime || !newActivity.endTime)) ||
+            (!isChecked && isTimeInvalid) ||
+            !hasActivityChanged
+          "
+          @click="saveEditedActivity"
+        >
+          <i class="bi bi-check-circle-fill me-1 save-icon"></i> Save
+        </button>
       </div>
+    </div>
+    <!-- end .activity-modal -->
+  </div>
+  <!-- end .activity-modal-overlay -->
 
-    </div> <!-- end .activity-modal -->
-  </div> <!-- end .activity-modal-overlay -->
-
-
-  
-
+  <!-- View Members Modal -->
+  <InviteModal
+    :show-members-modal="showMembersModal"
+    :owner-profile="ownerProfile"
+    :current-user="currentUser"
+    :itinerary-name="itineraryName"
+    :members="tripMembers"
+    :loading="loading"
+    @closeMembersModal="closeMembersModal"
+    @toggleMenu="toggleMenu"
+    @deletePost="deletePost"
+    @leaveTrip="leaveTrip"
+    @sendInvite="sendInvite"
+    @removeMember="removeMember"
+    @editField="editField"
+    @switchInviteTab="switchInviteTab"
+  />
 </template>
 
 <style scoped>
 @import "../assets/styles/edititinerary.css"; /* Import external CSS file */
 </style>
-
