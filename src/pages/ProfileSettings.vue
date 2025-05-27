@@ -309,7 +309,7 @@ export default {
     },
     async logout() {
       await supabase.auth.signOut();
-      this.$router.replace("/login");
+      this.$router.replace("/Landing");
     },
     async DeleteAccount() {
       try {
@@ -328,12 +328,12 @@ export default {
         const userEmail = userData.user.email;
 
         // Step 2: Soft delete the user in Profile (case-sensitive table/column names)
-        const { error: updateError } = await supabase
-          .from("profiles") // case-sensitive table
-          .update({ deleted: true })
-          .eq("id", userId); // case-sensitive column
+        // const { error: updateError } = await supabase
+        //   .from("profiles") // case-sensitive table
+        //   .update({ deleted: true })
+        //   .eq("id", userId); // case-sensitive column
 
-        if (updateError) throw new Error("Failed to mark account as deleted.");
+        // if (updateError) throw new Error("Failed to mark account as deleted.");
 
         // Step 3: Delete user-related data
 
@@ -464,6 +464,42 @@ export default {
             }
           }
         }
+
+                // Remove trip invites to user
+        const { error: ProfileError } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", userId);
+        if (ProfileError) throw new Error("Failed to delete profile.");
+
+        console.log("Deleting Auth Now")
+        // Final step: Delete user from Supabase Auth
+        const { data: { session } } = await supabase.auth.getSession();
+        const accessToken = session?.access_token;
+
+        if (!accessToken) {
+          console.error("No access token found");
+          this.errorMessage = "You must be logged in to delete account.";
+          return;
+        }
+
+        const response = await fetch('https://hqhlhotapzwxyqsofqwz.supabase.co/functions/v1/delete-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,  // << this is the key part
+          },
+          body: JSON.stringify({ id: userId }),
+        });
+        console.log("Response:", response, response.ok);
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to delete user from Auth:", result.error);
+          this.errorMessage = "Account cleanup failed at auth level.";
+          return;
+        }
+
 
         console.log("Account marked as deleted and all related data cleaned.");
         this.logout();
