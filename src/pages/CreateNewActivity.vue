@@ -905,3 +905,4 @@ input:checked + .slider:before {
   }
 }
 </style>
+

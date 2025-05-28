@@ -77,6 +77,7 @@
               v-model="localItinerary.end_date"
               :min="localItinerary.start_date"
             />
+            
           </div>
           <p
             v-if="errors.start_date || errors.end_date"
@@ -131,30 +132,25 @@
       </div>
       <!-- Action Buttons -->
       <footer class="trip-edit-footer">
-        <div
-          class="trip-edit-actions d-flex align-items-center justify-content-between"
-        >
-          <button class="cancel-button" @click="closeEditModal">Cancel</button>
+  <div class="trip-edit-actions d-flex align-items-center justify-content-between">
+    <button class="cancel-button" @click="closeEditModal">Cancel</button>
 
-          <div class="flex-grow-1 d-flex justify-content-center">
-            <p
-              v-if="errors.name"
-              class="trip-edit-error text-center m-0"
-              style="margin-left: 10px"
-            >
-              {{ errors.name }}
-            </p>
-          </div>
+    <div class="flex-grow-1 d-flex justify-content-center">
+      <p v-if="errors.name" class="trip-edit-error text-center m-0" style="margin-left: 10px;">
+        {{ errors.name }}
+      </p>
+    </div>
 
-          <button
-            class="publish-button"
-            @click="saveItineraryChanges"
-            :disabled="!hasChanges"
-          >
-            Save Changes
-          </button>
-        </div>
-      </footer>
+    <button
+      class="publish-button"
+      @click="saveItineraryChanges"
+      :disabled="!hasChanges"
+    >
+      Save Changes
+    </button>
+  </div>
+</footer>
+
     </div>
   </div>
 </template>
@@ -304,13 +300,12 @@ const removePhoto = () => {
 
 <style scoped>
 /* ========== BASE STYLES ========== */
-html,
-body {
-  overflow: hidden; /* Prevents scrolling */
-  margin: 0; /* Removes default margin */
-  padding: 0; /* Removes default padding */
-  height: 100%; /* Makes html/body fill the viewport height */
-  font-family: "Sarabun", sans-serif !important; /* Sets the font */
+html, body {
+  overflow: hidden;         /* Prevents scrolling */
+  margin: 0;                /* Removes default margin */
+  padding: 0;               /* Removes default padding */
+  height: 100%;             /* Makes html/body fill the viewport height */
+  font-family: "Sarabun", sans-serif !important;  /* Sets the font */
 }
 /* Modal Overlay */
 .trip-edit-overlay {
