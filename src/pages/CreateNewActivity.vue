@@ -20,6 +20,7 @@
               <label>Activity Photo</label>
               <div class="trip-edit-center-wrapper">
                 <label class="trip-edit-dropzone">
+                  
                   <!-- If image is uploaded -->
                   <div
                     v-if="newActivity.activity_pic_url"
@@ -29,6 +30,7 @@
                       :src="newActivity.activity_pic_url"
                       alt="Activity Image"
                       class="trip-edit-current-img"
+                      @load="isLoading = false"
                     />
                     <button
                       class="trip-edit-remove-img"
@@ -39,8 +41,12 @@
                     </button>
                   </div>
 
-                  <!-- If no image yet -->
-                  <div v-else class="trip-edit-placeholder">
+                  <!-- Placeholder only if there's no image and not loading -->
+                  <!-- Placeholder only if there's no image and not loading -->
+                  <div
+                    v-else-if="!newActivity.activity_pic_url && !isLoading"
+                    class="trip-edit-placeholder"
+                  >
                     <img
                       src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets/default_trip_photo.jpeg"
                       alt="Default Placeholder"
@@ -49,6 +55,11 @@
                     <span class="trip-edit-placeholder-text">
                       Upload your activity image
                     </span>
+                  </div>
+
+                  <!-- Optional: show a loading spinner while image is uploading -->
+                  <div v-else-if="isLoading" class="trip-edit-placeholder">
+                    <span class="trip-edit-placeholder-text">Uploading...</span>
                   </div>
 
                   <!-- Hidden file input -->
@@ -240,6 +251,7 @@
               </button>
               <!-- Remove :disabled -->
               <button
+              :disabled="isSaving"
                 @click="
                   newActivity.id
                     ? saveEditedPotentialActivity()
@@ -262,6 +274,8 @@ import { ref, watch } from "vue";
 const formErrors = ref([]);
 const formSubmitted = ref(false);
 import { onMounted, onUnmounted } from "vue";
+
+const isLoading = ref(false);
 
 const props = defineProps([
   "showModal",
@@ -313,10 +327,27 @@ const closeModal = () => {
   emit("closeModal");
 };
 
-// ✅ Image upload handler for file input
 const onImageChange = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  isLoading.value = true;
+
+  reader.onload = (e) => {
+    props.newActivity.activity_pic_url = e.target.result;
+    // Wait a bit to ensure the DOM updates and triggers @load
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 300); // delay to help avoid rendering conflict
+  };
+
+  reader.readAsDataURL(file);
+
+  // Optional: emit to parent if needed
   emit("imageUpload", event);
 };
+
 
 const isFormValid = () => {
   const activity = props.newActivity;
@@ -333,7 +364,7 @@ const isFormValid = () => {
 const saveActivity = () => {
   formSubmitted.value = true; // 👈 this triggers error messages
   if (!isFormValid()) return; // ❌ don't emit if form is invalid
-  emit("saveActivity");       // ✅ emit only if valid
+  emit("saveActivity"); // ✅ emit only if valid
 };
 
 const saveEditedPotentialActivity = () => {
@@ -903,6 +934,29 @@ input:checked + .slider:before {
     text-align: center;
     margin-bottom: 1rem;
   }
+
+  .spinner {
+    border: 4px solid #ccc;
+    border-top: 4px solid #333;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 8px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .uploading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
 }
 </style>
-

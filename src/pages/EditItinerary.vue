@@ -266,6 +266,7 @@ const fetchItineraryData = async () => {
 
 // mode can be either 'edit' or 'new'
 async function handleImageUpload(event, mode = "new") {
+  isSaving.value = true;
   const file = event.target.files[0];
   console.log("Selected file:", file);
 
@@ -318,6 +319,7 @@ async function handleImageUpload(event, mode = "new") {
     console.warn("⚠️ Unknown mode passed to handleImageUpload");
   }
 
+  isSaving.value = false;
   console.log("✅ Image uploaded successfully!", publicUrl);
 }
 
@@ -794,7 +796,9 @@ const saveActivity = async () => {
     return;
   }
   closeModal();
-  await fetchPotentialActivities();
+  fetchPotentialActivities();
+  fetchActivities();
+  window.location.reload();
 };
 
 const fetchPotentialActivities = async () => {
