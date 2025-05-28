@@ -10,10 +10,16 @@
               v-model="localItinerary.name"
               @blur="editNameMode = false"
             />
-            
           </template>
           <template v-else>
-            <h2 class="trip-edit-title">{{ localItinerary.name }}</h2>
+            <h2 class="trip-edit-title">
+              {{
+                localItinerary.name.length > 20
+                  ? localItinerary.name.substring(0, 20) + "..."
+                  : localItinerary.name
+              }}
+            </h2>
+
             <button class="trip-edit-icon" @click="editNameMode = true">
               <i class="bi bi-pencil-fill"></i>
             </button>
@@ -48,11 +54,10 @@
               v-model="localItinerary.location"
               placeholder="Location"
             />
-        
           </div>
           <p v-if="errors.location" class="trip-edit-error">
-              {{ errors.location }}
-            </p>
+            {{ errors.location }}
+          </p>
         </div>
 
         <!-- Duration Dates -->
@@ -72,14 +77,13 @@
               v-model="localItinerary.end_date"
               :min="localItinerary.start_date"
             />
-            
           </div>
           <p
-              v-if="errors.start_date || errors.end_date"
-              class="trip-edit-error"
-            >
-              {{ errors.start_date || errors.end_date }}
-            </p>
+            v-if="errors.start_date || errors.end_date"
+            class="trip-edit-error"
+          >
+            {{ errors.start_date || errors.end_date }}
+          </p>
         </div>
 
         <!-- Trip Picture -->
@@ -127,25 +131,30 @@
       </div>
       <!-- Action Buttons -->
       <footer class="trip-edit-footer">
-  <div class="trip-edit-actions d-flex align-items-center justify-content-between">
-    <button class="cancel-button" @click="closeEditModal">Cancel</button>
+        <div
+          class="trip-edit-actions d-flex align-items-center justify-content-between"
+        >
+          <button class="cancel-button" @click="closeEditModal">Cancel</button>
 
-    <div class="flex-grow-1 d-flex justify-content-center">
-      <p v-if="errors.name" class="trip-edit-error text-center m-0" style="margin-left: 10px;">
-        {{ errors.name }}
-      </p>
-    </div>
+          <div class="flex-grow-1 d-flex justify-content-center">
+            <p
+              v-if="errors.name"
+              class="trip-edit-error text-center m-0"
+              style="margin-left: 10px"
+            >
+              {{ errors.name }}
+            </p>
+          </div>
 
-    <button
-      class="publish-button"
-      @click="saveItineraryChanges"
-      :disabled="!hasChanges"
-    >
-      Save Changes
-    </button>
-  </div>
-</footer>
-
+          <button
+            class="publish-button"
+            @click="saveItineraryChanges"
+            :disabled="!hasChanges"
+          >
+            Save Changes
+          </button>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
@@ -295,12 +304,13 @@ const removePhoto = () => {
 
 <style scoped>
 /* ========== BASE STYLES ========== */
-html, body {
-  overflow: hidden;         /* Prevents scrolling */
-  margin: 0;                /* Removes default margin */
-  padding: 0;               /* Removes default padding */
-  height: 100%;             /* Makes html/body fill the viewport height */
-  font-family: "Sarabun", sans-serif !important;  /* Sets the font */
+html,
+body {
+  overflow: hidden; /* Prevents scrolling */
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
+  height: 100%; /* Makes html/body fill the viewport height */
+  font-family: "Sarabun", sans-serif !important; /* Sets the font */
 }
 /* Modal Overlay */
 .trip-edit-overlay {
@@ -517,7 +527,7 @@ html, body {
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  margin-top:-15px
+  margin-top: -15px;
 }
 
 .publish-button {
@@ -678,8 +688,6 @@ html, body {
     width: 60px;
     height: 60px;
   }
-
-
 }
 
 @media (min-width: 768px) {
@@ -695,5 +703,4 @@ html, body {
     border-radius: 48px 48px 0 0;
   }
 }
-
 </style>

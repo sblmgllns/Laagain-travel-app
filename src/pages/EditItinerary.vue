@@ -222,7 +222,7 @@ const setupRealtime = () => {
 function formatDate(dateString) {
   const options = { year: "numeric", month: "long", day: "numeric" };
   const formatted = new Date(dateString).toLocaleDateString("en-US", options);
-  return formatted.replace(",", "").toUpperCase(); // returns e.g. "APRIL 14 2025"
+  return formatted.replace(",", ""); // returns e.g. "APRIL 14 2025"
 }
 
 ///TIME FORMAT
@@ -485,7 +485,7 @@ const saveItineraryChanges = async (updatedItinerary) => {
     // 5. Refresh any dependent data
     await fetchPotentialActivities(); // Your existing data fetching function
     await fetchActivities();
-    window.location.reload();
+    fetchItineraryData();
     console.log("Successfully saved itinerary");
   } catch (error) {
     console.error("Error saving itinerary:", error);
@@ -558,6 +558,8 @@ const addActivity = async (index) => {
       date: selectedActivity.date,
       start_time: startTimestamp,
       end_time: endTimestamp,
+      activity_pic_url: selectedActivity.activity_pic_url,
+      type: selectedActivity.type,
     },
   ]);
 
@@ -587,7 +589,9 @@ const addActivity = async (index) => {
 const fetchActivities = async () => {
   const { data, error } = await supabase
     .from("activities")
-    .select("id, name, date, start_time, end_time, description, location")
+    .select(
+      "id, name, date, start_time, end_time, description, location, activity_pic_url, type"
+    )
     .eq("itinerary_id", tripId);
 
   if (error) {
@@ -605,6 +609,8 @@ const fetchActivities = async () => {
         end: `${a.date} 23:59`,
         description: a.description,
         location: a.location,
+        activity_pic_url: a.activity_pic_url,
+        type: a.type,
       };
     } else {
       return {
@@ -615,6 +621,8 @@ const fetchActivities = async () => {
         location: a.location,
         start: `${a.date} ${a.start_time?.slice(11, 16)}`,
         end: `${a.date} ${a.end_time?.slice(11, 16)}`,
+        activity_pic_url: a.activity_pic_url,
+        type: a.type,
       };
     }
   });
@@ -736,6 +744,7 @@ const saveActivity = async () => {
   const startTime = newActivity.value.startTime;
   const endTime = newActivity.value.endTime;
 
+  console.log("NEW:", newActivity);
   const isAllDay =
     !startTime || startTime === "None" || !endTime || endTime === "None";
 
@@ -758,6 +767,10 @@ const saveActivity = async () => {
   const profilePicUrl =
     profileData.profile_pic_url ??
     "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg";
+
+  console.log("TYPE:", newActivity.value.type);
+  console.log("ACTIVITY PIC:", newActivity.value.activity_pic_url);
+  console.log("PROFILE PIC:", profilePicUrl);
 
   const { error } = await supabase.from("potential_activities").insert([
     {
@@ -935,10 +948,10 @@ const updateName = (event) => {
 
 const saveName = async () => {
   isEditingName.value = false;
-
+  console.log("editing name", tripName.value);
   const { error } = await supabase
     .from("itineraries")
-    .update({ name: itineraryName.value })
+    .update({ name: tripName.value })
     .eq("id", tripId);
 
   if (error) {
@@ -946,6 +959,7 @@ const saveName = async () => {
   } else {
     console.log("Itinerary name updated successfully");
   }
+  fetchItineraryData();
 };
 
 //////////////MEMBERS PART//////////////////
@@ -1861,29 +1875,35 @@ function switchTab(tab) {
         <div class="vr-white mx-1"></div>
 
         <!-- Undo / Redo Icons -->
-        <i class="bi bi-arrow-counterclockwise text-white menu-icon"></i>
-        <i class="bi bi-arrow-clockwise text-white menu-icon"></i>
+        <i
+          class="bi bi-arrow-counterclockwise text-white menu-icon hide-mobile"
+        ></i>
+        <i class="bi bi-arrow-clockwise text-white menu-icon hide-mobile"></i>
 
         <!-- Divider -->
         <div class="vr-white mx-1"></div>
 
         <!-- Cloud Check Icon -->
-        <i class="bi bi-cloud-check-fill text-white mx-1 menu-icon"></i>
+        <i
+          class="bi bi-cloud-check-fill text-white mx-1 menu-icon hide-mobile"
+        ></i>
       </div>
 
       <!-- RIGHT SIDE -->
       <div class="d-flex align-items-center">
         <!-- Itinerary Name -->
         <span
-          class="file-name itinerary-editable-name"
+          class="file-name itinerary-editable-name ellipsis"
           :contenteditable="isEditingName"
           @click="startEditingName"
           @blur="saveName"
           @input="updateName"
           ref="editableSpan"
-          v-text="itineraryName"
+          aria-label="File name"
           style="font-weight: 500; font-size: 16px"
-        ></span>
+        >
+          {{ itineraryName }}
+        </span>
 
         <!-- Divider -->
         <div class="vr-white mx-2"></div>
@@ -1925,23 +1945,25 @@ function switchTab(tab) {
           <span v-if="!isCollapsed">New Activity</span>
           <span v-else><i class="bi bi-plus-lg"></i></span>
         </button>
-        <div class="tab-section full-width">
-          <ul class="underline-tabs">
-            <li
-              class="underline-tab"
-              :class="{ active: activeTab === 'trips' }"
-              @click="switchTab('trips')"
-            >
-              <i class="me-1"></i> Activities
-            </li>
-            <li
-              class="underline-tab"
-              :class="{ active: activeTab === 'guides' }"
-              @click="switchTab('guides')"
-            >
-              <i class="me-1"></i> Explore
-            </li>
-          </ul>
+        <div modal-header>
+          <div class="tab-section full-width">
+            <ul class="underline-tabs">
+              <li
+                class="underline-tab"
+                :class="{ active: activeTab === 'trips' }"
+                @click="switchTab('trips')"
+              >
+                <i class="me-1"></i> Activities
+              </li>
+              <li
+                class="underline-tab"
+                :class="{ active: activeTab === 'guides' }"
+                @click="switchTab('guides')"
+              >
+                <i class="me-1"></i> Explore
+              </li>
+            </ul>
+          </div>
         </div>
         <div style="margin-bottom: 15px; margin-left: 5px; margin-right: 5px">
           <div v-if="drafts">
@@ -1949,252 +1971,354 @@ function switchTab(tab) {
             <div class="divider-wrapper"></div>
 
             <!-- Accommodation Section -->
-            <h5 class="activity-category-title text-start">Accommodation</h5>
-            <div class="activity-list">
-              <div
-                v-for="(activity, index) in potentialActivities.filter(
-                  (a) => a.type === 'accommodation'
-                )"
-                :key="activity.id"
-                class="activity-card accommodation"
-                @click="editPotentialActivity(index)"
-              >
-                <div class="activity-content-columns">
-                  <!-- Left Column -->
-                  <div class="activity-column-left">
+            <template
+              v-if="
+                potentialActivities.filter((a) => a.type === 'accommodation')
+                  .length > 0
+              "
+            >
+              <h5 class="activity-category-title text-start">Accommodation</h5>
+              <div class="activity-list">
+                <div
+                  v-for="(activity, index) in potentialActivities.filter(
+                    (a) => a.type === 'accommodation'
+                  )"
+                  :key="activity.id"
+                  class="activity-card accommodation"
+                  @click="editPotentialActivity(index)"
+                >
+                  <div class="activity-content-columns">
+                    <!-- Left Column -->
                     <button
                       class="remove-btn"
                       @click.stop="removeActivity(index)"
                     >
                       ×
                     </button>
-                    <div class="activity-image-wrapper">
-                      <img
-                        :src="activity.activity_pic_url"
-                        alt="Activity Image"
-                        class="activity-image"
-                      />
-                      <div class="activity-text-overlay">
-                        <p class="activity-location">{{ activity.location }}</p>
-                        <p class="activity-date">
-                          {{ formatDate(activity.date) }}
-                        </p>
-                        <p class="activity-time">
-                          {{ formatPotentialTime(activity.start_time) }}
-                        </p>
+                    <div class="activity-column-left">
+                      <div class="activity-image-wrapper">
+                        <img
+                          :src="activity.activity_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          alt="Activity Image"
+                          class="activity-image"
+                        />
                       </div>
                     </div>
-                  </div>
 
-                  <!-- Right Column -->
-                  <div class="activity-column-right">
-                    <h2 class="activity-name">{{ activity.name }}</h2>
-                    <div class="suggested-by">
-                      <img
-                        :src="activity.profile_pic_url"
-                        alt="Profile"
-                        class="profile-pic"
-                      />
-                      <span class="suggested-name">{{
-                        activity.username
-                      }}</span>
+                    <!-- Right Column -->
+                    <div class="activity-column-right">
+                      <div class="activity-header">
+                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <span class="circle-separator">•</span>
+                        <span class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </span>
+                      </div>
+
+                      <div class="suggested-by">
+                        <img
+                          :src="activity.profile_pic_url"
+                          alt="Profile"
+                          class="profile-pic"
+                        />
+                        <span class="suggested-name">{{
+                          activity.username
+                        }}</span>
+                      </div>
+
+                      <p class="activity-description">
+                        {{
+                          activity.description.length > 35
+                            ? activity.description.substring(0, 35) + "..."
+                            : activity.description
+                        }}
+                      </p>
+
+                      <div class="activity-meta">
+                        <div class="time-container">
+                          <i class="bi bi-clock icon"></i>
+                          <span class="activity-time">
+                            {{ formatPotentialTime(activity.start_time) }}
+                          </span>
+                        </div>
+
+                        <div class="location-container">
+                          <i class="bi bi-geo-alt icon"></i>
+                          <span class="activity-location">{{
+                            activity.location
+                          }}</span>
+                        </div>
+                      </div>
+                      <button class="add-btn" @click.stop="addActivity(index)">
+                        Add
+                      </button>
                     </div>
-                    <p class="activity-description">
-                      {{ activity.description }}
-                    </p>
-                    <button class="add-btn" @click.stop="addActivity(index)">
-                      Add
-                    </button>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Transportation Section -->
-            <h5 class="activity-category-title text-start">Transportation</h5>
-            <div class="activity-list">
-              <div
-                v-for="(activity, index) in potentialActivities.filter(
-                  (a) => a.type === 'transportation'
-                )"
-                :key="activity.id"
-                class="activity-card transportation"
-                @click="editPotentialActivity(index)"
-              >
-                <div class="activity-content-columns">
-                  <!-- Left Column -->
-                  <div class="activity-column-left">
-                    <button
-                      class="remove-btn"
-                      @click.stop="removeActivity(index)"
-                    >
-                      ×
-                    </button>
-                    <div class="activity-image-wrapper">
-                      <img
-                        :src="activity.activity_pic_url"
-                        alt="Activity Image"
-                        class="activity-image"
-                      />
-                      <div class="activity-text-overlay">
-                        <p class="activity-location">{{ activity.location }}</p>
-                        <p class="activity-date">
-                          {{ formatDate(activity.date) }}
-                        </p>
-                        <p class="activity-time">
-                          {{ formatPotentialTime(activity.start_time) }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Right Column -->
-                  <div class="activity-column-right">
-                    <h2 class="activity-name">{{ activity.name }}</h2>
-                    <div class="suggested-by">
-                      <img
-                        :src="activity.profile_pic_url"
-                        alt="Profile"
-                        class="profile-pic"
-                      />
-                      <span class="suggested-name">{{
-                        activity.username
-                      }}</span>
-                    </div>
-                    <p class="activity-description">
-                      {{ activity.description }}
-                    </p>
-                    <button class="add-btn" @click.stop="addActivity(index)">
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Food Section -->
-            <h5 class="activity-category-title text-start">Food</h5>
-            <div class="activity-list">
-              <div
-                v-for="(activity, index) in potentialActivities.filter(
-                  (a) => a.type === 'food'
-                )"
-                :key="activity.id"
-                class="activity-card food"
-                @click="editPotentialActivity(index)"
-              >
-                <div class="activity-content-columns">
-                  <!-- Left Column -->
-                  <div class="activity-column-left">
-                    <button
-                      class="remove-btn"
-                      @click.stop="removeActivity(index)"
-                    >
-                      ×
-                    </button>
-                    <div class="activity-image-wrapper">
-                      <img
-                        :src="activity.activity_pic_url"
-                        alt="Activity Image"
-                        class="activity-image"
-                      />
-                      <div class="activity-text-overlay">
-                        <p class="activity-location">{{ activity.location }}</p>
-                        <p class="activity-date">
-                          {{ formatDate(activity.date) }}
-                        </p>
-                        <p class="activity-time">
-                          {{ formatPotentialTime(activity.start_time) }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Right Column -->
-                  <div class="activity-column-right">
-                    <h2 class="activity-name">{{ activity.name }}</h2>
-                    <div class="suggested-by">
-                      <img
-                        :src="activity.profile_pic_url"
-                        alt="Profile"
-                        class="profile-pic"
-                      />
-                      <span class="suggested-name">{{
-                        activity.username
-                      }}</span>
-                    </div>
-                    <p class="activity-description">
-                      {{ activity.description }}
-                    </p>
-                    <button class="add-btn" @click.stop="addActivity(index)">
-                      Add
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </template>
 
             <!-- Attraction Section -->
-            <h5 class="activity-category-title text-start">Attraction</h5>
-            <div class="activity-list">
-              <div
-                v-for="(activity, index) in potentialActivities.filter(
-                  (a) => a.type === 'attraction'
-                )"
-                :key="activity.id"
-                class="activity-card attraction"
-                @click="editPotentialActivity(index)"
-              >
-                <div class="activity-content-columns">
-                  <!-- Left Column -->
-                  <div class="activity-column-left">
+            <template
+              v-if="
+                potentialActivities.filter((a) => a.type === 'attraction')
+                  .length > 0
+              "
+            >
+              <h5 class="activity-category-title text-start">Attraction</h5>
+              <div class="activity-list">
+                <div
+                  v-for="(activity, index) in potentialActivities.filter(
+                    (a) => a.type === 'attraction'
+                  )"
+                  :key="activity.id"
+                  class="activity-card attraction"
+                  @click="editPotentialActivity(index)"
+                >
+                  <div class="activity-content-columns">
+                    <!-- Left Column -->
                     <button
                       class="remove-btn"
                       @click.stop="removeActivity(index)"
                     >
                       ×
                     </button>
-                    <div class="activity-image-wrapper">
-                      <img
-                        :src="activity.activity_pic_url"
-                        alt="Activity Image"
-                        class="activity-image"
-                      />
-                      <div class="activity-text-overlay">
-                        <p class="activity-location">{{ activity.location }}</p>
-                        <p class="activity-date">
-                          {{ formatDate(activity.date) }}
-                        </p>
-                        <p class="activity-time">
-                          {{ formatPotentialTime(activity.start_time) }}
-                        </p>
+                    <div class="activity-column-left">
+                      <div class="activity-image-wrapper">
+                        <img
+                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          alt="Activity Image"
+                          class="activity-image"
+                        />
                       </div>
                     </div>
-                  </div>
 
-                  <!-- Right Column -->
-                  <div class="activity-column-right">
-                    <h2 class="activity-name">{{ activity.name }}</h2>
-                    <div class="suggested-by">
-                      <img
-                        :src="activity.profile_pic_url"
-                        alt="Profile"
-                        class="profile-pic"
-                      />
-                      <span class="suggested-name">{{
-                        activity.username
-                      }}</span>
+                    <!-- Right Column -->
+                    <div class="activity-column-right">
+                      <div class="activity-header">
+                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <span class="circle-separator">•</span>
+                        <span class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </span>
+                      </div>
+
+                      <div class="suggested-by">
+                        <img
+                          :src="activity.profile_pic_url"
+                          alt="Profile"
+                          class="profile-pic"
+                        />
+                        <span class="suggested-name">{{
+                          activity.username
+                        }}</span>
+                      </div>
+
+                      <p class="activity-description">
+                        {{
+                          activity.description.length > 35
+                            ? activity.description.substring(0, 35) + "..."
+                            : activity.description
+                        }}
+                      </p>
+
+                      <div class="activity-meta">
+                        <div class="time-container">
+                          <i class="bi bi-clock icon"></i>
+                          <span class="activity-time">
+                            {{ formatPotentialTime(activity.start_time) }}
+                          </span>
+                        </div>
+
+                        <div class="location-container">
+                          <i class="bi bi-geo-alt icon"></i>
+                          <span class="activity-location">{{
+                            activity.location
+                          }}</span>
+                        </div>
+                      </div>
+                      <button class="add-btn" @click.stop="addActivity(index)">
+                        Add
+                      </button>
                     </div>
-                    <p class="activity-description">
-                      {{ activity.description }}
-                    </p>
-                    <button class="add-btn" @click.stop="addActivity(index)">
-                      Add
-                    </button>
                   </div>
                 </div>
               </div>
-            </div>
+            </template>
+
+            <template
+              v-if="
+                potentialActivities.filter((a) => a.type === 'food').length > 0
+              "
+            >
+              <!-- Food Section -->
+              <h5 class="activity-category-title text-start">Food</h5>
+              <div class="activity-list">
+                <div
+                  v-for="(activity, index) in potentialActivities.filter(
+                    (a) => a.type === 'food'
+                  )"
+                  :key="activity.id"
+                  class="activity-card food"
+                  @click="editPotentialActivity(index)"
+                >
+                  <div class="activity-content-columns">
+                    <!-- Left Column -->
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-column-left">
+                      <div class="activity-image-wrapper">
+                        <img
+                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          alt="Activity Image"
+                          class="activity-image"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="activity-column-right">
+                      <div class="activity-header">
+                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <span class="circle-separator">•</span>
+                        <span class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </span>
+                      </div>
+
+                      <div class="suggested-by">
+                        <img
+                          :src="activity.profile_pic_url"
+                          alt="Profile"
+                          class="profile-pic"
+                        />
+                        <span class="suggested-name">{{
+                          activity.username
+                        }}</span>
+                      </div>
+
+                      <p class="activity-description">
+                        {{
+                          activity.description.length > 35
+                            ? activity.description.substring(0, 35) + "..."
+                            : activity.description
+                        }}
+                      </p>
+                      <div class="activity-meta">
+                        <div class="time-container">
+                          <i class="bi bi-clock icon"></i>
+                          <span class="activity-time">
+                            {{ formatPotentialTime(activity.start_time) }}
+                          </span>
+                        </div>
+
+                        <div class="location-container">
+                          <i class="bi bi-geo-alt icon"></i>
+                          <span class="activity-location">{{
+                            activity.location
+                          }}</span>
+                        </div>
+                      </div>
+                      <button class="add-btn" @click.stop="addActivity(index)">
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <template
+              v-if="
+                potentialActivities.filter((a) => a.type === 'transportation')
+                  .length > 0
+              "
+            >
+              <!-- Transportation Section -->
+              <h5 class="activity-category-title text-start">Transportation</h5>
+              <div class="activity-list">
+                <div
+                  v-for="(activity, index) in potentialActivities.filter(
+                    (a) => a.type === 'transportation'
+                  )"
+                  :key="activity.id"
+                  class="activity-card transportation"
+                  @click="editPotentialActivity(index)"
+                >
+                  <div class="activity-content-columns">
+                    <!-- Left Column -->
+                    <button
+                      class="remove-btn"
+                      @click.stop="removeActivity(index)"
+                    >
+                      ×
+                    </button>
+                    <div class="activity-column-left">
+                      <div class="activity-image-wrapper">
+                        <img
+                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          alt="Activity Image"
+                          class="activity-image"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="activity-column-right">
+                      <div class="activity-header">
+                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <span class="circle-separator">•</span>
+                        <span class="activity-date">
+                          {{ formatDate(activity.date) }}
+                        </span>
+                      </div>
+
+                      <div class="suggested-by">
+                        <img
+                          :src="activity.profile_pic_url"
+                          alt="Profile"
+                          class="profile-pic"
+                        />
+                        <span class="suggested-name">{{
+                          activity.username
+                        }}</span>
+                      </div>
+
+                      <p class="activity-description">
+                        {{
+                          activity.description.length > 35
+                            ? activity.description.substring(0, 35) + "..."
+                            : activity.description
+                        }}
+                      </p>
+
+                      <div class="activity-meta">
+                        <div class="time-container">
+                          <i class="bi bi-clock icon"></i>
+                          <span class="activity-time">
+                            {{ formatPotentialTime(activity.start_time) }}
+                          </span>
+                        </div>
+
+                        <div class="location-container">
+                          <i class="bi bi-geo-alt icon"></i>
+                          <span class="activity-location">{{
+                            activity.location
+                          }}</span>
+                        </div>
+                      </div>
+                      <button class="add-btn" @click.stop="addActivity(index)">
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
 
           <div class="left-section" v-else>
@@ -2313,6 +2437,16 @@ function switchTab(tab) {
                     class="field-input"
                     placeholder="Enter location"
                   />
+                  <i
+                    class="bi bi-geo-alt-fill"
+                    style="
+                      position: absolute;
+                      right: 0.5rem;
+                      top: 50%;
+                      transform: translateY(-50%);
+                      color: gray;
+                    "
+                  ></i>
                 </div>
                 <div class="field-box">
                   <label class="field-label">Description</label>
@@ -2341,7 +2475,7 @@ function switchTab(tab) {
                       class="trip-edit-img-wrapper"
                     >
                       <img
-                        :src="newActivity.activity_pic_url"
+                        :src="newActivity.activity_pic_url" 
                         alt="Activity Image"
                         class="trip-edit-current-img"
                       />
@@ -2381,16 +2515,16 @@ function switchTab(tab) {
             <!-- Description -->
 
             <!-- Date -->
-                <div class="field-box">
-                  <label class="field-label">Date</label>
-                  <input
-                    v-model="newActivity.date"
-                    type="date"
-                    :min="startDate"
-                    :max="endDate"
-                    class="field-input"
-                  />
-                </div>
+            <div class="field-box">
+              <label class="field-label">Date</label>
+              <input
+                v-model="newActivity.date"
+                type="date"
+                :min="startDate"
+                :max="endDate"
+                class="field-input"
+              />
+            </div>
             <!-- Start and End Time -->
             <div class="time-row">
               <div class="field-box">
@@ -2547,28 +2681,16 @@ function switchTab(tab) {
               v-model="newComment"
               type="text"
               id="noteInput"
+              class="comment-input"
               placeholder="Add a comment..."
-              style="
-                flex-grow: 1;
-                height: 40px;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 15px;
-                font-size: 14px;
-                margin-left: 25px;
-                width: calc(100% - 60px);
-                box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
-              "
             />
+
             <button
-              class="btn btn-outline-primary ms-2"
+              class="btn custom-comment-btn ms-2"
               @click="addComment"
               type="submit"
             >
-              <i
-                class="fas fa-pencil-alt"
-                style="color: #03aed2; border-color: #03aed2"
-              ></i>
+              <i class="fas fa-pencil-alt"></i>
             </button>
           </div>
 
@@ -2578,7 +2700,7 @@ function switchTab(tab) {
             v-if="comments.length"
           >
             <div
-              v-for="comment in comments"
+              v-for="comment in [...comments].reverse()"
               :key="comment.id"
               class="note-card shadow-sm mb-3"
               style="
@@ -2586,7 +2708,7 @@ function switchTab(tab) {
                 max-width: 800px;
                 padding: 15px;
                 border-radius: 20px;
-                background-color: #f0f0f0;
+                background-color: #f0f2f5;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
               "
             >
@@ -2609,7 +2731,14 @@ function switchTab(tab) {
                     <small class="text-muted">
                       {{ comment.commenter?.username || "Anonymous" }}
                     </small>
-                    <small class="text-muted">
+                    <small
+                      class="text-muted"
+                      style="
+                        font-style: italic !important;
+                        font-size: 0.75rem;
+                        font-weight: 300;
+                      "
+                    >
                       {{ formatTime(comment.created_at) }}
                     </small>
                   </div>
@@ -2621,7 +2750,7 @@ function switchTab(tab) {
             </div>
           </div>
           <div
-            class="mt-3 text-muted"
+            class="mt-5 mb-5 text-muted"
             v-else
             style="text-align: center; font-style: italic"
           >
