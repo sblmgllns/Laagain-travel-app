@@ -150,6 +150,25 @@ html, body {
   cursor: pointer;
 }
 
+.file-name-wrapper {
+  max-width: 200px; /* Adjust as needed */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ellipsis {
+  display: inline-block;
+  max-width: 400px; /* Adjust based on your layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+
 .file-name {
   display: inline-block;
   min-width: 100px;
@@ -192,9 +211,8 @@ html, body {
 
 /* Left Section */
 .left-section {
-  margin-top: px;
   flex: 1.5;
-  padding: 10px;
+  padding: 20px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -227,7 +245,7 @@ html, body {
   position: sticky;  
   top: 50%;
   margin-left: -2%;
-  width: 24px;
+  width: 15px;
   height: 40px;
   background: white;
   border: 2px solid #03aed2;
@@ -260,41 +278,87 @@ html, body {
   flex-direction: row;
 }
 
-@media (max-width: 768px) {
-  .left-section {
-    position: relative;
-    display: flex;
+@media (max-width: 480px) {
+
+  /* Collapse Button at Bottom Center */
+.collapse-btn {
+  position: sticky;
+  bottom: 0;                  /* Stick to bottom */
+  align-self: center;         /* Center horizontally */
+  margin-top: auto;           /* Push to the bottom of the flex column */
+  margin-bottom: 10px;        /* Add space from the bottom */
+  width: 40px;
+  height: 28px;
+  background: white;
+  border: 2px solid #03aed2;
+  border-radius: 6px;
+  color: #03aed2;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.left-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.collapse-arrow {
+  font-size: 23px;
+  line-height: 1;
+  position: static; 
+}
+
+  
+.main-content.collapsed .create-btn {
+  width: 10%; /* instead of just max-width */
+  max-width: 0%; /* fallback max */
+  position: relative; /* or remove if not needed */
+  margin: 0 auto; /* center it if needed */
+  justify-content: center;
+  align-items: center;
+  margin-left: 35%;
+  padding: 0;
+  border: 2px solid #03AED2;
+  background-color: white;
+  border-radius: 50%;
+}
+
+
+  .main-content {
     flex-direction: column;
-    max-height: 70vh;
-    overflow-y: auto;
-    align-self: flex-end; 
   }
 
-  .collapse-btn {
-    position: sticky;
-    bottom: -100px;
-    left: 50%;
-    top: calc(100% - 10px); /* Push it lower while still sticky */
-    align-self: center;
+  .right-section {
+  margin-top: -40px;
+  flex: 3;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding: 0!important;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}  
 
-    margin-top: auto;
-    margin-bottom: 10px;
-    margin-left: 0;    
-    margin-right: 40px;            /* Cancel desktop margin shifts */
-    right: auto;                /* Cancel desktop positioning */
-    align-self: center;  
-    width: 40px;
-    height: 28px;
-    font-size: 18px;
-    border-radius: 6px;
-    background: white;
-    border: 2px solid #03aed2;
-    color: #03aed2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
+  .left-section {
+    order: 2;
+    width: 100%;
+    max-height: none;
+    height: auto;
+    padding: 10px;
   }
+}
+
+@media (max-width: 768px) {
 
   .collapse-arrow {
     font-size: 20px;
@@ -334,13 +398,14 @@ html, body {
   display: block;
   width: 100%;
   padding: 10px;
-  font-size: 18px;
+  font-size: 16px;
   color: #03aed2;
   background: #ffffff !important;
-  border: 2px solid #03aed2 !important; /* Border same as background */
+  border: 2px solid #03aed2 !important;
   border-radius: 5px;
   cursor: pointer;
 }
+
 
 /* Make the plus icon bigger and bolder */
 .create-btn i {
@@ -561,6 +626,12 @@ html, body {
   padding: 0.5rem 1rem;
   
 }
+/* Keep the X in top-right regardless of screen size */
+.activity-modal-header .btn-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
 .activity-modal-header .modal-title {
   font-size: 1.5rem;
   font-family: "Sarabun", sans-serif;
@@ -601,10 +672,11 @@ html, body {
 }
 
 .details-header {
+  margin-top: -15px;
   font-size: 1.25rem;
   text-align: left;
   font-weight: bold;
-  color: #000000;
+  color: #444;
 }
 
 /* Shared styles for date-bar and time-bar */
@@ -652,10 +724,6 @@ html, body {
     flex-direction: column; /* Stack sections vertically */
   }
 
-  .left-section,
-  .right-section {
-    width: 100%;
-  }
   .activity-card {
     margin: 10px;
     padding: 16px;
@@ -716,10 +784,10 @@ html, body {
 
 .activity-card {
   background-color: #ffffff; /* pure white background */
-  width: 80%;
+  width: 100%;
   max-width: 700px;
   min-width: 300px;
-  height: auto;
+  height: 23vh;
   transition: transform 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -784,11 +852,21 @@ html, body {
   padding-left: 0px;
 }
 
+.activity-column-left {
+  flex: 0 0 93px; /* Fixed width matching your image width */
+  position: relative; /* Needed for absolute positioning of children */
+  height: 100%; /* Take full height of parent */
+  min-height: 120px; /* Set a minimum height */
+  justify-content: center;
+
+}
+
 .activity-column-right {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  position: relative; /* For absolute positioning of button */
   align-items: flex-start; /* ensures all content aligns left */
   text-align: left; /* makes text align left */
   padding-left: 10px; /* optional: space from the image */
@@ -826,16 +904,16 @@ html, body {
 .activity-image-wrapper {
   position: relative;
   width: 93px;
-  height: 120px;
-  margin-left: 10px;
+  height: 90%; /* Make it square */
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto; /* horizontal center in non-flex parent */
 }
 
-.activity-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-}
 
 /* Text in front of image */
 .activity-text-overlay {
@@ -864,25 +942,23 @@ html, body {
 
 
 .activity-name {
-  font-size: 1.3rem;
+  font-size: 1.0rem;
   font-weight: bold;
   margin-bottom: 0px;
 }
-
 .add-btn {
   background-color: #fdde55;
   color: white;
-  float: right;
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.2rem;
   border: none;
-  padding: 5px 8px;        /* ↓ smaller padding */
-  border-radius: 4px;      /* ↓ slightly smaller corners */
+  padding: 5px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;      /* ↓ smaller text */
-  margin-top: 10px;        /* ↓ smaller top spacing */
+  font-size: 0.75rem;
   transition: background-color 0.3s ease;
-  align-self: flex-end;
-  min-width: 60px; 
-  margin-bottom: 5px;
+  min-width: 60px;
 }
 
 
@@ -891,38 +967,24 @@ html, body {
 }
 .activity-description {
   font-size: 0.7rem;
-  margin-bottom: 2px;
-  margin-top: 3%;
   color: #555;
   text-align: left;
   font-style: italic;
-}
-
-.activity-date {
-  font-size: 1rem;
-  margin-bottom: 7px;
-  font-weight: bold;
-  color: #ffffff;
-  text-align: left;
-  margin-left: -5%;
-  z-index: 100;
+  margin-top: 3%;
 }
 
 .activity-time {
   font-size: 0.7rem;
   margin-bottom: 2px;
-  color: #ffffff;
+  color: #555;
   text-align: left;
-  margin-left: 25%;
   font-style: italic;
 }
 .activity-location {
   font-size: 0.7rem;
-  margin-bottom: 5px;
-  color: #ffffff;
-  font-weight: bold;
+  color: #555;
   text-align: left;
-  margin-left: 25%;
+  margin-top: -5px;
 }
 
 button:disabled {
@@ -943,19 +1005,18 @@ button:disabled {
 .suggested-by {
   display: flex;
   align-items: center;
-  margin-top: 8px;
 }
 
 .profile-pic {
-  width: 23px;
-  height: 23px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   margin-right: 8px;
   object-fit: cover;
 }
 
 .suggested-name {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #555;
 }
 
@@ -1024,198 +1085,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 480px) {
-  .itinerary-link {
-    font-size: 11px;
-  }
+
+.activity-card {
+  height: 17vh;
 }
 
-.trip-members-input {
-  border: none;
-  background: transparent;
-  font-family: 'Sarabun', sans-serif;
-  font-weight: 800;
-  color: #a8a6a6;
-  font-size: 13px;
-  margin-left: 20px;
-  outline: none;
-  flex: 1;
-  min-width: 0; /* Helps prevent overflow in flex containers */
+.activity-description{
+
 }
 
-/* Medium screens (tablets) */
-@media (max-width: 768px) {
-  .trip-members-input {
-    font-size: 12px;
-    margin-left: 15px;
-  }
-}
-
-/* Small screens (phones) */
-@media (max-width: 480px) {
-  .trip-members-input {
-    font-size: 11px;
-    margin-left: 10px;
-  }
-}
-
-.invite-tab-toggle {
-  width: 30%;
-  height: 25px;
-  background-color: #ede9e9;
-  border-radius: 5px;
-  margin: 15px auto 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 10px;
-  position: relative;
-  min-width: 200px;
-}
-
-.slider-background {
-  position: absolute;
-  top: 4px;
-  height: 70%;
-  background-color: white;
-  border-radius: 3px;
-  transition: all 0.3s ease;
-  pointer-events: none;
-}
-
-.tab-option {
-  cursor: pointer;
-  padding: 3px 0;
-  width: 48%;
-  text-align: center;
-  z-index: 1;
-}
-
-.tab-option span {
-  font-family: 'Sarabun', sans-serif;
-  font-weight: 800;
-  color: black;
-  font-size: 10px;
-}
-
-/* Tablet */
-@media (max-width: 768px) {
-  .invite-tab-toggle {
-    width: 50%;
-  }
-  .tab-option span {
-    font-size: 9px;
-  }
-}
-
-/* Phone */
-@media (max-width: 480px) {
-  .invite-tab-toggle {
-    width: 70%;
-  }
-  .tab-option span {
-    font-size: 8.5px;
-  }
-}
-
-.gray-rect {
-  width: 95%;
-  height: 50px;
-  background-color: #ede9e9;
-  opacity: 1;
-  border-radius: 5px;
-  margin: 20px auto 0 auto;
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-}
-
-/* Icon Style */
-.gray-rect i {
-  font-size: 24px;
-  color: gray;
-}
-
-/* Placeholder styling */
-.trip-members-input::placeholder {
-  color: #a8a6a6;
-  font-size: 13px;
-  opacity: 1;
-  transition: font-size 0.3s ease;
-}
-
-/* Tablet */
-@media (max-width: 768px) {
-  .trip-members-input::placeholder {
-    font-size: 12px;
-  }
-}
-
-/* Mobile */
-@media (max-width: 480px) {
-  .trip-members-input::placeholder {
-    font-size: 11px;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .gray-rect {
-    height: 45px;
-    padding: 0 15px;
-  }
-
-  .gray-rect i {
-    font-size: 22px;
-  }
-}
-
-@media (max-width: 480px) {
-  .gray-rect {
-    height: 40px;
-    padding: 0 10px;
-  }
-
-  .gray-rect i {
-    font-size: 20px;
-  }
-}
-
-.clipboard-icon-wrapper {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* Icon Style */
-.clipboard-icon-wrapper i {
-  font-size: 24px;
-  color: black;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .clipboard-icon-wrapper i {
-    font-size: 22px;
-  }
-}
-
-@media (max-width: 480px) {
-  .clipboard-icon-wrapper i {
-    font-size: 20px;
-  }
-}
-
-.rotated-link-icon {
-  font-size: 27px;
-  color: black;
-  transform: rotate(-45deg);
-  transition: font-size 0.2s ease;
-}
-
-/* Responsive scaling */
-@media (max-width: 768px) {
-  .rotated-link-icon {
-    font-size: 24px;
+.ellipsis {
+    max-width: 120px; /* tighter for small screens */
   }
 }
 
@@ -1561,14 +1441,13 @@ textarea.field-input {
   list-style: none;
   padding: 0;
   margin: 0;
-  border-bottom: 1px solid #ccc;
   gap: 32px;
 }
 
 .underline-tab {
   flex: 1;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
   color: #666;
   padding: 12px 0;
@@ -1589,7 +1468,7 @@ textarea.field-input {
 .underline-tab::after {
   content: "";
   position: absolute;
-  bottom: -1px;
+  bottom: 1px;
   left: 0;
   width: 0%;
   height: 2px;
@@ -1601,7 +1480,7 @@ textarea.field-input {
   color: #222;
 }
 
-.underline-tab:hover i {
+.--tab:hover i {
   color: #222;
 }
 
@@ -1620,9 +1499,9 @@ textarea.field-input {
 
 
 .activity-category-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  margin: 20px 10px 10px;
+  margin: 20px 10px 20px;
   color: #333;
 }
 
@@ -1708,12 +1587,14 @@ select.form-select {
   padding: 0.5rem 0.75rem;
 }
 
-/* Image Preview */
+
 img.activity-image,
 img.img-fluid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   display: block;
-  max-width: 100%;
-  height: auto;
   border-radius: 6px;
 }
 
@@ -1738,7 +1619,7 @@ button.btn {
 /* Dropzone */
 .trip-edit-center-wrapper {
   display: flex;
-  justify-content: right;
+  justify-content: center;
   flex-direction: column;
   align-items: right;
   width: 100%;
@@ -1793,19 +1674,21 @@ button.btn {
 
 .trip-edit-img-wrapper {
   position: relative;
-  display: inline-block;
-  border-radius: 8px;
+  display: block;
   width: 100%;
-  height: 100%;
-  max-height: 200px;
+  height: 240px; /* fixed height for cropping effect */
   overflow: hidden;
+  border-radius: 8px;
+  background-color: #f0f0f0;
 }
 
 .trip-edit-current-img {
-  display: block;
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crop to fill, no stretching */
+  object-position: center center; /* center the crop */
   border-radius: 8px;
-  object-fit: cover;
+  display: block;
 }
 
 .trip-edit-remove-img {
@@ -1886,4 +1769,147 @@ button.btn {
 .description-textarea {
   min-height: 75px; /* Adjust as needed to match your image box height */
   resize: vertical;  /* Optional: lets users resize vertically */
+}
+.comment-input {
+    flex-grow: 1;
+    height: 40px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    font-size: 14px;
+    margin-left: 25px;
+    width: calc(100% - 60px);
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    transition: border 0.3s, box-shadow 0.3s;
+    outline: none;
+  }
+
+  .comment-input:hover,
+  .comment-input:focus {
+    border-color: #03aed2; /* Bootstrap blue */
+    
+  }
+
+  .custom-comment-btn {
+    border: 1px solid #03aed2;
+    background-color: transparent;
+    color: #03aed2;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+
+  .custom-comment-btn i {
+    color: #03aed2;
+  }
+
+  .custom-comment-btn:hover {
+    background-color: #03aed2;
+    border-color: #03aed2;
+  }
+
+  .custom-comment-btn:hover i {
+    color: white;
+  }
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.activity-name {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.circle-separator {
+  color: #999;
+  font-weight: bold;
+}
+
+.activity-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.activity-meta {
+  margin-top: -10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-container,
+.location-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: -10px;
+}@media (max-width: 430px) {
+  .activity-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    padding: 0.2rem 1rem 3rem 1rem; /* Bigger padding: more breathing room */
+  }
+
+  .modal-title {
+    margin-bottom: 0;
+    top: 1rem;
+  }
+
+  .tab-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 3rem; /* Push tabs even further down */
+    flex-wrap: wrap;
+    gap: 1rem; /* More space between buttons */
+  }
+
+  .custom-tab {
+    flex: 1 1 auto;
+  }
+
+  .activity-modal-header .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .menu-bar {
+    gap: 8px;
+  }
+
+  /* Hide all menu items except "File", file name, and Share button */
+  .menu-item:not(:first-child):not(.file-name):not(.share-btn):not(file-hover),
+  .menu-icon-container,      /* Hide undo/redo icons */
+  .cloud-icon,               /* Hide cloud icon */
+  .save-status,              /* Hide any save text/status */
+  .vr-white, 
+  .icon-box{ /* Hide other file hover elements */
+    display: none !important;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Keep file name visible and tidy */
+  .file-name {
+    font-size: 14px;
+    min-width: 0;
+  }
+
+  /* Style Share button smaller for mobile */
+  .share-btn {
+    padding: 2px 10px;
+    font-size: 12px;
+  }
 }

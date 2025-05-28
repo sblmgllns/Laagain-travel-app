@@ -1,6 +1,6 @@
 <template>
-  <div v-if="showModal" class="modal-overlay">
-    <div class="modal-content custom-modal rounded">
+  <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-content custom-modal rounded" @click.stop>
       <div
         class="modal-header sticky-top bg-white p-3 border-bottom"
         style="z-index: 1; left: 20px"
@@ -82,7 +82,7 @@
               />
             </div>
 
-            <p
+            <!--p
               v-if="
                 formSubmitted &&
                 (!newActivity.title || newActivity.title.trim() === '')
@@ -116,7 +116,7 @@
                 @blur="checkLocation"
               />
             </div>
-            <p
+            <!--p
               v-if="
                 formSubmitted &&
                 (!newActivity.location || newActivity.location.trim() === '')
@@ -131,6 +131,7 @@
               <label>Date</label>
               <input
                 type="date"
+                class="date-input"
                 v-model="newActivity.date"
                 :min="startDate"
                 :max="endDate"
@@ -188,13 +189,14 @@
               <label>Type</label>
               <select v-model="newActivity.type" required>
                 <option disabled value="">Select type</option>
-                <option value="attraction">Attraction</option>
                 <option value="accommodation">Accommodation</option>
+                <option value="attraction">Attraction</option>
+                <option value="food">Food</option>
                 <option value="transportation">Transportation</option>
               </select>
             </div>
 
-            <p
+            <!--p
               v-if="
                 formSubmitted &&
                 (!newActivity.type || newActivity.type.trim() === '')
@@ -208,6 +210,26 @@
               End time cannot be earlier than start time.
             </p>
 
+            <p
+              v-if="
+                formSubmitted &&
+                (!newActivity.title ||
+                  newActivity.title.trim() === '' ||
+                  !newActivity.location ||
+                  newActivity.location.trim() === '' ||
+                  !newActivity.type ||
+                  newActivity.type.trim() === '' ||
+                  !newActivity.date ||
+                  (!isAllDay &&
+                    (!newActivity.startTime ||
+                      !newActivity.endTime ||
+                      isTimeInvalid)))
+              "
+              class="image-error text-center"
+              style="margin-top: 12px"
+            >
+              Please fill in all required fields before proceeding.
+            </p>
             <!-- Buttons -->
             <div
               class="d-flex justify-content-between gap-5"
@@ -216,6 +238,7 @@
               <button type="button" @click="closeModal" class="cancel-button">
                 Cancel
               </button>
+              <!-- Remove :disabled -->
               <button
                 @click="
                   newActivity.id
@@ -223,20 +246,8 @@
                     : saveActivity()
                 "
                 class="publish-button"
-                :disabled="
-                  isSaving ||
-                  !newActivity.title ||
-                  newActivity.title.trim() === '' ||
-                  !newActivity.location ||
-                  !newActivity.type ||
-                  !newActivity.date ||
-                  (!isChecked &&
-                    (!newActivity.startTime || !newActivity.endTime)) ||
-                  (!isChecked && isTimeInvalid) ||
-                  !hasChangesPotential
-                "
               >
-                {{ newActivity.id ? "Save Changes" : "Create" }}
+                {{ newActivity.id ? "Save" : "Create" }}
               </button>
             </div>
           </form>
@@ -250,6 +261,7 @@
 import { ref, watch } from "vue";
 const formErrors = ref([]);
 const formSubmitted = ref(false);
+import { onMounted, onUnmounted } from "vue";
 
 const props = defineProps([
   "showModal",
@@ -280,6 +292,21 @@ watch(isAllDay, (val) => {
     props.newActivity.endTime = "23:59"; // 11:59 PM
   }
 });
+
+const handleBackdropClick = (event) => {
+  const modalContent = document.querySelector(".modal-content");
+  if (showModal.value && !modalContent.contains(event.target)) {
+    closeModal();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleBackdropClick);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleBackdropClick);
+});
 // Emit functions
 const closeModal = () => {
   formSubmitted.value = false;
@@ -291,13 +318,27 @@ const onImageChange = (event) => {
   emit("imageUpload", event);
 };
 
+const isFormValid = () => {
+  const activity = props.newActivity;
+  return (
+    activity.title?.trim() &&
+    activity.location?.trim() &&
+    activity.type?.trim() &&
+    activity.date &&
+    (isAllDay.value ||
+      (activity.startTime && activity.endTime && !props.isTimeInvalid))
+  );
+};
+
 const saveActivity = () => {
-  formSubmitted.value = true;
-  emit("saveActivity");
+  formSubmitted.value = true; // 👈 this triggers error messages
+  if (!isFormValid()) return; // ❌ don't emit if form is invalid
+  emit("saveActivity");       // ✅ emit only if valid
 };
 
 const saveEditedPotentialActivity = () => {
   formSubmitted.value = true;
+  if (!isFormValid()) return;
   emit("saveEditedPotentialActivity");
 };
 
@@ -307,13 +348,13 @@ const removePhoto = (event) => {
 </script>
 
 <style scoped>
-
-html, body {
-  overflow: hidden;         /* Prevents scrolling */
-  margin: 0;                /* Removes default margin */
-  padding: 0;               /* Removes default padding */
-  height: 100%;             /* Makes html/body fill the viewport height */
-  font-family: "Sarabun", sans-serif !important;  /* Sets the font */
+html,
+body {
+  overflow: hidden; /* Prevents scrolling */
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
+  height: 100%; /* Makes html/body fill the viewport height */
+  font-family: "Sarabun", sans-serif !important; /* Sets the font */
 }
 .field {
   width: 100%;
@@ -452,7 +493,15 @@ html, body {
   color: #333;
   font-family: "Sarabun", sans-serif;
 }
-
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border: 1px solid #03aed2; /* Blue border on all sides */
+  box-shadow: 0 0 0 2px rgba(3, 174, 210, 0.1),
+    /* Inner glow */ 0 0 10px 4px rgba(3, 174, 210, 0.3); /* Outer glow */
+  transition: all 0.3s ease-in-out;
+}
 .field textarea {
   resize: vertical;
   min-height: 70px;
@@ -513,6 +562,22 @@ html, body {
   flex-direction: column;
 }
 
+.date-range .date-input:focus {
+  outline: none;
+  border: 1px solid #03aed2; /* Blue border on all sides */
+  box-shadow: 0 0 0 2px rgba(3, 174, 210, 0.1),
+    /* Inner glow */ 0 0 10px 4px rgba(3, 174, 210, 0.3); /* Outer glow */
+  transition: all 0.3s ease-in-out;
+}
+
+.date-input:focus {
+  outline: none;
+  border: 1px solid #03aed2; /* Blue border on all sides */
+  box-shadow: 0 0 0 2px rgba(3, 174, 210, 0.1),
+    /* Inner glow */ 0 0 10px 4px rgba(3, 174, 210, 0.3); /* Outer glow */
+  transition: all 0.3s ease-in-out;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s ease;
@@ -524,7 +589,6 @@ html, body {
 
 .image-error {
   color: red;
-  margin-top: -0.6rem;
   margin-bottom: -0.6rem;
   text-align: left;
 }
@@ -585,7 +649,8 @@ html, body {
   justify-content: center;
   align-items: center;
   width: 100%;
-}.trip-edit-dropzone {
+}
+.trip-edit-dropzone {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -604,7 +669,6 @@ html, body {
   margin: 0 auto; /* centers the box horizontally if needed */
   box-sizing: border-box;
 }
-
 
 .trip-edit-placeholder {
   display: flex;
@@ -642,12 +706,19 @@ html, body {
   max-height: 200px;
   overflow: hidden;
 }
-
 .trip-edit-current-img {
   display: block;
   max-width: 100%;
   border-radius: 8px;
   object-fit: cover;
+  /* Center the image */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Ensure proper sizing */
+  width: 100%;
+  height: 100%;
 }
 
 .trip-edit-remove-img {
@@ -696,6 +767,12 @@ input:checked + .slider:before {
   display: flex;
   margin-bottom: 4px;
   gap: 12px;
+}
+
+.image-error {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
 }
 
 .trip-edit-label-row .trip-edit-label {
@@ -828,3 +905,4 @@ input:checked + .slider:before {
   }
 }
 </style>
+

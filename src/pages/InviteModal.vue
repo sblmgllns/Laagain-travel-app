@@ -28,8 +28,14 @@
           </div>
 
           <h5 class="modal-title custom-modal-title">
-            Invite your friends to {{ itineraryName }}.
+            Invite your friends to
+            {{
+              itineraryName.length > 15
+                ? itineraryName.substring(0, 15) + "..."
+                : itineraryName
+            }}.
           </h5>
+
           <button
             type="button"
             class="btn-close"
@@ -320,7 +326,7 @@
 </template>
 
 <script setup>
-import { ref, computed,  onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 
 // Props
 const props = defineProps({
@@ -365,10 +371,7 @@ const handleClickOutside = (event) => {
   const icon = document.querySelector(".bi-three-dots");
   const menu = document.querySelector(".menu-options");
 
-  if (
-    !icon?.contains(event.target) &&
-    !menu?.contains(event.target)
-  ) {
+  if (!icon?.contains(event.target) && !menu?.contains(event.target)) {
     showMenu.value = false;
   }
 };
@@ -570,8 +573,6 @@ const switchInviteTab = (tab) => {
   justify-content: flex-end; /* Make sure it stays on top */
 }
 
-
-
 /* Textarea match input size */
 textarea.field-input {
   height: 60px; /* fixed, smaller height */
@@ -720,7 +721,6 @@ textarea.field-input {
   z-index: 1;
 }
 
-
 /* Tablet styles (768px and below) */
 @media (max-width: 768px) {
   .gray-rect {
@@ -794,11 +794,11 @@ textarea.field-input {
     padding: 12px;
     gap: 8px;
     font-size: 13px;
-    height: 70vh!important;
+    height: 70vh !important;
   }
 
   .modal-dialog {
-    width:70%;
+    width: 70%;
     max-width: 90vh; /* or 90vw if you want it relative to screen */
     margin: 1.75rem auto;
   }
@@ -901,7 +901,7 @@ textarea.field-input {
     gap: 8px;
     height: 80%;
     font-size: 13px;
-    height: 70vh!important;
+    height: 70vh !important;
   }
 
   .modal-dialog {
