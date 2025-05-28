@@ -532,7 +532,7 @@ export default {
             this.newPassword = "";
             this.confirmPassword = "";
           }, 1500);
-          confirmLogout()
+          this.logout()
         }
       } catch (err) {
         this.errorMessage = "An unexpected error occurred. Please try again.";
