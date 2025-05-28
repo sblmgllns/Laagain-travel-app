@@ -146,7 +146,7 @@ export default {
 
             // Redirect user to home page
             // this.$router.push("/profile");
-            this.$emit('redirect', '/profile');
+            this.$emit('redirect', '/dashboard');
             console.log("Emitting redirect event")
         },
 
