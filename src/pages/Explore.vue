@@ -27,7 +27,7 @@
       return
     }
     userId.value = user.id;
-    console.log(userId.value);
+    //console.log(userId.value);
     // 2. Fetch user record from 'users' table
     const { data, error } = await supabase
       .from('profiles')
@@ -40,7 +40,7 @@
     } else {
       profilePicUrl.value = data.profile_pic_url
       profileUsername.value = data.full_name
-      console.log("username is: ")
+      //console.log("username is: ")
     }
 
     // Load bookmarks
@@ -49,7 +49,7 @@
   });
 
   const handleAddActivity = async (item) => {
-    console.log("here", item.title);
+    //console.log("here", item.title);
     const newActivity = {
       name: item.title,
       description: item.desc,
@@ -70,7 +70,7 @@
       if (error) {
         console.error("Error inserting activity:", error.message);
       } else {
-        console.log("Activity inserted successfully");
+        //console.log("Activity inserted successfully");
 
         // Close modal
         const modalEl = document.getElementById("detailsModal");
@@ -182,7 +182,7 @@
       return;
     }
 
-    console.log("Toggle", item);
+    //console.log("Toggle", item);
     // Generate an ID if one doesn't exist (fallback)
     const cardId = item.id;
     const isBookmarked = bookmarkedItems.value.some(bookmark => 
@@ -280,7 +280,7 @@
   });
   
   async function fetchTripResults() {
-    console.log("fetching data in Supabase");
+    //console.log("fetching data in Supabase");
     errorMessage.value = '';
     if (!searchQuery.value) {
       errorMessage.value = 'Please enter a search query.';
@@ -386,8 +386,8 @@
 
 
       results.value = enrichedResults;
-      console.log("Enriched results", enrichedResults);
-      // console.log(photoData);
+      //console.log("Enriched results", enrichedResults);
+      // //console.log(photoData);
 
     } catch (err) {
       errorMessage.value = err.message || 'An error occurred during fetch';

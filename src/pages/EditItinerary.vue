@@ -80,8 +80,8 @@ onMounted(async () => {
     console.error("Failed to get user:", error.message);
   } else {
     currentUser.value = user;
-    console.log("User:", user); // confirm it's working
-    console.log("User ID:", user?.id); // check ID here
+    //console.log("User:", user); // confirm it's working
+    //console.log("User ID:", user?.id); // check ID here
   }
 });
 
@@ -102,7 +102,7 @@ watch(startDate, async (val) => {
     callbacks: {
       onEventUpdate(event) {
         // Optionally update Supabase when an event is moved/changed
-        console.log("Event updated:", event);
+        //console.log("Event updated:", event);
         // Example Supabase update
         supabase
           .from("activities")
@@ -116,13 +116,13 @@ watch(startDate, async (val) => {
             if (error) {
               console.error("Error updating event:", error);
             } else {
-              console.log("Successfully updated event:", event.id);
+              //console.log("Successfully updated event:", event.id);
             }
           });
       },
       // < -- to show event details when clicked,, we can change the modal  -->
       onEventClick(event) {
-        console.log("Clicked event:", event);
+        //console.log("Clicked event:", event);
         // Optional: pre-fill modal with event data
         const baseData = {
           id: event.id,
@@ -208,7 +208,7 @@ const setupRealtime = () => {
         filter: `itinerary_id=eq.${tripId}`,
       },
       async (payload) => {
-        console.log("Realtime change:", payload);
+        //console.log("Realtime change:", payload);
         await fetchActivities();
         // Refresh calendar with new data
         // calendarApp.value?.setEvents(calendarEvents.value);
@@ -267,7 +267,7 @@ const fetchItineraryData = async () => {
 // mode can be either 'edit' or 'new'
 async function handleImageUpload(event, mode = "new") {
   const file = event.target.files[0];
-  console.log("Selected file:", file);
+  //console.log("Selected file:", file);
 
   if (!file) return;
 
@@ -310,15 +310,15 @@ async function handleImageUpload(event, mode = "new") {
   // Set image URL based on mode
   if (mode === "edit") {
     editItinerary.value.cover_pic_url = publicUrl;
-    console.log("📸 Updated editItinerary.cover_pic_url:", publicUrl);
+    //console.log("📸 Updated editItinerary.cover_pic_url:", publicUrl);
   } else if (mode === "new") {
     newActivity.value.activity_pic_url = publicUrl;
-    console.log("📸 Updated newActivity.activity_pic_url:", publicUrl);
+    //console.log("📸 Updated newActivity.activity_pic_url:", publicUrl);
   } else {
     console.warn("⚠️ Unknown mode passed to handleImageUpload");
   }
 
-  console.log("✅ Image uploaded successfully!", publicUrl);
+  //console.log("✅ Image uploaded successfully!", publicUrl);
 }
 
 ///////MODAL PARTS//////////////////////////////////////////
@@ -421,7 +421,7 @@ const closeEditModal = () => {
 };
 const saveItineraryChanges = async (updatedItinerary) => {
   try {
-    console.log("Saving itinerary:", updatedItinerary);
+    //console.log("Saving itinerary:", updatedItinerary);
 
     // 1. Update local state immediately for responsive UI
     editItinerary.value = { ...updatedItinerary };
@@ -486,7 +486,7 @@ const saveItineraryChanges = async (updatedItinerary) => {
     await fetchPotentialActivities(); // Your existing data fetching function
     await fetchActivities();
     fetchItineraryData();
-    console.log("Successfully saved itinerary");
+    //console.log("Successfully saved itinerary");
   } catch (error) {
     console.error("Error saving itinerary:", error);
     // Revert local changes if save failed
@@ -514,7 +514,7 @@ function applyThemeByType(type) {
 
 const addActivity = async (index) => {
   const selectedActivity = potentialActivities.value[index];
-  console.log("Adding activity:", selectedActivity);
+  //console.log("Adding activity:", selectedActivity);
 
   if (!selectedActivity.date || selectedActivity.date.trim() === "") {
     alert("Date is required to add this activity.");
@@ -629,12 +629,12 @@ const fetchActivities = async () => {
 };
 
 const hasActivityChanged = computed(() => {
-  console.log(
-    "New Activity:",
-    newActivity.value,
-    "Original Activity:",
-    originalActivity.value
-  );
+  //console.log(
+  //   "New Activity:",
+  //   newActivity.value,
+  //   "Original Activity:",
+  //   originalActivity.value
+  // );
   const newA = newActivity.value;
   const origA = originalActivity.value;
 
@@ -650,7 +650,7 @@ const hasActivityChanged = computed(() => {
 
 const saveEditedActivity = async () => {
   // Combine date and time to make valid timestamp strings
-  console.log("Saving edited activity:", newActivity.value);
+  //console.log("Saving edited activity:", newActivity.value);
   const startTimestamp = `${newActivity.value.date}T${newActivity.value.startTime}:00`;
   const endTimestamp = `${newActivity.value.date}T${newActivity.value.endTime}:00`;
 
@@ -669,7 +669,7 @@ const saveEditedActivity = async () => {
   if (error) {
     console.error("Error saving activity:", error);
   } else {
-    console.log("Activity updated successfully!", newActivity);
+    //console.log("Activity updated successfully!", newActivity);
     showActivityModal.value = false;
     await fetchActivities(); // Refresh the calendar
     window.location.reload();
@@ -698,7 +698,7 @@ const deleteActivity = async () => {
   if (!confirmed) return;
 
   const activityId = newActivity.value.id;
-  console.log("Deleting activity with ID:", newActivity.value.id);
+  //console.log("Deleting activity with ID:", newActivity.value.id);
   // 1. Delete related votes
   const { error: voteError } = await supabase
     .from("votes")
@@ -730,7 +730,7 @@ const deleteActivity = async () => {
   if (activityError) {
     console.error("Failed to delete activity:", activityError);
   } else {
-    console.log("Activity, votes, and comments deleted successfully");
+    //console.log("Activity, votes, and comments deleted successfully");
     showActivityModal.value = false;
     window.location.reload();
   }
@@ -744,15 +744,15 @@ const saveActivity = async () => {
   const startTime = newActivity.value.startTime;
   const endTime = newActivity.value.endTime;
 
-  console.log("NEW:", newActivity);
+  //console.log("NEW:", newActivity);
   const isAllDay =
     !startTime || startTime === "None" || !endTime || endTime === "None";
 
   const start_time = isAllDay ? "00:00" : startTime;
   const end_time = isAllDay ? "23:59" : endTime;
 
-  console.log("start_time", start_time);
-  console.log("end_time", end_time);
+  //console.log("start_time", start_time);
+  //console.log("end_time", end_time);
 
   const { data: profileData, error: profilePicError } = await supabase
     .from("profiles")
@@ -768,9 +768,9 @@ const saveActivity = async () => {
     profileData.profile_pic_url ??
     "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg";
 
-  console.log("TYPE:", newActivity.value.type);
-  console.log("ACTIVITY PIC:", newActivity.value.activity_pic_url);
-  console.log("PROFILE PIC:", profilePicUrl);
+  //console.log("TYPE:", newActivity.value.type);
+  //console.log("ACTIVITY PIC:", newActivity.value.activity_pic_url);
+  //console.log("PROFILE PIC:", profilePicUrl);
 
   const { error } = await supabase.from("potential_activities").insert([
     {
@@ -809,12 +809,12 @@ const fetchPotentialActivities = async () => {
   }
 
   potentialActivities.value = data;
-  console.log("Potential activities:", potentialActivities.value);
+  //console.log("Potential activities:", potentialActivities.value);
 };
 
 const removeActivity = async (index) => {
   const selectedActivity = potentialActivities.value[index]; // Access with `.value`
-  console.log("Removing activity:", selectedActivity.id);
+  //console.log("Removing activity:", selectedActivity.id);
   try {
     const { error: deleteError } = await supabase
       .from("potential_activities")
@@ -825,7 +825,7 @@ const removeActivity = async (index) => {
       console.error("Failed to delete from potential_activities:", deleteError);
       return;
     } else {
-      console.log("Successfully removed");
+      //console.log("Successfully removed");
       await fetchPotentialActivities();
       await fetchActivities();
     }
@@ -868,17 +868,17 @@ const editPotentialActivity = (index) => {
 };
 
 const hasChangesPotential = computed(() => {
-  console.log(
-    "New Activity:",
-    newActivity.value,
-    "Original Potential Activity:",
-    originalPotentialActivity.value
-  );
-  console.log(
-    "Has Changes:",
-    JSON.stringify(newActivity.value) !==
-      JSON.stringify(originalPotentialActivity.value)
-  );
+  //console.log(
+  //   "New Activity:",
+  //   newActivity.value,
+  //   "Original Potential Activity:",
+  //   originalPotentialActivity.value
+  // );
+  // //console.log(
+  //   "Has Changes:",
+  //   JSON.stringify(newActivity.value) !==
+  //     JSON.stringify(originalPotentialActivity.value)
+  // );
   return (
     JSON.stringify(newActivity.value) !==
     JSON.stringify(originalPotentialActivity.value)
@@ -886,7 +886,7 @@ const hasChangesPotential = computed(() => {
 });
 
 const saveEditedPotentialActivity = async () => {
-  console.log("HERE");
+  //console.log("HERE");
   const startTime = newActivity.value.startTime;
   const endTime = newActivity.value.endTime;
 
@@ -896,8 +896,8 @@ const saveEditedPotentialActivity = async () => {
   const start_time = isAllDay ? "00:00" : startTime;
   const end_time = isAllDay ? "23:59" : endTime;
 
-  console.log("start_time", start_time);
-  console.log("end_time", end_time);
+  //console.log("start_time", start_time);
+  //console.log("end_time", end_time);
 
   const { error } = await supabase
     .from("potential_activities")
@@ -916,7 +916,7 @@ const saveEditedPotentialActivity = async () => {
   if (error) {
     console.error("Error editing activity:", error);
   } else {
-    console.log("Activity updated!");
+    //console.log("Activity updated!");
     showModal.value = false;
     await fetchPotentialActivities();
   }
@@ -948,7 +948,7 @@ const updateName = (event) => {
 
 const saveName = async () => {
   isEditingName.value = false;
-  console.log("editing name", tripName.value);
+  //console.log("editing name", tripName.value);
   const { error } = await supabase
     .from("itineraries")
     .update({ name: tripName.value })
@@ -957,7 +957,7 @@ const saveName = async () => {
   if (error) {
     console.error("Error updating itinerary name:", error);
   } else {
-    console.log("Itinerary name updated successfully");
+    //console.log("Itinerary name updated successfully");
   }
   fetchItineraryData();
 };
@@ -994,8 +994,8 @@ const editField = () => {
 
 const fetchOwnerProfile = async () => {
   try {
-    console.log("owner", currentUser.value.id);
-    console.log("Fetching owner profile for tripId:", tripId);
+    //console.log("owner", currentUser.value.id);
+    //console.log("Fetching owner profile for tripId:", tripId);
 
     // Step 1: Fetch the owner_id from the itineraries table
     const { data: itineraryData, error: itineraryError } = await supabase
@@ -1015,7 +1015,7 @@ const fetchOwnerProfile = async () => {
     }
 
     const ownerId = itineraryData.owner_id;
-    console.log("Fetched owner_id:", ownerId);
+    //console.log("Fetched owner_id:", ownerId);
 
     // Step 2: Fetch the owner's profile using the owner_id
     const { data: ownerData, error: ownerError } = await supabase
@@ -1042,7 +1042,7 @@ const fetchOwnerProfile = async () => {
       username: ownerData.username,
     };
 
-    console.log("Fetched Owner Profile:", ownerProfile.value);
+    //console.log("Fetched Owner Profile:", ownerProfile.value);
 
     // Now fetch members' profiles (if needed)
     const { data: memberIds, error: memberIdsError } = await supabase
@@ -1074,7 +1074,7 @@ const fetchOwnerProfile = async () => {
         "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg", // Default if no profile pic
     }));
 
-    console.log("SUCCESFULLY GOT OWNER", ownerProfile.value);
+    //console.log("SUCCESFULLY GOT OWNER", ownerProfile.value);
   } catch (error) {
     console.error("Error:", error);
   }
@@ -1094,7 +1094,7 @@ const removeMember = async (username) => {
     // Use itineraryName as tripName fallback
     const tripName = itineraryName.value || "a trip";
 
-    console.log("Removing from trip:", tripId, memberToRemove.id);
+    //console.log("Removing from trip:", tripId, memberToRemove.id);
 
     // Delete the member from the itinerary_members table
     const { error: deleteError } = await supabase
@@ -1141,20 +1141,20 @@ const removeMember = async (username) => {
 
 function switchInviteTab(type) {
   if (type === "email") {
-    console.log("Switched to email");
+    //console.log("Switched to email");
     isEmailSelected.value = true;
     // Optionally, set a selectedTab ref if needed
   } else {
-    console.log("Switched to username");
+    //console.log("Switched to username");
     isEmailSelected.value = false;
     // Optionally, set a selectedTab ref if needed
   }
 }
 
 const sendInvite = async (tripMembers) => {
-  console.log("Sending invite with members:", tripMembers);
-  console.log("tripMembers:", tripMembers);
-  console.log("type of tripMembers:", typeof tripMembers);
+  //console.log("Sending invite with members:", tripMembers);
+  //console.log("tripMembers:", tripMembers);
+  //console.log("type of tripMembers:", typeof tripMembers);
 
   if (!tripMembers) return;
 
@@ -1165,7 +1165,7 @@ const sendInvite = async (tripMembers) => {
 
   const membersMap = new Map(membersArray.map((m) => [m, true]));
 
-  console.log("✅ Final membersMap:", membersMap);
+  //console.log("✅ Final membersMap:", membersMap);
   // You can now send `membersMap` to your backend or use it as needed.
   if (!tripMembers) return;
   let allInvitesValid = true; // Flag to check if all invites are valid
@@ -1217,7 +1217,7 @@ const sendInvite = async (tripMembers) => {
         continue;
       } else {
         // No existing invite, proceed with sending invite
-        console.log(`No invite found for "${item}"`);
+        //console.log(`No invite found for "${item}"`);
       }
 
       // Check if the email is registered
@@ -1368,10 +1368,10 @@ const sendInvite = async (tripMembers) => {
             notificationError.message
           );
         } else {
-          console.log("send succ");
+          //console.log("send succ");
         }
       }
-      console.log("Invites sent successfully:", validInvites);
+      //console.log("Invites sent successfully:", validInvites);
       showMenu.value = false;
       showMembersModal.value = false;
       alert("Invites have been sent!"); // Show popup
@@ -1574,7 +1574,7 @@ const checkUserVote = async () => {
 
   const userId = currentUser.value.id;
 
-  console.log("Checking vote for:", userId, tripId, eventId);
+  //console.log("Checking vote for:", userId, tripId, eventId);
 
   const { data, error } = await supabase
     .from("votes")
@@ -1735,7 +1735,7 @@ const fetchVoteCounts = async (eventId) => {
   yesVotes.value = yesVotesCount;
   noVotes.value = noVotesCount;
 
-  console.log("COUNTS:", yesVotes.value, noVotes.value);
+  //console.log("COUNTS:", yesVotes.value, noVotes.value);
 };
 
 const yesPercentage = computed(() => {
@@ -1798,8 +1798,8 @@ const fetchComments = async (activityId) => {
 
   // Step 6: Assign to reactive variable or return
   comments.value = enrichedComments;
-  console.log("Here are the comments:");
-  console.log(comments.value);
+  //console.log("Here are the comments:");
+  //console.log(comments.value);
 };
 
 // Function to add comment to Supabase
@@ -1819,7 +1819,7 @@ const addComment = async () => {
   if (error) {
     console.error("Error adding comment:", error.message);
   } else {
-    console.log("Comment added:", data);
+    //console.log("Comment added:", data);
     newComment.value = ""; // Clear the input after success
   }
 

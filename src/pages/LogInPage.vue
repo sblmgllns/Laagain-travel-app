@@ -74,7 +74,7 @@ export default {
                 return;
             }
 
-            console.log("Logged in successfully", data);
+            //console.log("Logged in successfully", data);
 
             // Ensure session is fully loaded before fetching user data
             const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -125,7 +125,7 @@ export default {
                 if (profileError) {
                     console.error("Error inserting profile:", profileError.message);
                 } else {
-                    console.log("Profile created successfully");
+                    //console.log("Profile created successfully");
                 }
             } else {
                 // If the account is deactivated, reactivate it
@@ -140,14 +140,14 @@ export default {
                         return;
                     }
 
-                    console.log("Account reactivated successfully.");
+                    //console.log("Account reactivated successfully.");
                 }
             }
 
             // Redirect user to home page
             // this.$router.push("/profile");
             this.$emit('redirect', '/dashboard');
-            console.log("Emitting redirect event")
+            //console.log("Emitting redirect event")
         },
 
     },

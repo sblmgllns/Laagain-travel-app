@@ -1,7 +1,7 @@
 <template>
     <!-- Signup Form -->
     <div class="card p-4" style="width: 350px;">
-        <div class="d-flex justify-content-center">   
+        <div class="d-flex logoHolder justify-content-center">   
             <img
                 src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//laagain_logo.png"
                 alt="Laagain Logo"

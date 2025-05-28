@@ -344,11 +344,11 @@ export default {
   methods: {
     switchTab(type) {
       if (type === 'email') {
-        console.log("Switched to email");
+        //console.log("Switched to email");
         this.isEmailSelected = true;
         this.selectedTab = 'email'; // Use a reactive variable
       } else {
-        console.log("Switched to username");
+        //console.log("Switched to username");
         this.isEmailSelected = false;
         this.selectedTab = 'username';
       }
@@ -369,7 +369,7 @@ export default {
         const tripId = this.selectedItem.id;
         const tripName = this.selectedItem.title || 'a trip';
 
-        console.log("Removing from trip:", tripId, memberToRemove.id);
+        //console.log("Removing from trip:", tripId, memberToRemove.id);
 
         // Delete the member from the itinerary_members table
         const { error: deleteError } = await supabase
@@ -441,7 +441,7 @@ export default {
           image: trip.cover_pic_url || "" // Fallback image
         }));
 
-        console.log("Fetched trips:", this.trips);
+        //console.log("Fetched trips:", this.trips);
         } catch (err) {
           console.error("Unexpected error:", err);
           this.errorMessage = "Something went wrong.";
@@ -510,7 +510,7 @@ export default {
           continue;
         } else {
           // No existing invite, proceed with sending invite
-          console.log(`No invite found for "${item}"`);
+          //console.log(`No invite found for "${item}"`);
         }
 
         // Check if the email is registered
@@ -648,7 +648,7 @@ export default {
             console.error("Error inserting notifications:", notificationError.message);
           }
           else{
-            console.log("send succ");
+            //console.log("send succ");
           }
         }
         this.isEditMode = false;
@@ -837,7 +837,7 @@ export default {
 
     async fetchOwnerProfile() {
       try {
-        console.log("Fetching profile for owner:", this.selectedItem.id);
+        //console.log("Fetching profile for owner:", this.selectedItem.id);
 
         // Fetch owner data from Supabase
         const { data, error } = await supabase
@@ -852,7 +852,7 @@ export default {
           return;
         }
 
-        console.log("owner id:", this.selectedItem.ownerId);
+        //console.log("owner id:", this.selectedItem.ownerId);
         // Update the ownerProfile with the fetched data
         this.ownerProfile = {
           id: this.selectedItem.ownerId,
@@ -861,7 +861,7 @@ export default {
           username: data.username,
         };
 
-        console.log("Fetched Owner Profile:", this.ownerProfile);
+        //console.log("Fetched Owner Profile:", this.ownerProfile);
 
         // Fetch members' profiles
         const { data: memberIds, error: memberIdsError } = await supabase
@@ -869,7 +869,7 @@ export default {
             .select('user_id')
             .eq('itinerary_id', this.selectedItem.id);
 
-          console.log("ID:", memberIds);
+          //console.log("ID:", memberIds);
           if (memberIdsError) throw memberIdsError;
 
           const userIds = memberIds.map(member => member.user_id);
@@ -888,9 +888,9 @@ export default {
             profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing
           }));
 
-          console.log("Fetched Members Info:");
+          //console.log("Fetched Members Info:");
           this.members.forEach(member => {
-            console.log(`Full Name: ${member.full_name}, Username: ${member.username}`);
+            //console.log(`Full Name: ${member.full_name}, Username: ${member.username}`);
           });
 
       } catch (error) {

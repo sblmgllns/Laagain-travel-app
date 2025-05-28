@@ -117,7 +117,7 @@ onMounted(async () => {
     return;
   }
 
-  console.log(currentUser)
+  //console.log(currentUser)
   user.value = currentUser;
 })
 function cancel() {
@@ -169,7 +169,7 @@ async function handleImageUpload(event) {
     return
   }
 
-  console.log("Cover Image uploaded successfully!")
+  //console.log("Cover Image uploaded successfully!")
 }
 
 async function saveTrip() {
@@ -294,7 +294,7 @@ async function saveTrip() {
         if (notificationError) {
           console.error("Error inserting notifications:", notificationError.message)
         } else {
-          console.log("Notifications sent successfully.")
+          //console.log("Notifications sent successfully.")
         }
       }
     }
