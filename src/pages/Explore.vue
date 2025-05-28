@@ -6,6 +6,7 @@
 
 
   const profilePicUrl = ref(null);
+  const profileUsername = ref(null);
   const modalItem = ref(null);
   const activeTab = ref('bookmarks');
   const bookmarkedItems = ref([]);
@@ -30,7 +31,7 @@
     // 2. Fetch user record from 'users' table
     const { data, error } = await supabase
       .from('profiles')
-      .select('profile_pic_url')
+      .select('profile_pic_url, full_name')
       .eq('id', user.id) // assuming your 'users' table uses auth user id
       .single()
 
@@ -38,6 +39,8 @@
       console.error('Error fetching profile_pic_url:', error)
     } else {
       profilePicUrl.value = data.profile_pic_url
+      profileUsername.value = data.full_name
+      console.log("username is: ")
     }
 
     // Load bookmarks
@@ -49,12 +52,16 @@
     console.log("here", item.title);
     const newActivity = {
       name: item.title,
-      description: "",
-      location: "",
+      description: item.desc,
+      location: item.category,
       date: "",
       start_time: null,
       end_time: null,
       itinerary_id: selectedTripId.value,
+      activity_pic_url: item.image,
+      username: profileUsername.value,
+      profile_pic_url: profilePicUrl.value,
+      type: "attraction"
     };
 
     try {
@@ -589,6 +596,7 @@
       </div>
     </div>
 
+    <teleport to="body">
     <!-- Details ModaL -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered overflow-auto">
@@ -669,6 +677,7 @@
             </div>
         </div>
     </div>
+    </teleport>
   
     <!-- Bottom Navigation Bar -->
     <!-- <div class="position-absolute start-50 translate-middle-x bottom-0 mb-4 w-50 bg-white rounded-pill shadow-lg py-3 d-flex justify-content-around align-items-center text-decoration-none"
