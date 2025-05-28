@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { supabase } from '../supabase'
 import { useRoute } from 'vue-router'
 const showNotifications = ref(false)
-const defaultAvatar = '/assets/default-avatar.png'
+const defaultAvatar = 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg'
 const userAvatar = ref(defaultAvatar)
 const route = useRoute()
 const emit = defineEmits(['open-modal'])  // ✅ Add this
@@ -19,9 +19,8 @@ onMounted(async () => {
     .eq('id', user.id)
     .single()
 
-  if (profile) {
-    userAvatar.value = profile.profile_pic_url || defaultAvatar
-  }
+  userAvatar.value = profile?.profile_pic_url || defaultAvatar
+
 })
 
 function handleNotificationClick() {
