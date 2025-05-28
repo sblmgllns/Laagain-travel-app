@@ -90,7 +90,7 @@ export default {
           this.errorMessage = resetError.message;
           console.error("Password reset error:", resetError.message);
         } else {
-          console.log("Password reset email sent!");
+          //console.log("Password reset email sent!");
           this.successMessage = "A password reset link has been sent to your email.";
           this.email = ""; // Clear input field after sending
         }

@@ -729,11 +729,11 @@
 
     switchTab(type) {
       if (type === 'email') {
-        console.log("Switched to email");
+        ////console.log("Switched to email");
         this.isEmailSelected = true;
         this.selectedTab = 'email'; // Use a reactive variable
       } else {
-        console.log("Switched to username");
+        //console.log("Switched to username");
         this.isEmailSelected = false;
         this.selectedTab = 'username';
       }
@@ -767,7 +767,7 @@
         const tripId = this.selectedItem.id;
         const tripName = this.selectedItem.title || 'a trip';
 
-        console.log("Removing from trip:", tripId, memberToRemove.id);
+        //console.log("Removing from trip:", tripId, memberToRemove.id);
 
         // Delete the member from the itinerary_members table
         const { error: deleteError } = await supabase
@@ -830,7 +830,7 @@
             }
           }
 
-          console.log(`Invitation ${id} updated to ${newStatus}`);
+          //console.log(`Invitation ${id} updated to ${newStatus}`);
 
           // Step 2: Fetch trip_id and inviter_id
           const { data: inviteData, error: inviteError } = await supabase
@@ -843,7 +843,7 @@
             console.error("Error fetching trip data:", inviteError?.message);
             return;
           }
-          console.log(inviteData);
+          //console.log(inviteData);
           const { trip_id, inviter_id } = inviteData;
 
           // Step 3: Get itinerary name using trip_id
@@ -853,7 +853,7 @@
             .eq("id", trip_id)
             .single();
 
-          console.log(itineraryData);
+          //console.log(itineraryData);
           if (itineraryError || !itineraryData) {
             console.error("Error fetching itinerary name:", itineraryError?.message);
             return;
@@ -877,7 +877,7 @@
               return;
             }
 
-            console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
+            //console.log(`User ${this.user.id} added to itinerary_members for trip ${trip_id}`);
             // Step 5: Fetch current user's profile
             const { data: profileData, error: profileError } = await supabase
               .from("profiles")
@@ -907,7 +907,7 @@
             if (notifError) {
               console.error("Error creating notification:", notifError.message);
             } else {
-              console.log("Notification sent to inviter.");
+              //console.log("Notification sent to inviter.");
             }
           }
 
@@ -921,7 +921,7 @@
           if (deleteError) {
             console.error("Error deleting declined invite:", deleteError.message);
           } else {
-            console.log(`Declined invite ${id} removed to allow future reinvitation.`);
+            //console.log(`Declined invite ${id} removed to allow future reinvitation.`);
           }
         }
         
@@ -948,7 +948,7 @@
           return;
         }
 
-        console.log("this is:", this.user.id);
+        //console.log("this is:", this.user.id);
 
 
         const { data: joinedTrips, error: joinedError } = await supabase
@@ -956,7 +956,7 @@
           .select("itinerary_id, itineraries!itinerary_members_itinerary_id_fkey(*)")  // Fetch all related itinerary details
           .eq("user_id", this.user.id);  // Only trips for the current user
 
-        console.log("Joined Trips Data:", joinedTrips);
+        //console.log("Joined Trips Data:", joinedTrips);
 
 
         if (joinedError) {
@@ -967,7 +967,7 @@
 
         // Extract itinerary details from joined trips
         const joinedTripsData = joinedTrips.map((entry) => entry.itineraries);
-        console.log("Joined Trips Data:", joinedTripsData);
+        //console.log("Joined Trips Data:", joinedTripsData);
         // Combine owned and joined trips
         const allTrips = [...ownedTrips, ...joinedTripsData];
 
@@ -1007,9 +1007,9 @@
           }
         });
 
-        console.log("Active Trips:", this.activeNowTasks);
-        console.log("Upcoming Trips:", this.activeUpcomingTasks);
-        console.log("Completed Trips:", this.completedTasks);
+        //console.log("Active Trips:", this.activeNowTasks);
+        //console.log("Upcoming Trips:", this.activeUpcomingTasks);
+        //console.log("Completed Trips:", this.completedTasks);
 
       } catch (err) {
         console.error("Unexpected error:", err);
@@ -1047,7 +1047,7 @@
 
         // Push to sharedTasks
         this.sharedTasks = sharedTripsFormatted;
-        console.log("Shared Trips:", this.sharedTasks);
+        //console.log("Shared Trips:", this.sharedTasks);
       } catch (err) {
         console.error("Unexpected error fetching shared trips:", err);
         this.errorMessage = "Something went wrong.";
@@ -1058,8 +1058,8 @@
     async fetchInvites() {
       try {
         // Fetch the user's email
-        console.log("Fetching user email...");
-        console.log("Current user ID:", this.user?.id);
+        //console.log("Fetching user email...");
+        //console.log("Current user ID:", this.user?.id);
         const { data: userData, error: userError } = await supabase
           .from("profiles")
           .select("email")
@@ -1075,7 +1075,7 @@
           };
 
           this.email = userData.email;
-          console.log("User email:", this.email);
+          //console.log("User email:", this.email);
                   
 
         // Fetch invites where the user's email matches invited_email
@@ -1119,7 +1119,7 @@
         );
 
         this.invitedTasks = invitesWithDetails.sort((a, b) => new Date(b.date) - new Date(a.date));
-        console.log("Fetched Invites:", this.invitedTasks);
+        //console.log("Fetched Invites:", this.invitedTasks);
       } catch (err) {
         console.error("Unexpected error fetching invites:", err);
       }
@@ -1129,7 +1129,7 @@
       this.selectedItem = item;
       this.showInviteModal = true;
       this.loading = true;  // Set loading state to true before fetching data
-      console.log(this.selectedItem );
+      //console.log(this.selectedItem );
       this.fetchOwnerProfile();  // Re-fetch data when the modal opens
       this.isEditMode = false;
     },
@@ -1189,7 +1189,7 @@
             continue;
           } else {
             // No existing invite, proceed with sending invite
-            console.log(`No invite found for "${item}"`);
+            //console.log(`No invite found for "${item}"`);
           }
 
           // Check if the email is registered
@@ -1327,7 +1327,7 @@
               console.error("Error inserting notifications:", notificationError.message);
             }
             else{
-              console.log("send succ");
+              //console.log("send succ");
             }
           }
           alert("Invites have been sent!"); // Show popup
@@ -1342,7 +1342,7 @@
 
     async fetchOwnerProfile() {
       try {
-        console.log("Fetching profile for owner:", this.selectedItem.ownerId);
+        //console.log("Fetching profile for owner:", this.selectedItem.ownerId);
 
         // Fetch owner data from Supabase
         const { data, error } = await supabase
@@ -1365,7 +1365,7 @@
           username: data.username,
         };
 
-        console.log("Fetched Owner Profile:", this.ownerProfile);
+        //console.log("Fetched Owner Profile:", this.ownerProfile);
 
         // Fetch members' profiles
         const { data: memberIds, error: memberIdsError } = await supabase
@@ -1390,7 +1390,7 @@
             full_name: member.full_name,
             profile_pic_url: member.profile_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg', // Default profile pic if missing
           }));
-          console.log("Fetched Members:", this.members);
+          //console.log("Fetched Members:", this.members);
       } catch (error) {
         console.error('Error:', error);
       } finally {

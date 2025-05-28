@@ -29,7 +29,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 function close() {
-      console.log('Modal close triggered')
+      //console.log('Modal close triggered')
 
   emit('close')
 }

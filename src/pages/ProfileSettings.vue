@@ -373,7 +373,7 @@ export default {
         if (fetchError) throw new Error("Failed to fetch itineraries.");
 
         const itineraryIds = itineraries?.map(i => i.id) || [];
-        console.log("Number of itinerary IDs:", itineraryIds.length);
+        //console.log("Number of itinerary IDs:", itineraryIds.length);
         if (itineraryIds.length) {
           for (const itineraryId of itineraryIds) {
 
@@ -472,7 +472,7 @@ export default {
           .eq("id", userId);
         if (ProfileError) throw new Error("Failed to delete profile.");
 
-        console.log("Deleting Auth Now")
+        //console.log("Deleting Auth Now")
         // Final step: Delete user from Supabase Auth
         const { data: { session } } = await supabase.auth.getSession();
         const accessToken = session?.access_token;
@@ -491,7 +491,7 @@ export default {
           },
           body: JSON.stringify({ id: userId }),
         });
-        console.log("Response:", response, response.ok);
+        //console.log("Response:", response, response.ok);
         const result = await response.json();
 
         if (!response.ok) {
@@ -501,7 +501,7 @@ export default {
         }
 
 
-        console.log("Account marked as deleted and all related data cleaned.");
+        //console.log("Account marked as deleted and all related data cleaned.");
         this.logout();
 
       } catch (err) {

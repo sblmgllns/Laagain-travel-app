@@ -404,7 +404,7 @@ const leaveTrip = () => {
 };
 
 const sendInvite = () => {
-  console.log("Sending invite with members:", tripMembers.value);
+  //console.log("Sending invite with members:", tripMembers.value);
   emit("sendInvite", tripMembers.value);
   tripMembers.value = [];
 };
