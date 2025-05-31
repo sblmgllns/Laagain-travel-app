@@ -584,7 +584,7 @@ const addActivity = async (index) => {
 
   await fetchPotentialActivities();
   await fetchActivities();
-  window.location.reload();
+  router.push("/edit-itinerary");
 };
 
 //for getting exisiting activities from supabase, for calendar reflection
@@ -674,7 +674,7 @@ const saveEditedActivity = async () => {
     //console.log("Activity updated successfully!", newActivity);
     showActivityModal.value = false;
     await fetchActivities(); // Refresh the calendar
-    window.location.reload();
+    router.push("/edit-itinerary");
   }
 };
 
@@ -734,7 +734,7 @@ const deleteActivity = async () => {
   } else {
     //console.log("Activity, votes, and comments deleted successfully");
     showActivityModal.value = false;
-    window.location.reload();
+    router.push("/edit-itinerary");
   }
 };
 
@@ -798,7 +798,7 @@ const saveActivity = async () => {
   closeModal();
   fetchPotentialActivities();
   fetchActivities();
-  window.location.reload();
+  router.push("/edit-itinerary");
 };
 
 const fetchPotentialActivities = async () => {
