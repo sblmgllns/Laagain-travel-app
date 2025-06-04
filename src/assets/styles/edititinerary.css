@@ -5,7 +5,6 @@ body {
   padding: 0; /* Removes default padding */
   height: 100%; /* Makes html/body fill the viewport height */
   font-family: "Sarabun", sans-serif !important; /* Sets the font */
-}
 
 /* App container */
 .app-container {

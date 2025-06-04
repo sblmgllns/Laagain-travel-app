@@ -501,7 +501,7 @@ const saveItineraryChanges = async (updatedItinerary) => {
     // 4. Update local state and close modal
     originalItineraryDetails.value = { ...updatedItinerary };
     showEditModal.value = false;
-
+    showAlert("Itinerary successfully updated!");
     // 5. Refresh any dependent data
     await fetchPotentialActivities(); // Your existing data fetching function
     await fetchActivities();
@@ -605,7 +605,7 @@ const addActivity = async (index) => {
 
   await fetchPotentialActivities();
   await fetchActivities();
-  window.location.reload();
+  router.push("/edit-itinerary");
 };
 
 //for getting exisiting activities from supabase, for calendar reflection
@@ -694,13 +694,13 @@ const saveEditedActivity = async () => {
     .eq("id", newActivity.value.id);
 
   if (error) {
-    showAlert("Something went wrong. Please try again later.");
+    showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error saving activity:", error);
   } else {
-    console.log("Activity updated successfully!", newActivity);
+    showAlert("Activity updated successfully!")
     showActivityModal.value = false;
     await fetchActivities(); // Refresh the calendar
-    window.location.reload();
+    router.push("/edit-itinerary");
   }
 };
 
@@ -761,6 +761,7 @@ const deleteActivity = async () => {
   } else {
     console.log("Activity, votes, and comments deleted successfully");
     showActivityModal.value = false;
+    showAlert("Activity successfully deleted!")
     window.location.reload();
   }
 };
@@ -851,8 +852,12 @@ const fetchPotentialActivities = async () => {
       return;
     }
 
-  potentialActivities.value = data;
-  console.log("Potential activities:", potentialActivities.value);
+    potentialActivities.value = activities;
+    console.log("Potential activities:", potentialActivities.value);
+  } catch (err) {
+    console.error("Error fetching potential activities:", err);
+    potentialActivities.value = [];
+  }
 };
 
 const removeActivity = async (index) => {
@@ -961,6 +966,7 @@ const saveEditedPotentialActivity = async () => {
     showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error editing activity:", error);
   } else {
+    showAlert("New potential activity successfully added!");
     console.log("Activity updated!");
     showModal.value = false;
     await fetchPotentialActivities();
