@@ -16,6 +16,7 @@
   const selectedTripId = ref('');
    const selectedTripName = ref('');
    const router = useRouter();
+   const current = router.currentRoute.value.fullPath
 
   // Get current user on mount
   onMounted(async () => {
@@ -114,7 +115,8 @@
           alert.remove();
         }, 5000);
         // window.location.reload();
-        router.go();
+        // router.go();
+        router.replace('/temp').then(() => router.replace(current))
       }
     } catch (err) {
       console.error("Unexpected error inserting activity:", err);
