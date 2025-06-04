@@ -1880,7 +1880,7 @@ input:checked + .slider:before {
 
 
 
-@media (max-width: 1366px) {
+@media (max-width: 1000px) {
   .activity-name {
   width: 25px;
   overflow: hidden;
