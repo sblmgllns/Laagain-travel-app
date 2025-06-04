@@ -47,7 +47,7 @@ const place = ref("");
 const startDate = ref("");
 const endDate = ref("");
 const coverPicUrl = ref("");
-
+const modalContent = ref(null);
 const calendarApp = shallowRef(null); // ✅ Use shallowRef!
 const calendarEvents = ref([]);
 let eventId = null;
@@ -153,6 +153,7 @@ watch(startDate, async (val) => {
         fetchUserVote(eventId);
         fetchVoteCounts(eventId);
         fetchComments(eventId);
+        fetchCurrentUserProfilePic();
         showActivityModal.value = true;
       },
       // < -- resizing events by dragging their top or bottom edges   -->
@@ -225,6 +226,10 @@ function formatDate(dateString) {
   return formatted.replace(",", ""); // returns e.g. "APRIL 14 2025"
 }
 
+const goToExplore = () => {
+  router.push('/explore')
+}
+
 ///TIME FORMAT
 function formatPotentialTime(timeStr) {
   // Assume timeStr is in "HH:mm" format (e.g., "01:00", "13:45")
@@ -274,6 +279,7 @@ async function handleImageUpload(event, mode = "new") {
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
   if (!allowedTypes.includes(file.type)) {
     console.error("Invalid file type. Please upload a JPG or PNG.");
+    isSaving.value = false;
     return;
   }
 
@@ -292,6 +298,7 @@ async function handleImageUpload(event, mode = "new") {
 
   if (uploadError) {
     console.error("❌ Error uploading image:", uploadError.message);
+    isSaving.value = false;
     return;
   }
 
@@ -304,6 +311,7 @@ async function handleImageUpload(event, mode = "new") {
 
   if (!publicUrl) {
     console.error("❌ Failed to retrieve public URL.");
+    isSaving.value = false;
     return;
   }
 
@@ -357,6 +365,13 @@ const openModal = () => {
   };
 };
 
+function handleOutsideClick(event) {
+  // Check if click was outside the modal content
+  if (modalContent.value && !modalContent.value.contains(event.target)) {
+    closeModal();
+  }
+}
+
 const closeModal = () => {
   showModal.value = false;
   isEditingActivity.value = false;
@@ -368,6 +383,11 @@ const closeActivityModal = () => {
   isEditMode.value = false;
   isEditingActivity.value = false;
 };
+
+const removePhoto = () => {
+  newActivity.value.activity_pic_url = "";
+};
+
 ///////EDIT ITINERARY DETAILS//////////////////////////////////////////
 const showEditModal = ref(false);
 const editItinerary = ref({
@@ -488,10 +508,11 @@ const saveItineraryChanges = async (updatedItinerary) => {
     fetchItineraryData();
     console.log("Successfully saved itinerary");
   } catch (error) {
+    showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error saving itinerary:", error);
     // Revert local changes if save failed
     editItinerary.value = { ...originalItineraryDetails.value };
-    alert("Failed to save changes. Please try again.");
+    showErrorAlert("Failed to save changes. Please try again.");
   }
 };
 ///////NEW ACTIVITY//////////////////////////////////////////
@@ -517,7 +538,7 @@ const addActivity = async (index) => {
   console.log("Adding activity:", selectedActivity);
 
   if (!selectedActivity.date || selectedActivity.date.trim() === "") {
-    alert("Date is required to add this activity.");
+    showErrorAlert("Date is required to add this activity.");
     return;
   }
 
@@ -529,7 +550,7 @@ const addActivity = async (index) => {
     activityDate.getTime() < itineraryStart.getTime() ||
     activityDate.getTime() > itineraryEnd.getTime()
   ) {
-    alert("You can't add an activity outside your itinerary's date range.");
+    showErrorAlert("Something went wrong. Please try again later.");
     return;
   }
 
@@ -537,12 +558,12 @@ const addActivity = async (index) => {
     !selectedActivity.start_time ||
     selectedActivity.start_time.trim() === ""
   ) {
-    alert("Start time is required.");
+    showErrorAlert("Start time is required.");
     return;
   }
 
   if (!selectedActivity.end_time || selectedActivity.end_time.trim() === "") {
-    alert("End time is required.");
+    showErrorAlert("End time is required.");
     return;
   }
 
@@ -564,6 +585,7 @@ const addActivity = async (index) => {
   ]);
 
   if (error) {
+    showErrorAlert("Something went wrong. Please try again later.");
     console.error("Failed to insert activity:", error);
     return;
   }
@@ -578,6 +600,7 @@ const addActivity = async (index) => {
     return;
   }
 
+  showAlert("Potential activity successfully added!");
   applyThemeByType(selectedActivity.type);
 
   await fetchPotentialActivities();
@@ -641,6 +664,8 @@ const hasActivityChanged = computed(() => {
   return (
     newA.title !== origA.title ||
     newA.location !== origA.location ||
+    newA.type !== origA.type ||
+    newA.activity_pic_url !== origA.activity_pic_url ||
     newA.description !== origA.description ||
     newA.date !== origA.date ||
     (!isChecked.value &&
@@ -663,10 +688,13 @@ const saveEditedActivity = async () => {
       date: newActivity.value.date,
       start_time: startTimestamp,
       end_time: endTimestamp,
+      type: newActivity.value.type,
+      activity_pic_url: newActivity.value.activity_pic_url,
     })
     .eq("id", newActivity.value.id);
 
   if (error) {
+    showAlert("Something went wrong. Please try again later.");
     console.error("Error saving activity:", error);
   } else {
     console.log("Activity updated successfully!", newActivity);
@@ -729,6 +757,7 @@ const deleteActivity = async () => {
 
   if (activityError) {
     console.error("Failed to delete activity:", activityError);
+    showErrorAlert("Something went wrong. Please try again later.");
   } else {
     console.log("Activity, votes, and comments deleted successfully");
     showActivityModal.value = false;
@@ -756,14 +785,22 @@ const saveActivity = async () => {
 
   const { data: profileData, error: profilePicError } = await supabase
     .from("profiles")
-    .select("profile_pic_url")
+    .select("profile_pic_url, username") // Fetch both fields
     .eq("id", currentUser.value.id)
     .single();
 
   if (profilePicError) {
     console.error("Error fetching profile picture:", profilePicError);
+    isSaving.value = false;
     return;
   }
+
+  // Print the fetched data to console
+  console.log("Fetched profile data:", {
+    profilePicUrl: profileData.profile_pic_url,
+    username: profileData.username,
+  });
+
   const profilePicUrl =
     profileData.profile_pic_url ??
     "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg";
@@ -781,32 +818,38 @@ const saveActivity = async () => {
       start_time,
       end_time,
       itinerary_id: tripId,
-      username: currentUser.value.user_metadata.username,
+      username: username,
       profile_pic_url: profilePicUrl,
       type: newActivity.value.type,
+      user_id: currentUser.value.id,
       activity_pic_url: newActivity.value.activity_pic_url,
     },
   ]);
 
   if (error) {
     console.error("Error saving potential activity:", error);
-    alert("Failed to save activity. Please try again.");
+    showErrorAlert("Failed to save activity. Please try again.");
+    isSaving.value = false;
     return;
   }
+  showAlert("New potential activity successfully added!");
+  isSaving.value = false;
   closeModal();
   await fetchPotentialActivities();
 };
-
 const fetchPotentialActivities = async () => {
-  const { data, error } = await supabase
-    .from("potential_activities")
-    .select("*") // Optionally filter by user/org
-    .eq("itinerary_id", tripId);
+  try {
+    // 1. Fetch potential activities
+    const { data: activities, error } = await supabase
+      .from("potential_activities")
+      .select("*")
+      .eq("itinerary_id", tripId);
 
-  if (error) {
-    console.error("Error fetching potential activities:", error);
-    return;
-  }
+    if (error) throw error;
+    if (!activities?.length) {
+      potentialActivities.value = [];
+      return;
+    }
 
   potentialActivities.value = data;
   console.log("Potential activities:", potentialActivities.value);
@@ -823,6 +866,7 @@ const removeActivity = async (index) => {
 
     if (deleteError) {
       console.error("Failed to delete from potential_activities:", deleteError);
+      showErrorAlert("Something went wrong. Please try again later.");
       return;
     } else {
       console.log("Successfully removed");
@@ -914,6 +958,7 @@ const saveEditedPotentialActivity = async () => {
     .eq("id", newActivity.value.id);
 
   if (error) {
+    showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error editing activity:", error);
   } else {
     console.log("Activity updated!");
@@ -1087,6 +1132,7 @@ const removeMember = async (username) => {
     );
     if (!memberToRemove) {
       console.warn("Member not found");
+      showErrorAlert("Member not found");
       return;
     }
 
@@ -1132,10 +1178,11 @@ const removeMember = async (username) => {
       (member) => member.username !== username
     );
     isEditMemberMode.value = false;
+    showAlert("Member successfully removed!");
   } catch (err) {
     isEditMemberMode.value = false;
     console.error("Error removing member:", err.message);
-    alert("Could not remove member.");
+    showErrorAlert("Something went wrong. Please try again later.");
   }
 };
 
@@ -1150,6 +1197,67 @@ function switchInviteTab(type) {
     // Optionally, set a selectedTab ref if needed
   }
 }
+
+const showAlert = (message) => {
+  const alertBox = document.createElement("div");
+  alertBox.textContent = message;
+  alertBox.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff; /* Tailwind blue-500, change if you use another theme */
+    color: #03aed2;
+    padding: 12px 24px;
+    border-radius: 7px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000000;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  `;
+
+  document.body.appendChild(alertBox);
+
+  // Trigger fade-out and slide-up after 2.5s
+  setTimeout(() => {
+    alertBox.style.opacity = "0";
+    alertBox.style.transform = "translateX(-50%) translateY(-10px)";
+    setTimeout(() => document.body.removeChild(alertBox), 500);
+  }, 2500);
+};
+
+const showErrorAlert = (message) => {
+  const alertBox = document.createElement("div");
+  alertBox.textContent = message;
+  alertBox.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    color: #dc2626; /* Tailwind red-600 */
+    padding: 12px 24px;
+    border-radius: 7px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100000;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  `;
+
+  document.body.appendChild(alertBox);
+
+  setTimeout(() => {
+    alertBox.style.opacity = "0";
+    alertBox.style.transform = "translateX(-50%) translateY(-10px)";
+    setTimeout(() => document.body.removeChild(alertBox), 500);
+  }, 2500);
+};
 
 const sendInvite = async (tripMembers) => {
   console.log("Sending invite with members:", tripMembers);
@@ -1307,7 +1415,9 @@ const sendInvite = async (tripMembers) => {
 
     if (inviteInsertError) {
       console.error("Error sending invites:", inviteInsertError.message);
-      alert("There was an error sending the invites. Please try again.");
+      showErrorAlert(
+        "There was an error sending the invites. Please try again."
+      );
     } else {
       // Fetch sender's profile for username and profile picture
       const { data: senderProfile, error: senderError } = await supabase
@@ -1321,7 +1431,7 @@ const sendInvite = async (tripMembers) => {
           "Failed to fetch sender's profile data:",
           senderError?.message
         );
-        alert(
+        showErrorAlert(
           "Invites were sent, but notifications may not have been fully created."
         );
         return;
@@ -1374,12 +1484,14 @@ const sendInvite = async (tripMembers) => {
       console.log("Invites sent successfully:", validInvites);
       showMenu.value = false;
       showMembersModal.value = false;
-      alert("Invites have been sent!"); // Show popup
+      showAlert("Invites sent!");
       // Optionally reset modal state here
     }
   } else {
     // Show all invalid items with appropriate alerts
-    alert(`Some invitations could not be sent:\n\n${invalidItems.join("\n")}`);
+    showErrorAlert(
+      `Some invitations could not be sent:\n\n${invalidItems.join("\n")}`
+    );
   }
 };
 
@@ -1468,17 +1580,17 @@ const deletePost = async () => {
     if (deleteError) {
       console.error("Error deleting itinerary:", deleteError);
       showMenu.value = false;
-      alert("Failed to delete itinerary. Try again.");
+      showErrorAlert("Failed to delete itinerary. Try again.");
       return;
     }
 
     showMenu.value = false;
-    alert("Itinerary deleted successfully!");
+    showAlert("Itinerary deleted successfully!");
     router.push("/dashboard");
   } catch (err) {
     console.error("Unexpected error:", err);
     showMenu.value = false;
-    alert("Something went wrong.");
+    showErrorAlert("Something went wrong. Please try again later.");
   }
 };
 
@@ -1495,12 +1607,12 @@ const leaveTrip = async () => {
 
     if (tripError) {
       console.error("Error checking trip ownership:", tripError.message);
-      alert("Unable to verify your ownership of the trip.");
+      showErrorAlert("Something went wrong. Please try again later.");
       return;
     }
 
     if (trip.owner_id === currentUser.value.id) {
-      alert("You can't leave this trip because you are the owner.");
+      showErrorAlert("You can't leave this trip because you are the owner.");
       return;
     }
 
@@ -1513,7 +1625,7 @@ const leaveTrip = async () => {
 
     if (error) {
       console.error("Error leaving trip:", error.message);
-      alert("There was an issue leaving the trip. Please try again.");
+      showErrorAlert("There was an issue leaving the trip. Please try again.");
       return;
     }
 
@@ -1551,11 +1663,11 @@ const leaveTrip = async () => {
       console.error("Failed to send notification:", notifError.message);
     }
 
-    alert("You have successfully left the trip.");
+    showAlert("You have successfully left the trip!");
     router.push("/dashboard");
   } catch (err) {
     console.error("Unexpected error while leaving trip:", err);
-    alert("An unexpected error occurred.");
+    showErrorAlert("Something went wrong. Please try again later.");
   }
 };
 
@@ -1670,7 +1782,7 @@ const vote = async (voteType) => {
       yesVotes.value = Math.max(yesVotes.value, 0);
       noVotes.value = Math.max(noVotes.value, 0);
     } else {
-      alert(`You already voted '${userVote.value}'`);
+      showErrorAlert(`You already voted '${userVote.value}'`);
       return;
     }
   } else {
@@ -1752,6 +1864,16 @@ const noPercentage = computed(() => {
 
 const isChecked = ref(false); // Starts unchecked
 
+// Reactive all-day checkbox
+const isAllDay = ref(isChecked);
+
+watch(isAllDay, (val) => {
+  if (val) {
+    newActivity.startTime = "00:00"; // 12:00 AM
+    newActivity.endTime = "23:59"; // 11:59 PM
+  }
+});
+
 //////COMMENTS PART//////////////////////////////
 const comments = ref([]);
 const newComment = ref(""); // Reactive variable to bind the input
@@ -1826,14 +1948,43 @@ const addComment = async () => {
   fetchComments(eventId);
 };
 
+const currentUserProfilePic = ref("");
+
+const fetchCurrentUserProfilePic = async () => {
+  if (!currentUser.value?.id) return;
+
+  const { data, error } = await supabase
+    .from("profiles") // your actual table name
+    .select("profile_pic_url") // this must match the column name in Supabase
+    .eq("id", currentUser.value.id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching profile pic:", error.message);
+  } else {
+    currentUserProfilePic.value = data.profile_pic_url;
+    console.log("PIC:", currentUserProfilePic.value);
+  }
+};
+
 const formatTime = (timestamp) => {
   if (!timestamp) return "";
-  const date = new Date(timestamp);
-  const diff = Date.now() - date.getTime();
 
-  return diff < 1000 * 60 * 60 * 24
-    ? formatDistanceToNow(date, { addSuffix: true }) // e.g. "5 minutes ago"
-    : format(date, "MMM d"); // e.g. "Apr 30"
+  const date = new Date(timestamp);
+  const diffInSeconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds}s ago`;
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes}m ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days}d ago`;
+  }
 };
 
 function switchTab(tab) {
@@ -1868,7 +2019,7 @@ function switchTab(tab) {
         <span
           class="mx-2 fw-medium text-white file-hover"
           @click="openEditModal"
-          >File</span
+          >Edit File</span
         >
 
         <!-- Divider -->
@@ -1916,12 +2067,18 @@ function switchTab(tab) {
           <i class="bi bi-clock-history text-white menu-icon-right"></i>
         </div>
 
-        <!-- Chat Icon with 3px white border -->
         <div
-          class="menu-icon-container rounded px-2 mx-1"
-          style="border: 1px solid white; width: 28px"
+          class="menu-icon-container rounded px-2 mx-1 d-flex align-items-center justify-content-center"
+          style="
+            border: 1px solid white;
+            width: 28px;
+            margin-left:12px;
+            height: 26px;
+            cursor: pointer;
+          "
+          @click="goToExplore"
         >
-          <i class="bi bi-chat-dots text-white menu-icon-right"></i>
+          <i class="bi bi-search text-white menu-icon-right"></i>
         </div>
 
         <!-- Divider -->
@@ -1941,10 +2098,14 @@ function switchTab(tab) {
     <div class="main-content" :class="{ collapsed: isCollapsed }">
       <!-- Left Section -->
       <div class="left-section">
-        <button class="create-btn" @click="openModal">
+        <button
+          class="create-btn d-flex justify-content-center align-items-center gap-1"
+          @click="openModal"
+        >
+          <i class="bi bi-plus-lg"></i>
           <span v-if="!isCollapsed">New Activity</span>
-          <span v-else><i class="bi bi-plus-lg"></i></span>
         </button>
+
         <div modal-header>
           <div class="tab-section full-width">
             <ul class="underline-tabs">
@@ -1954,13 +2115,6 @@ function switchTab(tab) {
                 @click="switchTab('trips')"
               >
                 <i class="me-1"></i> Activities
-              </li>
-              <li
-                class="underline-tab"
-                :class="{ active: activeTab === 'guides' }"
-                @click="switchTab('guides')"
-              >
-                <i class="me-1"></i> Explore
               </li>
             </ul>
           </div>
@@ -1998,7 +2152,10 @@ function switchTab(tab) {
                     <div class="activity-column-left">
                       <div class="activity-image-wrapper">
                         <img
-                          :src="activity.activity_pic_url || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          :src="
+                            activity.activity_pic_url ||
+                            'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'
+                          "
                           alt="Activity Image"
                           class="activity-image"
                         />
@@ -2008,7 +2165,10 @@ function switchTab(tab) {
                     <!-- Right Column -->
                     <div class="activity-column-right">
                       <div class="activity-header">
-                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <h2 class="activity-name">
+                          {{ activity.name.slice(0, 10)
+                          }}{{ activity.name.length > 10 ? "" : "" }}
+                        </h2>
                         <span class="circle-separator">•</span>
                         <span class="activity-date">
                           {{ formatDate(activity.date) }}
@@ -2086,7 +2246,10 @@ function switchTab(tab) {
                     <div class="activity-column-left">
                       <div class="activity-image-wrapper">
                         <img
-                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          :src="
+                            activity.activity_pic_url ||
+                            'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'
+                          "
                           alt="Activity Image"
                           class="activity-image"
                         />
@@ -2096,7 +2259,10 @@ function switchTab(tab) {
                     <!-- Right Column -->
                     <div class="activity-column-right">
                       <div class="activity-header">
-                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <h2 class="activity-name">
+                          {{ activity.name.slice(0, 10)
+                          }}{{ activity.name.length > 10 ? "" : "" }}
+                        </h2>
                         <span class="circle-separator">•</span>
                         <span class="activity-date">
                           {{ formatDate(activity.date) }}
@@ -2173,7 +2339,10 @@ function switchTab(tab) {
                     <div class="activity-column-left">
                       <div class="activity-image-wrapper">
                         <img
-                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          :src="
+                            activity.activity_pic_url ||
+                            'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'
+                          "
                           alt="Activity Image"
                           class="activity-image"
                         />
@@ -2183,7 +2352,10 @@ function switchTab(tab) {
                     <!-- Right Column -->
                     <div class="activity-column-right">
                       <div class="activity-header">
-                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <h2 class="activity-name">
+                          {{ activity.name.slice(0, 10)
+                          }}{{ activity.name.length > 10 ? "" : "" }}
+                        </h2>
                         <span class="circle-separator">•</span>
                         <span class="activity-date">
                           {{ formatDate(activity.date) }}
@@ -2260,7 +2432,10 @@ function switchTab(tab) {
                     <div class="activity-column-left">
                       <div class="activity-image-wrapper">
                         <img
-                          :src="activity.activity_pic_url|| 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'"
+                          :src="
+                            activity.activity_pic_url ||
+                            'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'
+                          "
                           alt="Activity Image"
                           class="activity-image"
                         />
@@ -2270,7 +2445,10 @@ function switchTab(tab) {
                     <!-- Right Column -->
                     <div class="activity-column-right">
                       <div class="activity-header">
-                        <h2 class="activity-name">{{ activity.name }}</h2>
+                        <h2 class="activity-name">
+                          {{ activity.name.slice(0, 10)
+                          }}{{ activity.name.length > 10 ? "" : "" }}
+                        </h2>
                         <span class="circle-separator">•</span>
                         <span class="activity-date">
                           {{ formatDate(activity.date) }}
@@ -2370,11 +2548,19 @@ function switchTab(tab) {
   </div>
 
   <!-- Show Activity Modal -->
-  <div v-if="showActivityModal" class="activity-modal-overlay">
-    <div class="activity-modal" style="max-height: 90vh; padding: 1rem">
+  <div
+    v-if="showActivityModal"
+    class="activity-modal-overlay"
+    @click.self="closeActivityModal"
+  >
+    <div
+      class="activity-modal"
+      ref="modalContent"
+      style="max-height: 90vh; padding: 1rem"
+    >
       <div class="modal-header activity-modal-header px-3">
         <!-- Title on the left -->
-        <h5 class="modal-title mb-0">{{ newActivity.title }}</h5>
+        <h5 class="modal-title mb-0">{{ newActivity.title.slice(0, 13) }}</h5>
 
         <!-- Centered Tabs -->
         <div class="tab-buttons d-flex justify-content-center flex-grow-1">
@@ -2425,6 +2611,7 @@ function switchTab(tab) {
                     type="text"
                     class="field-input"
                     placeholder="Enter activity title"
+                    maxlength="45"
                   />
                 </div>
 
@@ -2436,6 +2623,7 @@ function switchTab(tab) {
                     type="text"
                     class="field-input"
                     placeholder="Enter location"
+                    maxlength="45"
                   />
                   <i
                     class="bi bi-geo-alt-fill"
@@ -2448,6 +2636,7 @@ function switchTab(tab) {
                     "
                   ></i>
                 </div>
+
                 <div class="field-box">
                   <label class="field-label">Description</label>
                   <div class="textarea-wrapper">
@@ -2475,7 +2664,7 @@ function switchTab(tab) {
                       class="trip-edit-img-wrapper"
                     >
                       <img
-                        :src="newActivity.activity_pic_url" 
+                        :src="newActivity.activity_pic_url"
                         alt="Activity Image"
                         class="trip-edit-current-img"
                       />
@@ -2503,7 +2692,7 @@ function switchTab(tab) {
                     <input
                       type="file"
                       accept="image/*"
-                      @change="onImageChange"
+                      @change="handleImageUpload"
                       class="trip-edit-file-hidden"
                     />
                   </label>
@@ -2525,8 +2714,19 @@ function switchTab(tab) {
                 class="field-input"
               />
             </div>
+
+            <div
+              class="field d-flex align-items-center justify-content-between"
+            >
+              <label class="allday">All Day</label>
+              <label class="switch">
+                <input type="checkbox" v-model="isAllDay" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+
             <!-- Start and End Time -->
-            <div class="time-row">
+            <div class="time-row" v-if="!isAllDay">
               <div class="field-box">
                 <label class="field-label">Start Time</label>
                 <input
@@ -2547,40 +2747,19 @@ function switchTab(tab) {
             </div>
 
             <!-- Time error -->
-            <p v-if="isTimeInvalid && isEditingActivity" class="time-error">
+            <p v-if="isTimeInvalid" class="time-error">
               End time cannot be earlier than start time.
             </p>
 
-            <!-- Type Selection -->
-            <div class="type-options-row">
-              <div
-                class="type-box transportation"
-                :class="{ selected: newActivity.type === 'transportation' }"
-                @click="newActivity.type = 'transportation'"
-              >
-                Transportation
-              </div>
-              <div
-                class="type-box accommodation"
-                :class="{ selected: newActivity.type === 'accommodation' }"
-                @click="newActivity.type = 'accommodation'"
-              >
-                Accommodation
-              </div>
-              <div
-                class="type-box attraction"
-                :class="{ selected: newActivity.type === 'attraction' }"
-                @click="newActivity.type = 'attraction'"
-              >
-                Attraction
-              </div>
-              <div
-                class="type-box food"
-                :class="{ selected: newActivity.type === 'food' }"
-                @click="newActivity.type = 'food'"
-              >
-                Food
-              </div>
+            <div class="field-box">
+              <label class="field-label">Type</label>
+              <select v-model="newActivity.type" required class="field-input">
+                <option disabled value="">Select type</option>
+                <option value="accommodation">Accommodation</option>
+                <option value="attraction">Attraction</option>
+                <option value="food">Food</option>
+                <option value="transportation">Transportation</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2676,15 +2855,39 @@ function switchTab(tab) {
             <strong>Notes</strong>
           </div>
 
-          <div class="mt-3 d-flex" style="width: 100%; max-width: 600px">
+          <div
+            class="mt-3 d-flex align-items-center"
+            style="width: 100%; max-width: 600px"
+          >
+            <!-- User Profile Picture -->
+            <img
+              :src="
+                currentUserProfilePic ||
+                'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg'
+              "
+              alt="User DP"
+              style="
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-right: 0px;
+                margin-left: 10px;
+              "
+            />
+
+            <!-- Input Field -->
             <input
               v-model="newComment"
               type="text"
               id="noteInput"
               class="comment-input"
               placeholder="Add a comment..."
+              maxlength="40"
+              style="flex: 1"
             />
 
+            <!-- Submit Button -->
             <button
               class="btn custom-comment-btn ms-2"
               @click="addComment"
@@ -2703,46 +2906,27 @@ function switchTab(tab) {
               v-for="comment in [...comments].reverse()"
               :key="comment.id"
               class="note-card shadow-sm mb-3"
-              style="
-                width: 80%;
-                max-width: 800px;
-                padding: 15px;
-                border-radius: 20px;
-                background-color: #f0f2f5;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-              "
             >
-              <div class="d-flex align-items-start">
+              <div class="d-flex align-items-center">
                 <img
                   :src="
                     comment.commenter?.profile_pic_url || 'default-avatar.png'
                   "
                   alt="Profile Picture"
-                  style="
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                    margin-right: 10px;
-                  "
+                  class="profile-avatar"
                 />
-                <div style="flex: 1">
-                  <div class="d-flex justify-content-between">
-                    <small class="text-muted">
+                <div class="ms-2 flex-grow-1">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-1"
+                  >
+                    <small class="text-muted commenter-name">
                       {{ comment.commenter?.username || "Anonymous" }}
                     </small>
-                    <small
-                      class="text-muted"
-                      style="
-                        font-style: italic !important;
-                        font-size: 0.75rem;
-                        font-weight: 300;
-                      "
-                    >
+                    <small class="comment-timestamp text-muted">
                       {{ formatTime(comment.created_at) }}
                     </small>
                   </div>
-                  <div class="mt-1" style="text-align: left">
+                  <div class="comment-text">
                     {{ comment.comment }}
                   </div>
                 </div>
@@ -2760,13 +2944,13 @@ function switchTab(tab) {
       </div>
       <!-- end modal-body -->
 
-      <!-- Modal Footer -->
       <div class="modal-footer-act justify-content-between border-top">
         <button class="btn custom-delete" @click="deleteActivity">
           <i class="bi bi-trash-fill me-1 delete-icon"></i> Delete
         </button>
 
         <button
+          v-if="selectedActivityTab === 'details'"
           class="btn custom-save"
           :disabled="
             !newActivity.title ||
@@ -2794,7 +2978,7 @@ function switchTab(tab) {
     :owner-profile="ownerProfile"
     :current-user="currentUser"
     :itinerary-name="itineraryName"
-    :members="tripMembers"
+    :members="members"
     :loading="loading"
     @closeMembersModal="closeMembersModal"
     @toggleMenu="toggleMenu"
@@ -2810,3 +2994,4 @@ function switchTab(tab) {
 <style scoped>
 @import "../assets/styles/edititinerary.css"; /* Import external CSS file */
 </style>
+

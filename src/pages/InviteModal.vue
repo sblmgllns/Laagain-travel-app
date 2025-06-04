@@ -550,18 +550,30 @@ const switchInviteTab = (tab) => {
 }
 
 .circle1 {
+  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar1.png');
+  background-size: cover;
+  background-position: center;
   background-color: #ffc7e0; /* light pink */
   margin-right: -15px;
   z-index: 1;
   position: relative;
+  transform: rotate(-10deg); /* Slant to the left */
 }
 
+
 .circle2 {
+  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar2.png');
+  background-size: cover;
+  background-position: center;
   background-color: #c8f1ff; /* light blue */
   margin-top: 30px;
 }
 
 .circle3 {
+  transform: rotate(10deg); /* Slant to the right */
+  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar3.png');
+  background-size: cover;
+  background-position: center;
   background-color: #ffc0b8; /* peach */
   margin-left: -15px;
 }
@@ -685,7 +697,7 @@ textarea.field-input {
   font-family: "Sarabun", sans-serif;
   font-weight: 800;
   color: black;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .circle-container {
