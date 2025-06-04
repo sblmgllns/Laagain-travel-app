@@ -4,6 +4,7 @@
       
       <div class="d-flex justify-content-center">   
           <img
+              id="lockIcon"
               src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//forgot_password_icon.png"
               alt="Laagain Logo"
               />

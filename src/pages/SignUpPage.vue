@@ -214,6 +214,17 @@ export default {
         return
     }
 
+    const { data: existingUsername, error: getError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username.value)
+        .single()
+    
+    if (existingUsername) {
+        errorMessage.value = "This username is already registered."
+        return
+    }
+
     // Sign up user
     const { data, error } = await supabase.auth.signUp({
         email: email.value,

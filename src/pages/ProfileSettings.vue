@@ -243,7 +243,7 @@ export default {
   },
     async logout() {
       await supabase.auth.signOut();
-      this.$router.push("/login");
+      this.$router.push("/landing");
     },
 
     async DeleteAccount() {
@@ -265,7 +265,7 @@ export default {
       }
 
       console.log("Account marked as deleted.");
-      this.$router.push("/login");
+      this.$router.push("/landing");
     },
   },
 };
