@@ -20,7 +20,6 @@
               <label>Activity Photo</label>
               <div class="trip-edit-center-wrapper">
                 <label class="trip-edit-dropzone">
-                  
                   <!-- If image is uploaded -->
                   <div
                     v-if="newActivity.activity_pic_url"
@@ -30,7 +29,6 @@
                       :src="newActivity.activity_pic_url"
                       alt="Activity Image"
                       class="trip-edit-current-img"
-                      @load="isLoading = false"
                     />
                     <button
                       class="trip-edit-remove-img"
@@ -41,12 +39,8 @@
                     </button>
                   </div>
 
-                  <!-- Placeholder only if there's no image and not loading -->
-                  <!-- Placeholder only if there's no image and not loading -->
-                  <div
-                    v-else-if="!newActivity.activity_pic_url && !isLoading"
-                    class="trip-edit-placeholder"
-                  >
+                  <!-- If no image yet -->
+                  <div v-else class="trip-edit-placeholder">
                     <img
                       src="https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets/default_trip_photo.jpeg"
                       alt="Default Placeholder"
@@ -55,11 +49,6 @@
                     <span class="trip-edit-placeholder-text">
                       Upload your activity image
                     </span>
-                  </div>
-
-                  <!-- Optional: show a loading spinner while image is uploading -->
-                  <div v-else-if="isLoading" class="trip-edit-placeholder">
-                    <span class="trip-edit-placeholder-text">Uploading...</span>
                   </div>
 
                   <!-- Hidden file input -->
@@ -119,14 +108,25 @@
             </div>
 
             <!-- Location -->
+            <!-- Location -->
             <div class="field">
               <label>Location</label>
-              <input
-                v-model="newActivity.location"
-                placeholder="Location"
-                @blur="checkLocation"
-              />
+              <div
+                style="position: relative; display: flex; align-items: center"
+              >
+                <input
+                  v-model="newActivity.location"
+                  placeholder="Location"
+                  @blur="checkLocation"
+                  style="flex: 1; padding-right: 30px"
+                />
+                <i
+                  class="bi bi-geo-alt-fill"
+                  style="position: absolute; right: 10px; color: #6c757d"
+                ></i>
+              </div>
             </div>
+
             <!--p
               v-if="
                 formSubmitted &&
@@ -224,12 +224,9 @@
             <p
               v-if="
                 formSubmitted &&
-                (!newActivity.title ||
-                  newActivity.title.trim() === '' ||
-                  !newActivity.location ||
-                  newActivity.location.trim() === '' ||
-                  !newActivity.type ||
-                  newActivity.type.trim() === '' ||
+                (!newActivity.title?.trim() ||
+                  !newActivity.location?.trim() ||
+                  !newActivity.type?.trim() ||
                   !newActivity.date ||
                   (!isAllDay &&
                     (!newActivity.startTime ||
@@ -241,6 +238,7 @@
             >
               Please fill in all required fields before proceeding.
             </p>
+
             <!-- Buttons -->
             <div
               class="d-flex justify-content-between gap-5"
@@ -251,15 +249,18 @@
               </button>
               <!-- Remove :disabled -->
               <button
-              :disabled="isSaving"
+                :disabled="isSaving || (!hasChangesPotential && newActivity.id) || !isFormValid()"
+
                 @click="
                   newActivity.id
                     ? saveEditedPotentialActivity()
                     : saveActivity()
                 "
-                class="publish-button"
+                :class="['publish-button', { saving: isSaving }]"
               >
-                {{ newActivity.id ? "Save" : "Create" }}
+                {{
+                  isSaving ? "Saving..." : newActivity.id ? "Save" : "Create"
+                }}
               </button>
             </div>
           </form>
@@ -274,8 +275,6 @@ import { ref, watch } from "vue";
 const formErrors = ref([]);
 const formSubmitted = ref(false);
 import { onMounted, onUnmounted } from "vue";
-
-const isLoading = ref(false);
 
 const props = defineProps([
   "showModal",
@@ -327,30 +326,24 @@ const closeModal = () => {
   emit("closeModal");
 };
 
+// ✅ Image upload handler for file input
 const onImageChange = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-  isLoading.value = true;
 
   reader.onload = (e) => {
     props.newActivity.activity_pic_url = e.target.result;
-    // Wait a bit to ensure the DOM updates and triggers @load
-    setTimeout(() => {
-      isLoading.value = false;
-    }, 300); // delay to help avoid rendering conflict
   };
 
   reader.readAsDataURL(file);
-
-  // Optional: emit to parent if needed
-  emit("imageUpload", event);
 };
-
 
 const isFormValid = () => {
   const activity = props.newActivity;
+  // Optional: emit to parent if needed
+
   return (
     activity.title?.trim() &&
     activity.location?.trim() &&
@@ -364,17 +357,20 @@ const isFormValid = () => {
 const saveActivity = () => {
   formSubmitted.value = true; // 👈 this triggers error messages
   if (!isFormValid()) return; // ❌ don't emit if form is invalid
+  emit("imageUpload", props.newActivity.activity_pic_url);
+  console.log("upload pic");
   emit("saveActivity"); // ✅ emit only if valid
 };
 
 const saveEditedPotentialActivity = () => {
   formSubmitted.value = true;
   if (!isFormValid()) return;
+  emit("imageUpload", props.newActivity.activity_pic_url);
   emit("saveEditedPotentialActivity");
 };
 
-const removePhoto = (event) => {
-  event.cover_pic_url = "";
+const removePhoto = () => {
+  props.newActivity.activity_pic_url = "";
 };
 </script>
 
@@ -547,17 +543,28 @@ body {
   max-height: 80vh;
   max-width: 80vmax; /* or any height you want */
   overflow-y: auto;
-}
-.publish-button {
+}.publish-button {
   background-color: #03aed2;
   color: white;
   border: none;
-  padding: 0.5rem 1.5rem; /* only keep one */
-  font-size: 16px !important; /* only keep one */
+  padding: 0.5rem 1.5rem;
+  font-size: 16px;
   border-radius: 30px;
   cursor: pointer;
   align-self: flex-end;
   font-family: "Sarabun", sans-serif;
+  transition: background-color 0.2s ease; /* Smooth transition */
+}
+
+.publish-button:disabled {
+  background-color: #b5ecf7;
+  cursor: not-allowed;
+  /* Disable hover effects when button is disabled */
+  pointer-events: none;
+}
+
+.publish-button:not(:disabled):hover {
+  background-color: #019dbc;
 }
 
 .publish-button:hover {
@@ -635,6 +642,7 @@ body {
   font-size: 12px;
   color: #888;
 }
+
 .switch {
   position: relative;
   display: inline-block;
@@ -827,6 +835,8 @@ input:checked + .slider:before {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid #03aed2;
+  background-color: #fff;
+  color: #333;
   border-radius: 10px;
   font-size: 14px;
   transition: border-color 0.3s, box-shadow 0.3s;
@@ -844,7 +854,23 @@ input:checked + .slider:before {
   color: #03aed2;
 }
 /* Responsive tweaks */
+@media (max-width: 1400px) {
+  .custom-modal {
+    width: 100%;
+    max-height: 60vh;
+    max-width: 60%;
+    border-radius: 16px 16px 0 0; /* mobile-friendly rounded top */
+    padding: 1rem;
+  }
+}
 @media (max-width: 758px) {
+  .custom-modal {
+    width: 100%;
+    max-height: 70vh;
+    max-width: 85%;
+    border-radius: 16px 16px 0 0; /* mobile-friendly rounded top */
+    padding: 1rem;
+  }
   .create-pin {
     flex-direction: column;
     gap: 1.5rem;
@@ -890,6 +916,14 @@ input:checked + .slider:before {
     font-size: 14px;
   }
 
+  .custom-modal {
+    width: 100%;
+    max-height: 70vh;
+    max-width: 85%;
+    border-radius: 16px 16px 0 0; /* mobile-friendly rounded top */
+    padding: 1rem;
+  }
+
   .publish-button,
   .cancel-button {
     font-size: 14px;
@@ -900,7 +934,8 @@ input:checked + .slider:before {
 @media (max-width: 480px) {
   .custom-modal {
     width: 100%;
-    max-width: 90%;
+    max-height: 70vh;
+    max-width: 85%;
     border-radius: 16px 16px 0 0; /* mobile-friendly rounded top */
     padding: 1rem;
   }
@@ -933,30 +968,6 @@ input:checked + .slider:before {
     font-size: 18px;
     text-align: center;
     margin-bottom: 1rem;
-  }
-
-  .spinner {
-    border: 4px solid #ccc;
-    border-top: 4px solid #333;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 8px;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .uploading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
   }
 }
 </style>

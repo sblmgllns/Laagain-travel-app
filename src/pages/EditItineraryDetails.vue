@@ -53,6 +53,7 @@
               style="margin-left: 5%"
               v-model="localItinerary.location"
               placeholder="Location"
+              maxlength="40"
             />
           </div>
           <p v-if="errors.location" class="trip-edit-error">
@@ -77,7 +78,6 @@
               v-model="localItinerary.end_date"
               :min="localItinerary.start_date"
             />
-            
           </div>
           <p
             v-if="errors.start_date || errors.end_date"
@@ -132,25 +132,30 @@
       </div>
       <!-- Action Buttons -->
       <footer class="trip-edit-footer">
-  <div class="trip-edit-actions d-flex align-items-center justify-content-between">
-    <button class="cancel-button" @click="closeEditModal">Cancel</button>
+        <div
+          class="trip-edit-actions d-flex align-items-center justify-content-between"
+        >
+          <button class="cancel-button" @click="closeEditModal">Cancel</button>
 
-    <div class="flex-grow-1 d-flex justify-content-center">
-      <p v-if="errors.name" class="trip-edit-error text-center m-0" style="margin-left: 10px;">
-        {{ errors.name }}
-      </p>
-    </div>
+          <div class="flex-grow-1 d-flex justify-content-center">
+            <p
+              v-if="errors.name"
+              class="trip-edit-error text-center m-0"
+              style="margin-left: 10px"
+            >
+              {{ errors.name }}
+            </p>
+          </div>
 
-    <button
-      class="publish-button"
-      @click="saveItineraryChanges"
-      :disabled="!hasChanges"
-    >
-      Save Changes
-    </button>
-  </div>
-</footer>
-
+          <button
+            class="publish-button"
+            @click="saveItineraryChanges"
+            :disabled="!hasChanges"
+          >
+            Save Changes
+          </button>
+        </div>
+      </footer>
     </div>
   </div>
 </template>
@@ -300,12 +305,13 @@ const removePhoto = () => {
 
 <style scoped>
 /* ========== BASE STYLES ========== */
-html, body {
-  overflow: hidden;         /* Prevents scrolling */
-  margin: 0;                /* Removes default margin */
-  padding: 0;               /* Removes default padding */
-  height: 100%;             /* Makes html/body fill the viewport height */
-  font-family: "Sarabun", sans-serif !important;  /* Sets the font */
+html,
+body {
+  overflow: hidden; /* Prevents scrolling */
+  margin: 0; /* Removes default margin */
+  padding: 0; /* Removes default padding */
+  height: 100%; /* Makes html/body fill the viewport height */
+  font-family: "Sarabun", sans-serif !important; /* Sets the font */
 }
 /* Modal Overlay */
 .trip-edit-overlay {
@@ -407,6 +413,8 @@ html, body {
   border: 1px solid #03aed2;
   border-radius: 10px;
   transition: all 0.3s;
+  background-color: #fff;
+  color: #333;
 }
 
 .trip-edit-icon-inside {
@@ -437,6 +445,7 @@ html, body {
 /* Regular Inputs */
 .trip-edit-input {
   width: 100%;
+  color: #333;
   padding: 10px 14px;
   border: 1px solid #ccc;
   border-radius: 10px;
@@ -484,10 +493,12 @@ html, body {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid #03aed2;
+  background-color: #fff;
   border-radius: 10px;
   font-size: 14px;
   transition: border-color 0.3s, box-shadow 0.3s;
   outline: none;
+  color: #333;
 }
 
 .trip-edit-date:hover,
@@ -658,10 +669,10 @@ html, body {
 
 @media (max-width: 600px) {
   .trip-edit-modal {
-    width: 95%;
+    width: 90%;
     max-width: 100%;
     border-radius: 12px;
-    max-height: 95vh;
+    max-height: 70vh;
   }
 
   .trip-edit-title,
@@ -674,9 +685,18 @@ html, body {
   }
 
   .trip-edit-input,
-  .trip-edit-date,
   .trip-edit-input.with-icon {
     font-size: 15px;
+  }
+
+  .trip-edit-dropzone {
+    max-width: 100%;
+    min-height: 170px;
+    padding: 12px;
+  }
+
+  .trip-edit-date {
+    max-width: 44%;
   }
 
   .trip-edit-default-icon {
@@ -685,17 +705,68 @@ html, body {
   }
 }
 
-@media (min-width: 768px) {
-  .custom-modal {
-    width: 80%;
-    max-width: 1000px;
+@media (max-width: 1366px) {
+  .trip-edit-modal {
+    width: 100%;
+    max-width: 60%;
+    border-radius: 10px;
+    max-height: 70vh;
   }
 }
+@media (max-width: 480px) {
+  /* Form Labels & Groups */
+  .trip-edit-icon {
+    margin-bottom: 10px;
+  }
+  .trip-edit-avatar-inline {
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .trip-edit-modal {
+    width: 90%;
+    max-width: 100%;
+    border-radius: 10px;
+    max-height: 65vh;
+  }
 
-@media (max-width: 767px) {
-  .custom-modal {
-    width: 100%;
-    border-radius: 48px 48px 0 0;
+  .trip-edit-title,
+  .trip-edit-title-input {
+    font-size: 23px;
+    margin-bottom: 10px;
+  }
+
+  .trip-edit-label {
+    font-size: 14px;
+  }
+
+  .trip-edit-input,
+  .trip-edit-input.with-icon {
+    font-size: 14px;
+  }
+
+  .trip-edit-icon-inside {
+    left: 10px;
+    margin-right: 20px;
+  }
+
+  .trip-edit-dropzone {
+    max-width: 100%;
+    min-height: 150px;
+    padding: 10px;
+  }
+
+  .trip-edit-date {
+    max-width: 43%;
+  }
+
+  .trip-edit-default-icon {
+    width: 50px;
+    height: 50px;
+  }
+  .trip-edit-input-group {
+    margin: 0rem 0 0.7rem;
   }
 }
 </style>
