@@ -933,8 +933,13 @@ const removeActivity = async (index) => {
 };
 
 ///////EDIT POTENTIAL ACTIVITY//////////////////////////////////////////
-const editPotentialActivity = (index) => {
-  const activity = potentialActivities.value[index];
+const editPotentialActivity = (activityId) => {
+  // Find the activity by ID (works even if filtered)
+  const activity = potentialActivities.value.find(a => a.id === activityId);
+  
+  if (!activity) return; // Exit if not found
+
+  // Update the editable activity data
   newActivity.value = {
     id: activity.id,
     title: activity.name || "",
@@ -946,20 +951,15 @@ const editPotentialActivity = (index) => {
     type: activity.type || "",
     activity_pic_url: activity.activity_pic_url || "",
   };
-  originalPotentialActivity.value = {
-    id: activity.id,
-    title: activity.name || "",
-    description: activity.description || "",
-    location: activity.location || "",
-    date: activity.date || "",
-    startTime: activity.start_time || "",
-    endTime: activity.end_time || "",
-    type: activity.type || "",
-    activity_pic_url: activity.activity_pic_url || "",
-  };
-  isChecked.value =
+
+  // Save the original for comparison
+  originalPotentialActivity.value = { ...newActivity.value };
+
+  // Check if it's an all-day event
+  isChecked.value = 
     (activity.start_time === "00:00" || activity.start_time === "00:00:00") &&
     (activity.end_time === "23:59" || activity.end_time === "23:59:00");
+
   showModal.value = true;
 };
 
@@ -2194,7 +2194,7 @@ function switchTab(tab) {
                   )"
                   :key="activity.id"
                   class="activity-card accommodation"
-                  @click="editPotentialActivity(index)"
+                  @click="editPotentialActivity(activity.id)"
                 >
                   <div class="activity-content-columns">
                     <!-- Left Column -->
@@ -2288,7 +2288,7 @@ function switchTab(tab) {
                   )"
                   :key="activity.id"
                   class="activity-card attraction"
-                  @click="editPotentialActivity(index)"
+                  @click="editPotentialActivity(activity.id)"
                 >
                   <div class="activity-content-columns">
                     <!-- Left Column -->
@@ -2381,7 +2381,7 @@ function switchTab(tab) {
                   )"
                   :key="activity.id"
                   class="activity-card food"
-                  @click="editPotentialActivity(index)"
+                  @click="editPotentialActivity(activity.id)"
                 >
                   <div class="activity-content-columns">
                     <!-- Left Column -->
@@ -2474,7 +2474,7 @@ function switchTab(tab) {
                   )"
                   :key="activity.id"
                   class="activity-card transportation"
-                  @click="editPotentialActivity(index)"
+                  @click="editPotentialActivity(activity.id)"
                 >
                   <div class="activity-content-columns">
                     <!-- Left Column -->
