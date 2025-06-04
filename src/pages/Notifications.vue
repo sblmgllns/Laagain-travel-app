@@ -9,7 +9,12 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-right mb-3">
-      <button class="btn btn-outline-danger btn-sm" @click="ClearModal = true">Clear All</button>
+      <button
+        class="btn btn-outline-custom btn-sm"
+        @click="ClearModal = true"
+      >
+        Clear All
+      </button>
     </div>
         
     <!-- Notification List -->
@@ -228,6 +233,15 @@ onMounted(async () => {
   font-family: 'Sarabun', sans-serif;
 }
 
+.btn-outline-custom {
+  color: #089dcf;
+  border-color: #089dcf;
+}
+.btn-outline-custom:hover {
+  background-color: #089dcf;
+  color: white;
+}
+
 .notification-title {
   color: #089dcf;
   font-weight: bold;
@@ -338,8 +352,6 @@ onMounted(async () => {
 .notification-scroll-container {
   max-height: 600px; /* adjust as needed */
   min-width: 400px;
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
   border-radius: 0.375rem;
 }
 

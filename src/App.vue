@@ -39,4 +39,10 @@ html, body {
   font-family: 'Sarabun', sans-serif;
   background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Sarabun&display=swap');
+
+* {
+  font-family: 'Sarabun', sans-serif;
+}
 </style>

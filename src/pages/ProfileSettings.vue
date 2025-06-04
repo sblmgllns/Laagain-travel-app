@@ -53,23 +53,34 @@
           <!-- Name and username -->
           <div class="form-group">
             <div class="d-flex justify-content-between">
-              <span class="fw-bold">Name</span>
-              <span v-if="editMode">
+              <div class="fw-bold">Name</div>
+              <div v-if="editMode">
                 <input v-model="fullname" class="form-control" />
-              </span>
+              </div>
               <span v-else>{{ fullname }}</span>
             </div>
 
             <div class="d-flex justify-content-between mt-2">
-              <span class="fw-bold">Username</span>
-              <span v-if="editMode">
+              <div class="fw-bold">Username</div>
+              <div v-if="editMode">
                 <input v-model="username" class="form-control" />
-              </span>
+              </div>
               <span v-else>{{ username }}</span>
             </div>
-          </div>
 
-          <button v-if="editMode" @click="saveChanges" class="btn btn-primary mt-3">Save Changes</button>
+            <!-- add emailssss -->
+            <div class="d-flex justify-content-between mt-2">
+              <div class="fw-bold">Email</div>
+              <div v-if="editMode">
+                <input v-model="userEmail" class="form-control" />
+              </div>
+              <span v-else>{{ userEmail }}</span>
+            </div>
+          </div>
+          <div style="text-align: center; margin-top: 16px;"> 
+            <button v-if="editMode" @click="editMode=false" class="cancel-button" style="margin-right: 8px;">Cancel</button>
+            <button v-if="editMode" @click="saveChanges" class="publish-button" >Save Changes</button>
+          </div>
         </div>
 
         <div v-if="currentTab === 'security'">
@@ -104,10 +115,22 @@
 
     <div v-if="showLogoutConfirm" class="modal-overlay" @click.self="showLogoutConfirm = false">
       <div class="modal-content">
-        <h5>Are you sure you want to logout?</h5>
-        <div class="d-flex justify-content-end gap-2 mt-3">
-          <button class="btn btn-secondary" @click="showLogoutConfirm = false">Cancel</button>
-          <button class="btn btn-danger" @click="confirmLogout">Yes, Logout</button>
+        <div class="form-fields">
+          <h5>Are you sure you want to logout?</h5>
+          <div
+            class="d-flex justify-content-between gap-5"
+            style="margin-top: 16px; gap: 20px; margin-top: 1px; width: 100%"
+          >
+            <button type="button" @click="showLogoutConfirm = false" class="cancel-button">
+              Cancel
+            </button>
+            <button
+              class="publish-button"
+              @click="confirmLogout"
+            >
+              Yes, Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -116,17 +139,43 @@
         <div class="modal-content">
           <h5>Are you sure you want to Delete Account?</h5>
           <form @submit.prevent="confirmDelete">
-            <div class="mb-3">
-              <label class="form-label">Input Password</label>
-              <input type="password" v-model="confirmPassword" class="form-control" required />
-            </div>
+            <div class="form-fields">
 
-            <div v-if="errorMessage" class="text-danger small mb-2">{{ errorMessage }}</div>
-            <div v-if="successMessage" class="text-success small mb-2">{{ successMessage }}</div>
+              <div class="field">
+                <label>Input Password</label>
+                <div style="position: relative;">
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    v-model="confirmPassword"
+                    placeholder="Password"
+                    required
+                    class="form-control"
+                  />
+                  <i
+                    :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
+                    @click="togglePasswordVisibility"
+                    style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"
+                  ></i>
+                </div>
+              </div>
 
-            <div class="d-flex justify-content-end gap-2">
-              <button type="button" class="btn btn-secondary" @click="showDeleteConfirm = false">Cancel</button>
-              <button type="submit" class="btn btn-danger">Yes, Delete Account</button>
+              <div v-if="errorMessage" class="text-danger small mb-2">{{ errorMessage }}</div>
+              <div v-if="successMessage" class="text-success small mb-2">{{ successMessage }}</div>
+
+              <div
+                class="d-flex justify-content-between gap-5"
+                style="margin-top: 16px; gap: 20px; margin-top: 1px; width: 100%"
+              >
+                <button type="button" @click="showDeleteConfirm = false" class="cancel-button">
+                  Cancel
+                </button>
+                <button
+                  class="publish-button"
+                  type="submit"
+                >
+                  Yes, Delete Account
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -137,22 +186,65 @@
       <div class="modal-content">
         <h5>Reset Password</h5>
         <form @submit.prevent="submitNewPassword">
-          <div class="mb-3">
-            <label class="form-label">New Password</label>
-            <input type="password" v-model="newPassword" class="form-control" required />
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Confirm Password</label>
-            <input type="password" v-model="confirmPassword" class="form-control" required />
+
+          <div class="form-fields">
+            <div class="field">
+              <label>New Password</label>
+              <div style="position: relative;">
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="newPassword"
+                  placeholder="New Password"
+                  required
+                  class="form-control"
+                />
+                <i
+                  :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
+                  @click="togglePasswordVisibility"
+                  style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"
+                ></i>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Confirm Password</label>
+              <div style="position: relative;">
+                <input
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  v-model="confirmPassword"
+                  placeholder="Confirm Password"
+                  required
+                  class="form-control"
+                />
+                <i
+                  :class="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"
+                  @click="toggleConfirmPasswordVisibility"
+                  style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); cursor: pointer;"
+                ></i>
+              </div>
+            </div>
+
+            <div v-if="errorMessage" class="text-danger small mb-2">{{ errorMessage }}</div>
+            <div v-if="successMessage" class="text-success small mb-2">{{ successMessage }}</div>
+
+            <!-- Buttons -->
+            <div
+              class="d-flex justify-content-between gap-5"
+              style="margin-top: 16px; gap: 20px; margin-top: 1px; width: 100%"
+            >
+              <button type="button" @click="showPasswordModal = false" class="cancel-button">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="publish-button"
+              >
+                Confirm
+              </button>
+            </div>
+
           </div>
 
-          <div v-if="errorMessage" class="text-danger small mb-2">{{ errorMessage }}</div>
-          <div v-if="successMessage" class="text-success small mb-2">{{ successMessage }}</div>
-
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-secondary" @click="showPasswordModal = false">Cancel</button>
-            <button type="submit" class="btn btn-primary">Confirm</button>
-          </div>
         </form>
       </div>
     </div>
@@ -175,6 +267,7 @@ export default {
       profilePic: "default_profile_pic.jpg",
       username: "",
       fullname: "",
+      userEmail: "",
       editMode: false,
       showMobileMenu: false,
       showLogoutConfirm: false,
@@ -184,6 +277,8 @@ export default {
       successMessage: "",
       errorMessage: "",
       showDeleteConfirm: false,
+      showPassword: false,
+      showConfirmPassword: false
     };
   },
   async mounted() {
@@ -193,7 +288,7 @@ export default {
     if (this.user) {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("full_name, username, profile_pic_url")
+        .select("full_name, username, profile_pic_url, email")
         .eq("id", this.user.id)
         .single();
 
@@ -201,10 +296,17 @@ export default {
         this.fullname = profile.full_name;
         this.username = profile.username;
         this.profilePic = profile.profile_pic_url || "default_profile_pic.jpg";
+        this.userEmail = profile.email;
       }
     }
   },
   methods: {
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
+    toggleConfirmPasswordVisibility() {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    },
     goBack() {
       this.$router.go(-1);
     },
@@ -242,7 +344,6 @@ export default {
       // Optional: Clear password field
       this.confirmPassword = '';
     },
-
     selectTab(tab) {
       this.currentTab = tab;
       this.showMobileMenu = false; // Close mobile menu when tab is selected
@@ -327,17 +428,6 @@ export default {
         }
         const userEmail = userData.user.email;
 
-        // Step 2: Soft delete the user in Profile (case-sensitive table/column names)
-        // const { error: updateError } = await supabase
-        //   .from("profiles") // case-sensitive table
-        //   .update({ deleted: true })
-        //   .eq("id", userId); // case-sensitive column
-
-        // if (updateError) throw new Error("Failed to mark account as deleted.");
-
-        // Step 3: Delete user-related data
-
-        // Delete direct comments
         const { error: commentsError } = await supabase
           .from("comments")
           .delete()
@@ -472,8 +562,6 @@ export default {
           .eq("id", userId);
         if (ProfileError) throw new Error("Failed to delete profile.");
 
-        //console.log("Deleting Auth Now")
-        // Final step: Delete user from Supabase Auth
         const { data: { session } } = await supabase.auth.getSession();
         const accessToken = session?.access_token;
 
@@ -544,6 +632,8 @@ export default {
 </script>
 
 <style scoped>
+@import "../assets/styles/newItinerary.css";
+
 .container {
   display: flex;
   background-color: white;
@@ -580,7 +670,6 @@ export default {
   transform: translateX(0);
 
 }
-
 
 
 /* Sticky Header */
@@ -640,16 +729,9 @@ export default {
   font-weight: bold;
 }
 
-.tabs button.active:nth-child(1) {
-  color: #2563eb;
-}
-
-.tabs button.active:nth-child(2) {
-  color: #16a34a;
-}
-
-.tabs button.active:nth-child(3) {
-  color: #7e22ce;
+.tabs button.active {
+  color: #03AED2;
+;
 }
 
 .tabs button:nth-child(4) {

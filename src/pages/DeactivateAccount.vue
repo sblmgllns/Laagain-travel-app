@@ -61,7 +61,8 @@ export default {
                 if (error) throw error;
 
                 alert("Your account has been deactivated. Log in within 30 days to reactivate.");
-                this.$router.push("/landing"); // Redirect to login
+                await supabase.auth.signOut();
+                this.$router.replace("/Landing");
             } catch (error) {
                 console.error("Error inactivating account:", error);
                 this.errorMessage = "Failed to inactivate account. Please try again.";
