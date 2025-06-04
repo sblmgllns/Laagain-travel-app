@@ -7,10 +7,18 @@ body{
   color: #03AED2;
 }
 
+.select-loc-btn:hover{
+  width: 100%;
+  border: 1px solid #03AED2 !important;
+  background-color: #03aed2;
+  color: white;
+}
+
 .search-form{
     width: 100%;
     /* padding-left: 20%; */
     height: 75px;
+    margin-top: 130px;
 }
 
 .search-box {
@@ -27,6 +35,16 @@ body{
   /* padding: 1rem 1rem; */
   width: 100%;
   height: 100%;
+}
+.inputField:disabled {
+  background-color: white; /* light grey background */
+  color: #999;               /* muted text color */
+  cursor: not-allowed;       /* shows disabled cursor */
+  opacity: 0.6;    
+  -webkit-text-fill-color: #999 !important; /* override Safari's blue text */
+  -webkit-opacity: 1 !important;            /* just in case */
+  -webkit-appearance: none !important;      /* kill all native styling */
+  appearance: none !important;          /* optional: makes it look dimmer */
 }
 
 #searchQueryContainer{
@@ -49,18 +67,28 @@ body{
 }
 
 .search-btn {
-  background-color: #f7591f;
+  background-color: #fdde55;
   border: none;
   /* padding-left: 1.1rem; */
   font-weight: bold;
-  color: white;
+  color: black;
   border-radius: 0 50px 50px 0;
   height:100%;
   width:100%;
 }
 
+.search-btn:disabled {
+  background-color: #d1d5db !important; /* Tailwind's gray-300 */
+  color: #6b7280 !important;            /* Tailwind's gray-500 */
+  border: 1px solid #cbd5e1 !important; /* optional border */
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
 .search-btn:hover {
-  background-color: #e04d00;
+  background-color: #089dcf;
 }
 
 .input-bar{
@@ -109,6 +137,9 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
   /* padding-left: 15%; */
 }
 
+.tabs .btn {
+  background-color: white;
+}
 .results-page {
     display: flex;
     /* padding: 1.5rem; */
@@ -140,26 +171,28 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
     flex-direction: column;
     margin-bottom: 1rem;
     /* background-color: green; */
-    background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//header.jpg');
-    background-size: cover;        /* Make the image cover the area */
+    /* background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//isla.jpg'); */
+    background-size: cover;       
     background-position: center;   /* Center the image */
     background-repeat: no-repeat;  /* Don't repeat the image */
-    width: 70%;
+    width: 100%;
     border-radius: 10px;
-    margin-left: 15%;
+    /* margin-left: 15%; */
   }
 
+  
   #planTripLabel {
     font-size: 3.5rem;              /* Big and bold */
     font-weight: 600;             /* Semi-bold */
     margin-bottom: 0rem;
-    color: #212529; 
+    color: #03AED2;
     width: 100%;
     height: 100%; /* Optional: If parent has defined height */
     display: flex;
     justify-content: center; /* horizontal center */
     align-items: center;     /* vertical center */
     text-align: center;
+    display: none;
   }
 
   #planTripDesc{
@@ -260,7 +293,8 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
   }
 
   .modal-footer .btn-warning {
-    background-color: #ff5a00; /* Similar to Klook's orange */
+    background-color: #03AED2; /* Similar to Klook's orange */
+    border: 0px;
   }
 
   .modal-footer .btn-link {
@@ -269,7 +303,7 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
 
   /* details modal */
 #modal-dialog{
-  max-height: 50%;
+  max-height: 50vh;
 }
   /* Style specifically for the #detailsModal */
 #detailsModal .modal-content {
@@ -277,6 +311,9 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
     padding: 1rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     flex-direction: row;
+    background-color: white;
+    max-height: 65vh;
+    overflow: visible;
   }
   
   #detailsModal .modal-header {
@@ -345,6 +382,7 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
   }
   
 .addToTripSection{
+  margin-top:5px;
 }
 
 .text-justify {
@@ -354,13 +392,23 @@ letter-spacing: 0.04em; /* Adjust the value to fit your need */
 
 .addBtn{
   width: 25%;
+  background-color: #03AED2;
+  border: 0px;
+}
+
+.addBtn:hover{
+  background-color: #3acae8;
 }
 
 .mainDetails{
   border-bottom: 1px solid gray;
   margin-bottom: 10px;
 }
-  
+
+.detailsSection{
+  height:60%;
+  background-color: white;
+}
 /* New styles for Activity Modal */
 .activity-modal-overlay {
   position: fixed;
@@ -498,19 +546,23 @@ input[readonly] {
 
 /* Optional: When active (you can enhance btn-primary styles) */
 .custom-tab-button.btn-primary {
-  background-color: #03AED2 !important;
-  color: white;
-  border: 1px solid #03AED2;
+  background-color: #fdde55  !important;
+  color: #666;
+  border: 0px;
+  font-weight: bold;
+  border: 2px solid #fdde55;
 }
 
 /* Optional: When inactive (outline style) */
 .custom-tab-button.btn-outline-primary {
-  border: 1px solid #03AED2;
-  color: #03AED2;
+  border: 0px;
+  color: #666;
+  border: 2px solid white;
 }
 
 .custom-tab-button:hover {
-  opacity: 0.9;
+  /* opacity: 0.9; */
+  border: 2px solid #fdde55;
 }
 
 .custom-select {
@@ -526,5 +578,85 @@ input[readonly] {
   border-color: #0a58ca;
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
+
+.viewDetailsBtn {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.viewDetailsBtn.btn-outline-primary{
+  background-color: #03AED2 !important;
+  color: white;
+  border: 0px;
+  border: 2px solid #03AED2;
+}
+
+/*  */
+
+.customDropdown{
+  background-color: #f8f8f8;
+  width: 69%;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  padding-bottom:10px;
+  height: 20%;
+  overflow:auto;
+  border: 1px solid #f4f4f4;
+}
+
+#tripimg{
+  /* background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//isla.jpg'); */
+  background-size: cover;       
+  background-position: center;   /* Center the image */
+  background-repeat: no-repeat;  /* Don't repeat the image */
+  width: 10%;
+  border-radius: 20%;
+}
+
+#tripimg img{
+  width:140%;
+  height:140%;
+  border-radius: 10%;
+}
+
+#tripname{
+  width:80%;
+  padding-left: 10px;
+  margin-left: 5px;
+  text-align: left;
+}
+
+.selectorArea{
+  width: 75%;
+}
+
+.dropdownTrigger{
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.dropdownTrigger span{
+  margin-left: 5px;
+}
+
+.tripItem{
+  background-color: white;
+}
+.tripItem:hover{
+  background-color: #f4f4f4;
+}
+
+.descSection{
+  max-height: 65%;
+  overflow: auto;
+  padding-left: 3px;
+  padding-right: 15px;
+  margin-bottom: 5%;
+}
+
+
+
 
 
