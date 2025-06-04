@@ -137,17 +137,21 @@
      10. Modal Dialogs and Content
      ========================================================================== */
   .modal-dialog.modal-sm {
-    max-width: 380px;
+    max-width: 360px;
   }
   
   #loginModal .modal-content {
     /* aspect-ratio: 2 / 3; Portrait ratio */
-    padding: 1rem;
+    /* padding: 1rem; */
+    height: 60vh;
+    overflow: auto;
   }
   
   #signupModal .modal-content {
     aspect-ratio: 2 / 3;
-    padding: 1rem;
+    /* padding: 1rem; */
+    height: 60vh;
+    overflow: auto;
   }
   
   .modal-body {
