@@ -3,6 +3,7 @@
   import { cards } from '../assets/scripts/explore.js';
   import { supabase } from '../supabase';
   import { watch } from 'vue';
+  import { useRouter } from 'vue-router'
 
 
   const profilePicUrl = ref(null);
@@ -13,6 +14,8 @@
   const userId = ref(null);
   const userTrips = ref([]);
   const selectedTripId = ref('');
+   const selectedTripName = ref('');
+   const router = useRouter();
 
   // Get current user on mount
   onMounted(async () => {
@@ -42,11 +45,31 @@
       profileUsername.value = data.full_name
       //console.log("username is: ")
     }
-
+    fetchRandomImage()
     // Load bookmarks
     await loadBookmarks();
     await loadUserTrips();
   });
+  // random image for header background
+  const API_KEY = 'JP7RawomxhGEzqwcex2gKAnbVckzjGvB0RILGBXN8o6h4sTKhICe0n2R'  // Replace this with your actual key
+  const query = 'maldives'  // You can change to any keyword you want
+
+  const backgroundImage = ref('')
+
+  async function fetchRandomImage() {
+    try {
+      const response = await fetch(`https://api.pexels.com/v1/search?query=${query}&per_page=15`, {
+        headers: { Authorization: API_KEY }
+      })
+      const data = await response.json()
+      if (data.photos && data.photos.length > 0) {
+        const randomIndex = Math.floor(Math.random() * data.photos.length)
+        backgroundImage.value = data.photos[randomIndex].src.landscape
+      }
+    } catch (error) {
+      console.error('Error fetching image:', error)
+    }
+  }
 
   const handleAddActivity = async (item) => {
     //console.log("here", item.title);
@@ -90,7 +113,8 @@
         setTimeout(() => {
           alert.remove();
         }, 5000);
-        window.location.reload();
+        // window.location.reload();
+        router.go();
       }
     } catch (err) {
       console.error("Unexpected error inserting activity:", err);
@@ -106,7 +130,7 @@
 
       const { data: ownedTrips, error: ownedError } = await supabase
         .from('itineraries')
-        .select('id, name, end_date')
+        .select('id, name, end_date, cover_pic_url')
         .eq('owner_id', userId.value)
         .gte('end_date', today); // only include trips whose end_date is today or later
 
@@ -117,7 +141,7 @@
       const { data: memberTripsRaw, error: memberError } = await supabase
         .from('itinerary_members')
         .select(`
-          itineraries:itinerary_id (id, name, end_date)
+          itineraries:itinerary_id (id, name, end_date, cover_pic_url)
         `)
         .eq('user_id', userId.value);
 
@@ -130,12 +154,14 @@
       // Format and combine results
       const formattedOwnedTrips = ownedTrips.map(trip => ({
         id: trip.id,
-        name: trip.name
+        name: trip.name,
+        pic: trip.cover_pic_url
       }));
 
       const formattedMemberTrips = memberTrips.map(member => ({
         id: member.itineraries.id,
-        name: member.itineraries.name
+        name: member.itineraries.name,
+        pic: member.cover_pic_url
       }));
 
       userTrips.value = [...formattedOwnedTrips, ...formattedMemberTrips];
@@ -378,7 +404,7 @@
           website: detailedInfo.web_url || "No Website Available",
           rating: item.rating || detailedInfo.rating || 0,
           reviews: item.num_reviews || detailedInfo.num_reviews || 0,
-          price: detailedInfo.price_level,
+          price: detailedInfo.price_level?.replace(/\$/g, '₱'),
           type: activeTab.value,
           url: detailedInfo.web_url || '',  // Optional extra
         };
@@ -411,6 +437,13 @@
     fetchTripResults();
   }
 
+  const isOpen = ref(false)
+  const toggleDropdown = () => (isOpen.value = !isOpen.value)
+  function selectTrip(tripId, tripName) {
+    selectedTripId.value = tripId;
+    selectedTripName.value = tripName;
+    isOpen.value = false;
+  }
 
 </script>
 
@@ -432,14 +465,13 @@
     <main class="results">
 
       <!-- HEADER / SEARCH SECTION -->
-      <div class="results-header">
-        <!-- plan your trip label -->
+      <div class="results-header" :style="{ backgroundImage: backgroundImage ? `url(${backgroundImage})` : '' }" >
         <div class="d-flex flex-column align-items-center">
           <div id="planTripLabel"> Start Your Journey </div>
-          <p class="text-muted" id="planTripDesc">
+          <!-- <p class="text-muted" id="planTripDesc">
               Laagain turns group plans into shared adventures—
               with collaborative tools every step of the way.
-          </p>
+          </p> -->
         </div>
 
         <!-- Search Bar -->
@@ -454,12 +486,12 @@
                 v-model="searchQuery"
                 :disabled="isLoading"
                 class="inputField "
-                placeholder="Search"
+                placeholder="Start Your Journey ..."
               />
             </div>
             
             <div class="" style="width:30%;">
-              <button class="btn btn-primary search-btn "  type="submit" :disabled="isLoading">  Search</button>
+              <button class="btn btn-primary search-btn "  type="submit" :disabled="isLoading">  Search </button>
             </div>          
           </div>
         </form>
@@ -543,7 +575,7 @@
             </div>
             <p class="price">{{ item.price }}</p>
             <button
-              class="btn btn-outline-primary btn-sm"
+              class="viewDetailsBtn btn btn-outline-primary btn-sm"
               data-bs-toggle="modal"
               data-bs-target="#detailsModal"
               @click="showDetails(item)"
@@ -564,8 +596,8 @@
       </div>
     </main>
 
-
-    <!-- Location Modal -->
+    <teleport to="body">
+    <!--Select Location Modal -->
     <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="loc-modal modal-content rounded-4 p-3">
@@ -588,7 +620,7 @@
           </div>
 
           <!-- Footer with Clear and Confirm -->
-          <div class="modal-footer border-0 justify-content-between">
+          <div class="modal-footer border-0 d-flex justify-content-center">
             <!-- <button type="button" class="btn btn-link text-decoration-none" @click="locationQuery = ''" >Clear</button> -->
             <button type="button" class="btn btn-warning text-white px-4" @click="confirmLocation" data-bs-dismiss="modal" aria-label="Close">Confirm</button>
           </div>
@@ -596,12 +628,14 @@
         </div>
       </div>
     </div>
+    </teleport>
 
     <teleport to="body">
     <!-- Details ModaL -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered overflow-auto">
             <div class="modal-content d-flex">
+              
               <!-- image part -->
               <div class="modal-header">
                   <div style="background-color: white; height: 90%; margin-bottom: 10px;">
@@ -621,7 +655,7 @@
                         <i 
                           class="bi"
                           :class="{
-                            'bi-bookmark-fill text-primary': isBookmarked(modalItem),
+                            'bi-bookmark-fill bookmark-yellow': isBookmarked(modalItem),
                             'bi-bookmark': !isBookmarked(modalItem)
                           }"
                         ></i>
@@ -633,8 +667,10 @@
 
                 <!-- details section -->
                 <div class="detailsSection d-flex flex-column">
-                  <p class="text-muted text-justify">{{ modalItem?.desc }}</p>
-                  
+                  <div class="descSection d-none d-md-block">
+                    <p class="text-muted text-justify">{{ modalItem?.desc }}</p>
+                  </div>
+
                   <div class="d-flex justify-content-between">
                     <span>Price:</span>
                     <span>{{ modalItem?.price }}</span>
@@ -655,7 +691,7 @@
 
                 <!-- add to trip section -->
                 <div class="addToTripSection d-flex justify-content-between mt-3">
-                    <div class="dropdown me-2">
+                    <!-- <div class="dropdown me-2">
                       <select class="tripDropdown form-select" v-model="selectedTripId">
                         <option disabled value="">Select a Trip</option>
                         <option 
@@ -666,10 +702,49 @@
                           {{ trip.name }}
                         </option>
                       </select>
-                    </div>
+                    </div> -->
+                    
+                    <div class="selectorArea relative">
+                      <div 
+                        class="dropdownTrigger border p-3 cursor-pointer bg-white shadow-sm flex justify-between items-center"
+                        @click="toggleDropdown">
+                        <i class="bi bi-chevron-down"></i>
+                        <span class="d-none d-md-inline">{{ selectedTripName || 'Select a Trip' }}</span>
+                        <span class="d-inline d-md-none">{{ selectedTripName || 'trip' }}</span>
+                      </div>
 
+                      
+                      <div
+                        v-if="isOpen"
+                        class="customDropdown position-absolute z-3"
+                      >
+                        <button 
+                          v-for="trip in userTrips" 
+                          :key="trip.id" 
+                          class=" tripItem p-2 d-flex flex-row align-items-center w-100 border-0"
+                          @click="selectTrip(trip.id, trip.name)"
+                          type="button"
+                        >
+                          <div id="tripimg">
+                            <img :src="trip.pic || 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//default_trip_photo.jpeg'" />
+                          </div>
+
+                          <div id="tripname">
+                            {{ trip.name }}
+                          </div>
+                        </button>
+
+                        <!-- <button id="createTrip" class="p-2 d-flex flex-row" data-bs-dismiss="modal" >
+                          <div> + Create New Trip </div>
+                        </button> -->
+                      </div>
+
+                    </div>
+                    
+                    <!-- end of this attempt -->
                     <button @click="handleAddActivity(modalItem)" class="addBtn btn btn-primary">
-                      Add
+                      <span class="d-none d-md-block">Add</span>
+                      <span class="d-block d-md-none">+</span>
                     </button>
                 </div>
               </div>
@@ -678,6 +753,10 @@
             </div>
         </div>
     </div>
+    </teleport>
+
+    <teleport to="body">
+    <!-- Create Trip Modal -->
     </teleport>
   
     <!-- Bottom Navigation Bar -->
