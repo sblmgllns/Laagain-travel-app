@@ -332,7 +332,6 @@ const onImageChange = (event) => {
   if (!file) return;
 
   const reader = new FileReader();
-  isLoading.value = true;
 
   reader.onload = (e) => {
     props.newActivity.activity_pic_url = e.target.result;

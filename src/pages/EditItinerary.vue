@@ -81,7 +81,7 @@ onMounted(async () => {
   } else {
     currentUser.value = user;
     console.log("User:", user); // confirm it's working
-    console.log("User ID:", user?.id); // check ID here
+    //console.log("User ID:", user?.id); // check ID here
   }
 });
 
@@ -271,10 +271,25 @@ const fetchItineraryData = async () => {
 
 // mode can be either 'edit' or 'new'
 async function handleImageUpload(event, mode = "new") {
-  const file = event.target.files[0];
-  console.log("Selected file:", file);
+  isSaving.value = true;
 
-  if (!file) return;
+  // 🧹 Handle null event — remove image
+  if (!event) {
+    if (mode === "edit") {
+      editItinerary.value.cover_pic_url = "";
+    } else if (mode === "new") {
+      newActivity.value.activity_pic_url = "";
+    }
+    isSaving.value = false;
+    console.log("🗑️ Image removed.");
+    return;
+  }
+
+  const file = event.target?.files?.[0];
+  if (!file) {
+    isSaving.value = false;
+    return;
+  }
 
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
   if (!allowedTypes.includes(file.type)) {
@@ -318,10 +333,8 @@ async function handleImageUpload(event, mode = "new") {
   // Set image URL based on mode
   if (mode === "edit") {
     editItinerary.value.cover_pic_url = publicUrl;
-    console.log("📸 Updated editItinerary.cover_pic_url:", publicUrl);
   } else if (mode === "new") {
     newActivity.value.activity_pic_url = publicUrl;
-    console.log("📸 Updated newActivity.activity_pic_url:", publicUrl);
   } else {
     console.warn("⚠️ Unknown mode passed to handleImageUpload");
   }
@@ -506,7 +519,8 @@ const saveItineraryChanges = async (updatedItinerary) => {
     await fetchPotentialActivities(); // Your existing data fetching function
     await fetchActivities();
     fetchItineraryData();
-    console.log("Successfully saved itinerary");
+    showAlert("Itinerary successfully updated!");
+    //console.log("Successfully saved itinerary");
   } catch (error) {
     showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error saving itinerary:", error);
@@ -605,7 +619,7 @@ const addActivity = async (index) => {
 
   await fetchPotentialActivities();
   await fetchActivities();
-  router.push("/edit-itinerary");
+  window.location.reload()
 };
 
 //for getting exisiting activities from supabase, for calendar reflection
@@ -694,10 +708,11 @@ const saveEditedActivity = async () => {
     .eq("id", newActivity.value.id);
 
   if (error) {
-    showErrorAlert("Something went wrong. Please try again later.");
+    showAlert("Something went wrong. Please try again later.");
     console.error("Error saving activity:", error);
   } else {
-    showAlert("Activity updated successfully!")
+    showAlert("Activity updated successfully!");
+    //console.log("Activity updated successfully!", newActivity);
     showActivityModal.value = false;
     await fetchActivities(); // Refresh the calendar
     router.push("/edit-itinerary");
@@ -759,7 +774,8 @@ const deleteActivity = async () => {
     console.error("Failed to delete activity:", activityError);
     showErrorAlert("Something went wrong. Please try again later.");
   } else {
-    console.log("Activity, votes, and comments deleted successfully");
+    //console.log("Activity, votes, and comments deleted successfully");
+    showAlert("Activity sucessfully deleted!");
     showActivityModal.value = false;
     showAlert("Activity successfully deleted!")
     window.location.reload();
@@ -806,9 +822,11 @@ const saveActivity = async () => {
     profileData.profile_pic_url ??
     "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg";
 
-  console.log("TYPE:", newActivity.value.type);
-  console.log("ACTIVITY PIC:", newActivity.value.activity_pic_url);
-  console.log("PROFILE PIC:", profilePicUrl);
+  const username = profileData.username; // Could add ?? "Anonymous" for fallback
+  // Fallback if username is null
+  //console.log("TYPE:", newActivity.value.type);
+  //console.log("ACTIVITY PIC:", newActivity.value.activity_pic_url);
+  //console.log("PROFILE PIC:", profilePicUrl);
 
   const { error } = await supabase.from("potential_activities").insert([
     {
@@ -852,11 +870,39 @@ const fetchPotentialActivities = async () => {
       return;
     }
 
-    potentialActivities.value = activities;
-    console.log("Potential activities:", potentialActivities.value);
-  } catch (err) {
-    console.error("Error fetching potential activities:", err);
-    potentialActivities.value = [];
+    // 2. Filter valid user IDs and remove duplicates
+    const userIds = activities
+      .map((activity) => activity.user_id)
+      .filter(Boolean) // Remove null/undefined
+      .filter((id, index, self) => self.indexOf(id) === index); // Unique values
+
+    // 3. Only fetch profiles if we have valid user IDs
+    let userMap = {};
+    if (userIds.length > 0) {
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, username")
+        .in("id", userIds);
+
+      if (profileError) throw profileError;
+
+      profiles.forEach((profile) => {
+        userMap[profile.id] = profile.username || "Anonymous";
+      });
+    }
+
+    // 4. Map usernames to activities
+    potentialActivities.value = activities.map((activity) => ({
+      ...activity,
+      username: activity.user_id
+        ? userMap[activity.user_id] || "Anonymous"
+        : "System",
+    }));
+
+    console.log("Fetched activities:", potentialActivities.value);
+  } catch (error) {
+    console.error("Fetch error:", error);
+    potentialActivities.value = []; // Fallback empty array
   }
 };
 
@@ -874,7 +920,8 @@ const removeActivity = async (index) => {
       showErrorAlert("Something went wrong. Please try again later.");
       return;
     } else {
-      console.log("Successfully removed");
+      showAlert("Potential activity sucessfully removed!");
+      //console.log("Successfully removed");
       await fetchPotentialActivities();
       await fetchActivities();
     }
@@ -935,7 +982,8 @@ const hasChangesPotential = computed(() => {
 });
 
 const saveEditedPotentialActivity = async () => {
-  console.log("HERE");
+  //console.log("HERE");
+  isSaving.value = true;
   const startTime = newActivity.value.startTime;
   const endTime = newActivity.value.endTime;
 
@@ -966,8 +1014,9 @@ const saveEditedPotentialActivity = async () => {
     showErrorAlert("Something went wrong. Please try again later.");
     console.error("Error editing activity:", error);
   } else {
-    showAlert("New potential activity successfully added!");
-    console.log("Activity updated!");
+    //console.log("Activity updated!");
+    showAlert("Potential activity updated successfully!");
+    isSaving.value = false;
     showModal.value = false;
     await fetchPotentialActivities();
   }
@@ -3000,4 +3049,3 @@ function switchTab(tab) {
 <style scoped>
 @import "../assets/styles/edititinerary.css"; /* Import external CSS file */
 </style>
-
