@@ -1,82 +1,93 @@
 <template>
   <div class="container mt-4 sarabun-font">
     <!-- Back + Clear Button -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="back-button" @click="$router.back()">
-        <i class="bi bi-chevron-right back-icon"></i>
+
+    <div v-if="!isChild" class="notif-header">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="notification-title mb-0">Notifications</h2>
       </div>
-      <button class="btn btn-outline-danger btn-sm" @click="showModal = true">Clear All</button>
     </div>
 
-    <!-- Title -->
-    <h2 class="notification-title">Notifications</h2>
-
+    <div class="d-flex justify-content-between align-items-right mb-3">
+      <button class="btn btn-outline-danger btn-sm" @click="ClearModal = true">Clear All</button>
+    </div>
+        
     <!-- Notification List -->
-    <ul class="list-group mt-3">
-      <li 
-        v-for="(notification, index) in notifications" 
-        :key="index" 
-        class="list-group-item d-flex align-items-center"
-      >
-        <div 
-          class="circle-indicator me-2" 
-          v-if="!notification.isRead"
-          title="Unread"
-        ></div>
+     <div v-if="!loading"> 
+        <div class="notification-scroll-container">
+            <ul class="list-group mt-3">
+              <li 
+                v-for="(notification, index) in notifications" 
+                :key="index" 
+                class="list-group-item notification-item"
+              >
+                <div class="notification-media">
+                  <div class="circle-indicator" v-if="!notification.isRead" title="Unread"></div>
+                  <img :src="notification.image" alt="avatar" class="profile-image" />
+                </div>
 
-        <img :src="notification.image" alt="avatar" class="profile-image me-3" />
-        <div class="me-auto notification-text text-truncate" v-html="notification.formattedMessage"></div>
+                <div class="notification-content">
+                  <div class="notification-text" v-html="notification.formattedMessage"></div>
+                  <span class="time-badge">{{ notification.time }}</span>
+                </div>
+              </li>
 
-        <span class="time-badge">{{ notification.time }}</span>
-      </li>
-
-
-      <li v-if="notifications.length === 0" class="list-group-item text-center text-muted">
-        No notifications.
-      </li>
-    </ul>
-
-    <!-- Modal -->
-    <div class="modal fade" id="clearModal" tabindex="-1" ref="modalRef">
-      <div class="modal-dialog modal-dialog-centered">
+              <li v-if="notifications.length === 0" class="list-group-item text-center text-muted notification-item">
+                No notifications.
+              </li>
+            </ul>
+        </div>
+     </div>
+     <div v-if="loading" class="loading-item">
+        loading ...
+     </div>
+    
+    <div v-if="ClearModal" class="modal fade show d-block" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+          
           <div class="modal-header">
-            <h5 class="modal-title">Clear All Notifications</h5>
-            <button type="button" class="btn-close" @click="hideModal"></button>
+            <h5 class="modal-title" style="font-family: 'Sarabun', sans-serif; font-weight: 800; color: #03AED2; line-height: 1.04; letter-spacing: 0.04em;">
+              Clear all notification?
+            </h5>
           </div>
-          <div class="modal-body">
-            Are you sure you want to delete all your notifications? This cannot be undone.
-          </div>
-          <div class="modal-footer">
+
+          <div class="modal-body" style="overflow-y: auto;">
+
+            <p> Are you sure you want to delete all your notifications? This cannot be undone.</p>
             <button type="button" class="btn btn-secondary" @click="hideModal">Cancel</button>
-            <button type="button" class="btn btn-danger" @click="clearAll">Yes, Clear All</button>
+            <button type="button" class="btn btn-danger" @click="clearAll">Yes, Clear All</button>            
           </div>
+          <!-- Sticky Footer with Yellow Button -->
+          
         </div>
       </div>
     </div>
+
+        <!-- Modal Backdrop -->
+    <div v-if="ClearModal" class="modal-backdrop fade show" @click="hideModal"></div>
+    
   </div>
 </template>
 
 <script setup>
-import { onUnmounted } from 'vue'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { supabase } from "../supabase";
 import { formatDistanceToNow } from 'date-fns'
 
 // REFS
 const notifications = ref([])
-const showModal = ref(false)
-const modalRef = ref()
 const user = ref(null)
 const userUsername = ref('')
 const userFullname = ref('')
 const userProfilePic = ref('')
 const userId = ref('')
 const userEmail = ref('')
-let modalInstance = null
+const ClearModal = ref(false)
+const isChild = ref(true)
+const loading = ref(true)
 
 
-// Fetch profile
 const fetchUserProfile = async () => {
   const { data: sessionData } = await supabase.auth.getSession()
   user.value = sessionData?.session?.user
@@ -95,8 +106,7 @@ const fetchUserProfile = async () => {
       userEmail.value = profile.email
       userFullname.value = profile.full_name
       userUsername.value = profile.username
-      userProfilePic.value =
-        profile.profile_pic_url ||
+      userProfilePic.value = profile.profile_pic_url ||
         'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg'
     }
   } else {
@@ -131,190 +141,35 @@ const fetchNotifications = async () => {
     .order('created_at', { ascending: false })
 
   if (error) {
+    loading.value = false
     console.error('Error fetching notifications:', error)
     return
   }
-  console.log(data);
 
   notifications.value = data.map(item => {
-    const senderUsername = item.profiles?.username || 'COUNTDOWN:';
-    const itineraryName = item.itinerary_name || 'Unnamed Trip';
-    const rawMessage = item.message || '';
+    const senderUsername = item.profiles?.username || 'COUNTDOWN:'
+    const itineraryName = item.itinerary_name || 'Unnamed Trip'
+    const rawMessage = item.message || ''
 
     const cleanedMessage = rawMessage
       .replace(new RegExp(item.profiles?.username, 'i'), '')
       .replace(new RegExp(`"${itineraryName}"`, 'i'), '')
       .trim()
-      .replace(/\s+/g, ' ');
+      .replace(/\s+/g, ' ')
 
-    const formattedMessage = `<strong>${senderUsername}</strong> ${cleanedMessage} <strong>"${itineraryName}"</strong>`;
+    const formattedMessage = `<strong>${senderUsername}</strong> ${cleanedMessage} <strong>"${itineraryName}"</strong>`
 
     return {
       sender: senderUsername,
       message: rawMessage,
       itinerary: itineraryName,
-      image: item.image_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures//default_profpic.jpg",
+      image: item.image_url || "https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/profile-pictures/default_profpic.jpg",
       time: formatDistanceToNow(new Date(item.created_at), { addSuffix: true }),
       formattedMessage,
-      isRead: item.is_read // <--- Add this
-    };
-  });
-
-}
-
-const markAllAsRead = async () => {
-  if (!user.value) return
-
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('user_id', user.value.id)
-    .eq('is_read', false) // Only mark unread ones
-
-  if (error) {
-    console.error('Failed to mark all as read:', error)
-    return
-  }
-
-  // Also update the local state to reflect change
-  notifications.value = notifications.value.map(n => ({
-    ...n,
-    isRead: true
-  }))
-}
-
-const insertUpcomingTripReminders = async () => {
-console.log("user", user.value)
-  if (!user.value) return
-  
-  const today = new Date()
-  const tomorrow = new Date(today)
-  const fiveDaysLater = new Date(today)
-  tomorrow.setDate(today.getDate() + 1)
-  fiveDaysLater.setDate(today.getDate() + 5)
-
-  const reminders = []
-
-  // 1. Trips where user is invited (via itinerary_members)
-  const { data: invitedTrips, error: invitedError } = await supabase
-    .from('itinerary_members')
-    .select(`itineraries(id, name, start_date)`)
-    .eq('user_id', userId.value)
-
-  if (invitedError) {
-    console.error("Error fetching invited trips:", invitedError)
-    return
-  }
-
-  console.log("here")
-  if (invitedTrips) {
-    for (const entry of invitedTrips) {
-      if (entry.itineraries) reminders.push(entry.itineraries)
+      isRead: item.is_read
     }
-  }
-
-  // 2. Trips the user owns
-  const { data: ownedTrips, error: ownedError } = await supabase
-    .from('itineraries')
-    .select('id, name, start_date')
-    .eq('owner_id', userId.value)
-
-  if (ownedError) {
-    console.error("Error fetching owned trips:", ownedError)
-    return
-  }
-
-  if (ownedTrips) {
-    for (const trip of ownedTrips) {
-      reminders.push(trip)
-    }
-  }
-  console.log("ownedtrips", ownedTrips)
-
-  // 3. Insert reminder notifications
-  for (const trip of reminders) {
-    if (!trip.start_date) continue
-
-    const startDate = new Date(trip.start_date) // assumes trip.start_date is an ISO string
-    const today = new Date()
-
-    // Set both to midnight
-    startDate.setHours(0, 0, 0, 0)
-    today.setHours(0, 0, 0, 0)
-
-    const diffDays = Math.floor((startDate - today) / (1000 * 60 * 60 * 24))
-    console.log("diffDays", diffDays)
-    let message = null
-    if (diffDays === 5) {
-      message = `Just 5 days left until your trip to "${trip.name}"! 🎒 Time to get excited!`
-    } else if (diffDays === 1) {
-      message = `Your adventure to "${trip.name}" starts tomorrow! ✈️ Ready to go?`
-      console.log("Tomorrow's trip:", trip.name)
-    } else if (diffDays === 0) {
-      message = `Today’s the day! 🌟 Your trip to "${trip.name}" begins now — safe travels!`
-      console.log("Today's trip:", trip.name)
-    }
-
-
-    if (!message) continue
-
-    // Avoid duplicates
-    const { data: existing, error: existsError } = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('user_id', user.value.id)
-      .eq('message', message)
-      .eq('itinerary_name', trip.name)
-
-    if (existsError) {
-      console.error("Error checking existing reminders:", existsError)
-      continue
-    }
-
-    if (existing && existing.length > 0) continue // Already reminded
-
-    const { error: insertError } = await supabase
-      .from('notifications')
-      .insert([{
-        user_id: user.value.id,
-        sender_id: null,
-        message,
-        image_url: 'https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/notifications/reminder.jpg', // optional default image
-        itinerary_name: trip.name,
-        type: 'reminder',
-        is_read: false
-      }])
-
-    if (insertError) {
-      console.error("Failed to insert reminder:", insertError)
-    } else {
-      console.log("Reminder added:", message)
-    }
-  }
-}
-
-onMounted(async () => {
-  const modalEl = modalRef.value
-  if (modalEl && window.bootstrap?.Modal) {
-    modalInstance = new window.bootstrap.Modal(modalEl)
-  }
-
-  await fetchUserProfile() 
-  await insertUpcomingTripReminders()
-  await fetchNotifications()
-})
-
-onUnmounted(() => {
-  markAllAsRead()
-})
-
-watch(showModal, (val) => {
-  if (val) modalInstance?.show()
-})
-
-const hideModal = () => {
-  modalInstance?.hide()
-  showModal.value = false
+  })
+  loading.value = false
 }
 
 const clearAll = async () => {
@@ -326,15 +181,45 @@ const clearAll = async () => {
     .eq('user_id', user.value.id)
 
   if (error) {
-    console.error('Error deleting notifications:', error)
+    console.error('Failed to clear notifications:', error)
     return
   }
 
   notifications.value = []
-  hideModal()
+  ClearModal.value = false
 }
 
+const markAllAsRead = async () => {
+  if (!user.value) return
+
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', user.value.id)
+    .eq('is_read', false)
+
+  if (error) {
+    console.error('Failed to mark all as read:', error)
+    return
+  }
+
+  notifications.value = notifications.value.map(n => ({
+    ...n,
+    isRead: true
+  }))
+}
+
+const hideModal = () => {
+  ClearModal.value = false
+}
+
+onMounted(async () => {
+  await fetchUserProfile()
+  await fetchNotifications()
+  await markAllAsRead()
+})
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Sarabun&display=swap');
@@ -354,7 +239,8 @@ const clearAll = async () => {
   background-color: #ffc107;
   border-radius: 50%;
   flex-shrink: 0;
-  align-self: center;
+  margin-right: 8px;
+  margin-top: 4px;
 }
 
 .profile-image {
@@ -362,13 +248,35 @@ const clearAll = async () => {
   height: 40px;
   object-fit: cover;
   border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notification-item {
+  display: flex;
+  min-width: auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .notification-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 60%;
+  white-space: normal;
+  word-wrap: break-word;
+  text-align: justify;
+  font-size: 0.95rem;
 }
 
 .time-badge {
@@ -378,6 +286,8 @@ const clearAll = async () => {
   border-radius: 12px;
   padding: 2px 8px;
   font-weight: 500;
+  margin-top: 4px;
+  width: fit-content;
 }
 
 .back-button {
@@ -401,4 +311,53 @@ const clearAll = async () => {
   color: #089dcf;
   transform: rotate(180deg);
 }
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .profile-image {
+    width: 36px;
+    height: 36px;
+  }
+
+  .notification-text {
+    font-size: 0.9rem;
+  }
+
+  .time-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+  .notification-scroll-container, .loading-item {
+      max-height: 750px !important; 
+      min-width: 200px !important;
+  }   
+
+
+}
+
+.notification-scroll-container {
+  max-height: 600px; /* adjust as needed */
+  min-width: 400px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+}
+
+/* Optional: smoother scroll */
+.notification-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notification-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #c0c0c0;
+  border-radius: 10px;
+}
+.loading-item{
+ max-height: 600px; /* adjust as needed */
+ min-height: 600px;
+ min-width: 400px; 
+ align-items: center ;
+}
+
 </style>
+

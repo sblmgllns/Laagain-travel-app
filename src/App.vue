@@ -1,25 +1,42 @@
 <template>
-  <router-view></router-view> <!-- This will load landing.vue by default -->
+  <component :is="layout">
+    <router-view />
+  </component>
 </template>
 
-<script>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+<script setup>
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import MainLayout from './pages/MainLayout.vue'
 
-export default {
-  name: "App",
-  setup() {
-    const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 
-    onMounted(() => {
-      router.afterEach(() => {
-        // Remove Bootstrap modal leftovers that disable scrolling
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        const backdrops = document.querySelectorAll('.modal-backdrop');
-        backdrops.forEach(backdrop => backdrop.remove());
-      });
-    });
-  }
-}
+// Determine layout: if route.meta.layout is 'none', use 'div'; otherwise, use MainLayout
+const layout = computed(() => {
+  return route.meta.layout === 'none' ? 'div' : MainLayout
+})
+
+// Remove Bootstrap modal artifacts after route changes
+onMounted(() => {
+  router.afterEach(() => {
+    document.body.classList.remove('modal-open')
+    document.body.style.overflow = ''
+    const backdrops = document.querySelectorAll('.modal-backdrop')
+    backdrops.forEach(backdrop => backdrop.remove())
+  })
+})
 </script>
+
+
+<style>
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* if you want no scroll at all */
+  font-family: 'Sarabun', sans-serif;
+  background: linear-gradient(180deg, #C8F1FF 0%, #FBFDFE 100%);
+}
+</style>

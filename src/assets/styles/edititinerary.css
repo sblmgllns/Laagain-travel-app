@@ -1,11 +1,21 @@
+html, body {
+  overflow: hidden;         /* Prevents scrolling */
+  margin: 0;                /* Removes default margin */
+  padding: 0;               /* Removes default padding */
+  height: 100%;             /* Makes html/body fill the viewport height */
+  font-family: "Sarabun", sans-serif !important;  /* Sets the font */
+}
+
 /* App container */
 .app-container {
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;  
   background-color: #f0f2f5;
   padding: 10px;
+
 }
 
 /* Menu Bar */
@@ -13,28 +23,103 @@
 .menu-bar {
   display: flex;
   align-items: center;
-  background-color: white;
+  background-color: #03aed2;
   padding: 10px 15px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   gap: 15px;
+  max-width: 99vw;
+  
 }
 
 /* Menu Items (text) */
 .menu-item {
   display: flex;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 6px;
   transition: background 0.2s;
+  color: white; /* text color changed to white */
+}
+
+.menu-icon {
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+  position: relative;
+}
+
+.menu-icon-right {
+  font-size: 14px;
+  left: -22%;
+  top:-1px;
+  cursor: pointer;
+  line-height: 1;
+  position: relative;
+}
+.menu-icon-container:hover {
+  background-color: rgba(1, 36, 43, 0.1);
+  cursor: pointer;
+}
+.icon-box {
+  border: 1px solid white;
+  height: 26px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vr-white {
+  width: 1px;
+  height: 18px;
+  background-color: white;
+}
+
+.share-btn {
+  margin-left: auto;
+  padding: 3px 15px;
+  border: 1px solid white;
+  border-radius: 999px;
+  background: transparent;
+  color: white; /* text color changed to white */
+  transition: background 0.2s ease;
+}
+
+.share-btn:hover {
+  background-color: rgba(3, 174, 210, 0.1);
+}
+.file-hover {
+  display: inline-block; /* Ensure padding and background apply around content */
+  padding: 2px 8px;       /* Adjust to make background area bigger */
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.file-hover:hover {
+  background-color: rgba(1, 36, 43, 0.1);
+  cursor: pointer;
+}
+
+
+/* Icon container hover effect */
+.icon-box:hover {
+ background-color: rgba(1, 36, 43, 0.1);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+/* Optional: Slight icon color brightness change on hover */
+.icon-box:hover .menu-icon-right {
+  filter: brightness(1.2);
 }
 
 /* Hover Effect */
 .menu-item:hover {
-  background-color: #e8f0fe;
+  background-color: #028da9;
 }
 
 /* Active Item */
@@ -43,7 +128,7 @@
 }
 
 /* Icons */
-.menu-item img, 
+.menu-item img,
 .menu-item svg {
   width: 18px;
   height: 18px;
@@ -51,21 +136,65 @@
 }
 
 .menu-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 5px;
-  object-fit: contain; /* Ensures it doesn't stretch */
+  width: 32px;               /* Or any size you prefer */
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
 }
+
+.menu-icon:hover {
+  background-color: rgba(1, 36, 43, 0.1);
+  cursor: pointer;
+}
+
+.file-name-wrapper {
+  max-width: 200px; /* Adjust as needed */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.ellipsis {
+  display: inline-block;
+  max-width: 400px; /* Adjust based on your layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
 
 .file-name {
-    display: inline-block;
-    min-width: 100px;
-    border-bottom: 1px dashed #ccc; /* Visual cue */
+  display: inline-block;
+  min-width: 100px;
+  font-weight: 500;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 
+/* Focus effect for editable name (already defined) */
 .file-name:focus {
-    outline: none;
-    border-bottom: 1px solid #007bff; /* Highlight on focus */
+  outline: none;
+  border-bottom: 1px solid #ffffff; /* Highlight on focus */
+}
+
+/* Hover effect for consistent UI */
+.itinerary-editable-name:hover {
+  background-color: rgba(1, 36, 43, 0.1);
+  cursor: pointer;
+}
+
+/* Optional visual cue while editing */
+.itinerary-editable-name[contenteditable="true"] {
+  background-color: rgba(255, 255, 255, 0.15);
+  cursor: text;
 }
 
 
@@ -74,20 +203,174 @@
   display: flex;
   flex: 1;
   gap: 10px;
+  height: 90vh;
+  transition: all 0.3s ease;
   flex-wrap: wrap; /* Allows wrapping when needed */
   padding-top: 10px; /* Adds space below the menu bar */
 }
 
 /* Left Section */
 .left-section {
-  flex: 1;
+  flex: 1.5;
   padding: 20px;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   max-height: 90vh; /* You can adjust this to your layout */
   overflow-y: auto;
+  position: relative;
 }
+
+/* Collapsed Layout */
+.main-content.collapsed .left-section {
+  flex: 0 0 50px; /* collapse to fixed width */
+  
+  position: relative;
+}
+/* Collapsed Layout */
+.main-content.collapsed .left-section {
+  flex: 0 0 50px; /* collapse to fixed width */
+  
+  position: relative;
+}
+
+.main-content.collapsed .right-section {
+  flex: 1.0; /* give right section more space */
+}
+.main-content.collapsed .left-section *:not(.collapse-btn):not(.collapse-btn *):not(.create-btn):not(.create-btn *) {
+  display: none;
+}
+
+.collapse-btn {
+  position: sticky;  
+  top: 50%;
+  margin-left: -2%;
+  width: 15px;
+  height: 40px;
+  background: white;
+  border: 2px solid #03aed2;
+  border-radius: 4px;
+  color: #03aed2;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: right;
+
+}
+
+.collapse-arrow {
+  font-size: 23px;
+  line-height: 1;
+  position: static; 
+}
+
+
+.divider-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  flex-direction: row;
+}
+
+@media (max-width: 480px) {
+
+  /* Collapse Button at Bottom Center */
+.collapse-btn {
+  position: sticky;
+  bottom: 0;                  /* Stick to bottom */
+  align-self: center;         /* Center horizontally */
+  margin-top: auto;           /* Push to the bottom of the flex column */
+  margin-bottom: 10px;        /* Add space from the bottom */
+  width: 40px;
+  height: 28px;
+  background: white;
+  border: 2px solid #03aed2;
+  border-radius: 6px;
+  color: #03aed2;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.left-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.collapse-arrow {
+  font-size: 23px;
+  line-height: 1;
+  position: static; 
+}
+
+  
+.main-content.collapsed .create-btn {
+  width: 10%; /* instead of just max-width */
+  max-width: 0%; /* fallback max */
+  position: relative; /* or remove if not needed */
+  margin: 0 auto; /* center it if needed */
+  justify-content: center;
+  align-items: center;
+  margin-left: 35%;
+  padding: 0;
+  border: 2px solid #03AED2;
+  background-color: white;
+  border-radius: 50%;
+}
+
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .right-section {
+  margin-top: -40px;
+  flex: 3;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding: 0!important;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}  
+
+  .left-section {
+    order: 2;
+    width: 100%;
+    max-height: none;
+    height: auto;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .collapse-arrow {
+    font-size: 20px;
+  }
+}
+
+.collapse-btn:hover {
+  background: #03aed2;
+  border-color: #03aed2;
+  color: white;
+}
+
 
 .left-section::-webkit-scrollbar {
   width: 6px;
@@ -100,8 +383,9 @@
 
 /* Right Section */
 .right-section {
-  flex: 2;
+  flex: 3;
   display: flex;
+  position: relative;
   flex-direction: column;
   align-items: center;
   background-color: white;
@@ -111,29 +395,81 @@
 }
 
 .create-btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    background: #03AED2 !important;
-    border: 2px solid #03AED2 !important; /* Border same as background */
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 10px;
-  }
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  color: #03aed2;
+  background: #ffffff !important;
+  border: 2px solid #03aed2 !important;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
-  .create-btn:hover {
-    background: #FDDE55 !important; /* Changes background on hover */
-    border-color: #FDDE55 !important; /* Ensures border also changes */
-    color: #FFF  !important; /* Optional: Adjust text color for contrast */
-  }
 
-  .divider {
-    border: none;
-    height: 1px;
-    background-color: #ccc;
-    margin: 10px 0;
-  }
+/* Make the plus icon bigger and bolder */
+.create-btn i {
+  font-size: 30px;
+  color: #03AED2;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Collapsed sidebar styling */
+.main-content.collapsed .create-btn {
+  max-width: 80%;
+  position: absolute;
+  left: 10%;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid #03AED2;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.main-content.collapsed .create-btn:hover {
+  background: #03aed2 !important; /* Changes background on hover */
+  border-color: #03aed2 !important; /* Ensures border also changes */
+  color: #fff !important; /* Optional: Adjust text color for contrast */
+}
+
+/* Make the plus icon bigger and bolder */
+.create-btn i:hover {
+  
+  color: #fff !important; /* Optional: Adjust text color for contrast */
+}
+
+.left-section.collapsed .create-btn {
+  padding: 12px;
+  justify-content: center;
+}
+
+.left-section.collapsed .create-btn i {
+  font-size: 22px;
+}
+
+.nav-tabs.custom-tabs .nav-link {
+  margin-top: -35px;
+  font-size: 0.85rem !important;   /* smaller font */
+  color: gray !important;          /* force gray text */
+}
+
+.nav-tabs.custom-tabs .nav-link.active {
+  color: #03aed2 !important;       /* optional active color */
+  font-weight: 600 !important;
+}
+
+.nav-tabs.custom-tabs {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+
+.create-btn:hover {
+  background: #03aed2 !important; /* Changes background on hover */
+  border-color: #03aed2 !important; /* Ensures border also changes */
+  color: #fff !important; /* Optional: Adjust text color for contrast */
+}
 
 /* Search Bar */
 .search-bar {
@@ -150,10 +486,36 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  background-color: #f0f2f5;
+  background-color: #ffffff;
   padding: 8px;
   border-radius: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 9px;
+}
+
+.container-bar-start,
+.container-bar-end {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 9px;
+}
+
+/* Input Field */
+.container-bar-start input,
+.container-bar-end input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  padding: 8px;
+  font-size: 13px;
+  font-family: "Sarabun", sans-serif;
+  border-radius: 5px;
+  color: gray; /* Set input text color to gray */
 }
 
 /* Input Field */
@@ -164,37 +526,40 @@
   background: none;
   outline: none;
   padding: 8px;
-  font-size: 16px;
+  font-size: 13px;
   border-radius: 5px;
+  font-family: "Sarabun", sans-serif;
   color: gray; /* Set input text color to gray */
 }
 
 .container-bar textarea,
-.search-bar textarea{
+.search-bar textarea {
   flex: 1;
   border: none;
   background: none;
   outline: none;
   padding: 8px;
-  font-size: 16px;
+  font-size: 13px;
   border-radius: 5px;
+  font-family: "Sarabun", sans-serif;
   color: gray; /* Set input text color to gray */
 }
-
 
 /* Placeholder Text */
 .container-bar input::placeholder,
 .search-bar input::placeholder {
   color: lightgray; /* Lighter gray for placeholder */
+  font-family: "Sarabun", sans-serif;
 }
-
-
 
 /* Label */
 .start-date {
   margin-right: 10px;
-  color: #333;
+  color: gray;
+  font-size: 13px;
+  padding: 8px;
   white-space: nowrap;
+  font-family: "Sarabun", sans-serif;
 }
 
 /* Wrapper for both date and time */
@@ -202,6 +567,24 @@
   display: flex;
   gap: 8px;
 }
+.modal.d-block {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5); /* background fade */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1050;
+}
+
+
+
+.modal-dialog {
+  margin: 0; /* remove default margin auto */
+}
+
 
 /* New styles for Activity Modal */
 .activity-modal-overlay {
@@ -210,7 +593,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5); /* Semi-transparent black */
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -219,7 +602,6 @@
 
 .activity-modal {
   background: white;
-  overflow-y: auto;
   padding: 2rem;
   border-radius: 1rem;
   width: 80%; /* Set the width to 80% */
@@ -228,24 +610,35 @@
   flex-direction: column;
   gap: 1rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
+  position: relative;
+  max-height: 90vh;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 
-.activity-modal .modal-header {
+}
+.activity-modal-header {
+  position: relative;
   display: flex;
-  justify-content: center; /* Center the title horizontally */
   align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  
 }
-
-.activity-modal .modal-title {
+/* Keep the X in top-right regardless of screen size */
+.activity-modal-header .btn-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+.activity-modal-header .modal-title {
   font-size: 1.5rem;
-  font-family: 'Sarabun', sans-serif;
-  color: #03AED2;
-  font-style: normal;
-  line-height: normal;
-  letter-spacing: 1.44px;
+  font-family: "Sarabun", sans-serif;
+  color: #03aed2;
   font-weight: 700;
-  text-align: center; /* Ensure the title text is centered */
-  width: 100%; /* Ensures it takes up the full width */
+  white-space: nowrap;
+  z-index: 1; /* So it stays clickable */
 }
 
 .activity-modal .modal-body {
@@ -253,22 +646,21 @@
   flex-direction: column; /* Stack the details vertically */
   gap: 0.5rem; /* Add space between each item */
   font-size: 0.9rem;
-  font-family: 'Sarabun', sans-serif;
+  font-family: "Sarabun", sans-serif;
   font-style: normal;
   line-height: normal;
   letter-spacing: 1.44px;
   font-weight: 700;
   color: #979797;
-  
 }
 
-.activity-modal .modal-footer {
+.activity-modal .modal-footer-act {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
 }
 
-.activity-modal .modal-footer button {
+.activity-modal .modal-footer-act button {
   padding: 0.5rem 1rem;
 }
 
@@ -280,16 +672,16 @@
 }
 
 .details-header {
+  margin-top: -15px;
   font-size: 1.25rem;
   text-align: left;
   font-weight: bold;
-  color: #000000;
+  color: #444;
 }
 
-
-
 /* Shared styles for date-bar and time-bar */
-.date-bar, .time-bar {
+.date-bar,
+.time-bar {
   background-color: #fafbfc;
   padding: 8px;
   border-radius: 10px;
@@ -327,14 +719,15 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 930px) {
   .main-content {
     flex-direction: column; /* Stack sections vertically */
   }
 
-  .left-section,
-  .right-section {
-    width: 100%;
+  .activity-card {
+    margin: 10px;
+    padding: 16px;
+    width: calc(100% - 10px); /* Prevents edge-to-edge squish */
   }
 }
 
@@ -344,21 +737,35 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
 }
 
-.modal {
-  background: white;
+.modal-act {
+  background: rgb(250, 250, 250);
   padding: 1.5rem;
-  border-radius: 1rem;
   width: 400px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  overflow: hidden; /* to clip the header inside */
+}
+
+.modal-header-activity {
+  text-align: center;
+  height: 12%; /* or any blue shade */
+  color: white;
+  padding: 1rem;
+  border-radius: 0;
+  margin: -1.5rem -1.5rem 1rem -1.5rem; /* pull to edges */
+}
+
+.modal-header h6 {
+  margin: 0;
+  width: 100%;
+  text-align: center;
 }
 
 .modal-actions {
@@ -367,92 +774,224 @@
   gap: 0.5rem;
 }
 
-
 /* cards section */
 
 .activity-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-  }
-  
-  .activity-card {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 300px;
-    transition: transform 0.3s ease;
-    position: relative;
-  }
-  
-  .activity-card:hover {
-    transform: translateY(-5px);
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
 
+.activity-card {
+  background-color: #ffffff; /* pure white background */
+  width: 100%;
+  max-width: 700px;
+  min-width: 300px;
+  height: 23vh;
+  transition: transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border-radius: 5px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+  padding: 16px 20px;
+  margin: 0px auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Common base for type-colored strip */
+.activity-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px; /* thickness of the left color strip */
+  height: 100%;
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;
+}
+
+/* Type-based strip colors */
+.activity-card.attraction::before {
+   opacity: 50%;
+  background-color: #75efcc; /* coral or red for attractions */
+}
+
+.activity-card.accommodation::before {
+  background-color: #be4961; /* green for accommodation */
+  opacity: 50%;
+}
+
+.activity-card.transpo::before {
+   opacity: 50%;
+  background-color: #6750a4; /* blue for transportation */
+}
+
+/* Stack items vertically with spacing */
+.activity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.activity-content-columns {
+  display: flex;
+  gap: 0px;
+  z-index: 1;
+  margin-top: 0%;
+}
+
+.activity-column-left {
+  flex: 0 0 30%; /* Fixed width column */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #ffffff;
+  padding-left: 0px;
+}
+
+.activity-column-left {
+  flex: 0 0 93px; /* Fixed width matching your image width */
+  position: relative; /* Needed for absolute positioning of children */
+  height: 100%; /* Take full height of parent */
+  min-height: 120px; /* Set a minimum height */
+  justify-content: center;
+
+}
+
+.activity-column-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative; /* For absolute positioning of button */
+  align-items: flex-start; /* ensures all content aligns left */
+  text-align: left; /* makes text align left */
+  padding-left: 10px; /* optional: space from the image */
+}
+
+.activity-card:hover {
+  transform: translateY(-3px);
+}
 
 .remove-btn {
   position: absolute;
   top: 8px;
-  right: 10px;
+  right: 7px; /* move to the left */
   border: none;
   background: none;
   font-size: 1.2rem;
-  color: #999;
+  color: #b9b9b9;
   cursor: pointer;
   padding: 0;
   line-height: 1;
 }
 
+
 .remove-btn:hover {
-  color: #d00;
+  color: #555;
 }
 
-  .activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .activity-name {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .add-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .add-btn:hover {
-    background-color: #45a049;
-  }
-  
-  .activity-description {
-    font-size: 1rem;
-    margin-bottom: 15px;
-    color: #555;
-  }
-  
-  .activity-location, .activity-date, .activity-time {
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-    color: #888;
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.activity-image-wrapper {
+  position: relative;
+  width: 93px;
+  height: 90%; /* Make it square */
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto; /* horizontal center in non-flex parent */
+}
+
+
+/* Text in front of image */
+.activity-text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 8px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+  background: rgba(0, 0, 0, 0.4); /* Optional dark overlay */
+  border-radius: 7px;
+  margin-right: 10px;
+}
+
+.activity-text-overlay p {
+  margin: 2px 0;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+
+.activity-name {
+  font-size: 1.0rem;
+  font-weight: bold;
+  margin-bottom: 0px;
+}
+.add-btn {
+  background-color: #fdde55;
+  color: white;
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.2rem;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background-color 0.3s ease;
+  min-width: 60px;
+}
+
+
+.add-btn:hover {
+  background-color: #e6c200; /* or pick one of the above */
+}
+.activity-description {
+  font-size: 0.7rem;
+  color: #555;
+  text-align: left;
+  font-style: italic;
+  margin-top: 3%;
+}
+
+.activity-time {
+  font-size: 0.7rem;
+  margin-bottom: 2px;
+  color: #555;
+  text-align: left;
+  font-style: italic;
+}
+.activity-location {
+  font-size: 0.7rem;
+  color: #555;
+  text-align: left;
+  margin-top: -5px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* resizer */
 .resizer {
   position: absolute;
@@ -462,6 +1001,31 @@
   background: transparent;
   z-index: 10;
 }
+
+.suggested-by {
+  display: flex;
+  align-items: center;
+}
+
+.profile-pic {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 8px;
+  object-fit: cover;
+}
+
+.suggested-name {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.activity-name,
+.suggested-name,
+.activity-description {
+  text-align: left; /* ensures text aligns left */
+}
+
 .resizer.top {
   top: 0;
 }
@@ -470,11 +1034,882 @@
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg);
+  filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%)
+    hue-rotate(0deg);
   cursor: pointer;
 }
 
 input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg);
+  filter: brightness(0) saturate(100%) invert(20%) sepia(0%) saturate(0%)
+    hue-rotate(0deg);
   cursor: pointer;
+}
+
+.menu-options {
+  position: absolute;
+  left: -61px;
+  top: 24px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 5px;
+  z-index: 10;
+}
+
+.menu-options a {
+  display: block;
+  padding: 5px 10px;
+  color: red;
+  text-decoration: none;
+}
+
+.menu-options:hover {
+  background: rgb(247, 243, 243);
+}
+
+.itinerary-link {
+  font-family: 'Sarabun', sans-serif;
+  font-weight: 800;
+  color: black;
+  text-decoration: none;
+  font-size: 13px;
+  word-break: break-all; /* allows long URLs to wrap */
+}
+
+/* Responsive font sizing */
+@media (max-width: 768px) {
+  .itinerary-link {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+
+.activity-card {
+  height: 17vh;
+}
+
+.activity-description{
+
+}
+
+.ellipsis {
+    max-width: 120px; /* tighter for small screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .rotated-link-icon {
+    font-size: 20px;
+  }
+}/* Compact modal form */
+.modal-body {
+  padding: 10px;       /* less padding around the form */
+  overflow-y: auto;
+}
+
+/* Smaller spacing between boxes */
+.field-box {
+  position: relative;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 10px;   /* reduced padding */
+  margin-bottom: 12px; /* tighter spacing */
+  background-color: white;
+}
+
+/* Label sits neatly in the border */
+.field-label {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  background-color: white;
+  padding: 0 4px;
+  font-size: 12px;     /* smaller label font */
+  color: #333;
+  font-weight: 500;
+  font-family: "Sarabun", sans-serif;
+}
+
+/* Compact inputs */
+.field-input {
+  width: 100%;
+  padding: 6px 8px;    /* less padding inside inputs */
+  font-size: 0.75rem;   /* smaller text */
+  border: none;
+  outline: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+/* Textarea match input size */
+textarea.field-input {
+  height: 60px;        /* fixed, smaller height */
+  resize: vertical;
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 0.3em;
+  right: 0.5em;
+  font-size: 0.75em;
+  color: #888;
+  pointer-events: none;
+  background-color: white; /* Optional: match textarea background */
+  padding: 0 0.25em;
+}
+/* Tighter time‐row layout */
+.time-row {
+  display: flex;
+  gap: 8px;            /* smaller gap */
+  flex-wrap: wrap;
+}
+
+.time-row .field-box {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Smaller error text */
+.error-message {
+  color: red;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+
+/* Hover effect for field boxes */
+.field-box:hover {
+  border-color: #03aed2; /* Blue border */
+}
+
+/* Make label blue when hovering on the field box */
+.field-box:hover .field-label {
+  color: #03aed2; /* Blue label */
+}
+
+/* Container for the type options */
+.type-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Each option box */
+.type-box {
+  flex: 1;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: white;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+/* Hide default radio circle */
+.type-box input[type="radio"] {
+  margin-right: 6px;
+}
+
+/* Hover effect */
+.type-box:hover {
+  border-color: #007bff;
+}
+
+.type-options-row {
+  display: flex;
+  flex-wrap: wrap; /* allows wrapping on small screens */
+  gap: 8px;
+}
+
+/* Transportation (uses ‘personal’ theme) */
+.type-box.transportation {
+  background-color: #eaddff; /* container */
+  border-color: #6750a4;     /* main */
+  color: #21005e;            /* onContainer */
+}
+
+/* Accommodation (uses ‘work’ theme) */
+.type-box.accommodation {
+  background-color: #fdd2dc;
+  border-color: #be4961;
+  color: #874c5a;
+}
+
+/* Attraction (uses ‘school’ theme) */
+.type-box.attraction {
+  background-color: #dbfef0;
+  border-color: #75efcc;
+  color: #446f60;
+}
+
+/* Food (custom orange theme) */
+.type-box.food {
+  background-color: #fef0d9;
+  border-color: #f29d35;
+  color: #5f3a05;
+}
+
+/* Base styles for all boxes */
+.type-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Hover effect */
+.type-box:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Radio dot color (modern browsers) */
+.type-box input[type="radio"] {
+  accent-color: currentColor;
+}
+
+/* Selected state — same border color, just thicker */
+.type-box.selected.transportation {
+  border-width: 2px;
+  border-color: #6750a4;
+}
+
+.type-box.selected.accommodation {
+  border-width: 2px;
+  border-color: #be4961;
+}
+
+.type-box.selected.attraction {
+  border-width: 3px;
+  border-color: #75efcc;
+}
+
+.type-box.selected.food {
+  border-width: 2px;
+  border-color: #f29d35;
+}
+
+.close-button {
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  line-height: 1;
+  z-index: 10;
+  padding: 4px;
+}
+
+
+.close-button:hover {
+  color: #000;
+  background-color: transparent;
+}
+
+
+.tab-buttons {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+  z-index: 0; /* Behind title/X to prevent overlap */
+}
+.custom-tab {
+  background-color: transparent;
+  color: #ccc;
+  border: none;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  padding: 0.3rem 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+
+.custom-tab:hover {
+  color: #03aed2; /* soft blue */
+}
+.active-tab {
+  color: #03aed2;
+  font-size: 0.95rem; /* slightly bigger than the base 0.875rem */
+  font-weight: 600;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+.custom-delete {
+  color: #ccc;
+}
+
+.custom-delete .delete-icon {
+  color: #ccc;
+  transition: color 0.2s ease;
+}
+
+.custom-delete:hover {
+  background-color: #ffe5e5; /* Light red background */
+  color: red;
+}
+
+.custom-delete:hover .delete-icon {
+  color: red;
+}
+
+/* SAVE Button - Default State */
+.custom-save {
+  color: #ccc;
+  transition: all 0.2s ease;
+}
+
+.custom-save .save-icon {
+  color: #ccc;
+  transition: color 0.2s ease;
+}
+
+/* SAVE Button - Hover State */
+.custom-save:hover {
+  background-color: #e6f9eb; /* light green background */
+  color: #FDDE55; /* green text */
+}
+
+.custom-save:hover .save-icon {
+  color: #FDDE55;
+}
+
+.custom-save {
+  border: none; /* Remove default border */
+  background-color: transparent; /* Prevent default background */
+  color: #ccc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.custom-save:disabled {
+  border: none; /* Remove border on disabled */
+  background-color: transparent; /* Optional: Or your own color */
+  color: #aaa; /* Slightly dim text to indicate disabled */
+  cursor: not-allowed;
+  pointer-events: none; /* Optional: disables hover/active effects */
+}
+
+.custom-save:disabled .save-icon {
+  color: #aaa;
+}
+
+/* SAVE Button - Hover State (only when NOT disabled) */
+.custom-save:not(:disabled):hover {
+  background-color: #e6f9eb; /* light green background */
+  color: #FDDE55; /* yellow text */
+}
+
+.custom-save:not(:disabled):hover .save-icon {
+  color: #FDDE55;
+}
+
+/* Disabled icon color */
+.custom-save:disabled .save-icon {
+  color: #aaa;
+}
+
+.tab-section.full-width {
+  width: 100%;
+}
+
+.underline-tabs {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 32px;
+}
+
+.underline-tab {
+  flex: 1;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  padding: 12px 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.underline-tab i {
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.underline-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: #FDDE55;
+  transition: width 0.3s ease;
+}
+
+.underline-tab:hover {
+  color: #222;
+}
+
+.--tab:hover i {
+  color: #222;
+}
+
+.underline-tab.active {
+  font-weight: 600;
+  color: #FDDE55;
+}
+
+.underline-tab.active i {
+  color: #FDDE55;
+}
+
+.underline-tab.active::after {
+  width: 100%;
+}
+
+
+.activity-category-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 10px 20px;
+  color: #333;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Faded dark background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.modal-header-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Modal Overlay Background */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+/* Modal Container */
+.custom-modal {
+  background-color: #fff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Sticky Header */
+.modal-header {
+  background-color: #fff;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Modal Body */
+.modal-content .form-label {
+  font-weight: 500;
+}
+
+/* Form Elements */
+input.form-control,
+textarea.form-control,
+select.form-select {
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+
+img.activity-image,
+img.img-fluid {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 6px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  background-color: #fff;
+}
+
+/* Buttons */
+button.btn {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 0.4rem 1rem;
+}
+
+
+/* Dropzone */
+.trip-edit-center-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: right;
+  width: 100%;
+
+}.trip-edit-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100px;
+  justify-content: center; /* This ensures vertical centering */
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px;
+  min-height: 240px;
+  max-height: 60vh;
+  background-color: #f9f9f9;
+  text-align: center;
+  margin: 0 auto; /* centers the box horizontally if needed */
+  box-sizing: border-box;
+}
+
+
+.trip-edit-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1; /* helps in pushing content to center vertically */
+  width: 100%;
+  height: 100%;
+}
+.trip-edit-default-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+.trip-edit-placeholder-text {
+  font-size: 13px;
+  color: #888;
+  font-family: "Sarabun", sans-serif;
+}
+
+.trip-edit-file-hidden {
+  display: none;
+}
+
+.trip-edit-img-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 240px; /* fixed height for cropping effect */
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+}
+
+.trip-edit-current-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crop to fill, no stretching */
+  object-position: center center; /* center the crop */
+  border-radius: 8px;
+  display: block;
+}
+
+.trip-edit-remove-img {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: #f9f9f9;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.trip-edit-remove-img:hover {
+  color: #d6d6d6;
+}
+.details-tab-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.details-left {
+  flex: 2;
+  min-width: 300px;
+}
+
+.details-right {
+  flex: 1;
+  min-width: 280px;
+}
+
+.activity-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.activity-top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 30px;
+}
+/* Text info container now takes the rest of the space */
+.activity-text-info {
+  flex: 2;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.activity-photo-wrapper {
+  flex: 1;
+  min-width: 240px;
+  max-width: 300px;
+}
+
+
+.time-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.time-error {
+  color: red;
+  font-size: 0.9rem;
+  margin-left: 10px;
+  margin-top: 20px;
+}
+
+.description-textarea {
+  min-height: 75px; /* Adjust as needed to match your image box height */
+  resize: vertical;  /* Optional: lets users resize vertically */
+}
+.comment-input {
+    flex-grow: 1;
+    height: 40px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    font-size: 14px;
+    margin-left: 25px;
+    width: calc(100% - 60px);
+    box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+    transition: border 0.3s, box-shadow 0.3s;
+    outline: none;
+  }
+
+  .comment-input:hover,
+  .comment-input:focus {
+    border-color: #03aed2; /* Bootstrap blue */
+    
+  }
+
+  .custom-comment-btn {
+    border: 1px solid #03aed2;
+    background-color: transparent;
+    color: #03aed2;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+
+  .custom-comment-btn i {
+    color: #03aed2;
+  }
+
+  .custom-comment-btn:hover {
+    background-color: #03aed2;
+    border-color: #03aed2;
+  }
+
+  .custom-comment-btn:hover i {
+    color: white;
+  }
+.activity-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.activity-name {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.circle-separator {
+  color: #999;
+  font-weight: bold;
+}
+
+.activity-date {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.activity-meta {
+  margin-top: -10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-container,
+.location-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.icon {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: -10px;
+}@media (max-width: 430px) {
+  .activity-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    padding: 0.2rem 1rem 3rem 1rem; /* Bigger padding: more breathing room */
+  }
+
+  .modal-title {
+    margin-bottom: 0;
+    top: 1rem;
+  }
+
+  .tab-buttons {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 3rem; /* Push tabs even further down */
+    flex-wrap: wrap;
+    gap: 1rem; /* More space between buttons */
+  }
+
+  .custom-tab {
+    flex: 1 1 auto;
+  }
+
+  .activity-modal-header .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .menu-bar {
+    gap: 8px;
+  }
+
+  /* Hide all menu items except "File", file name, and Share button */
+  .menu-item:not(:first-child):not(.file-name):not(.share-btn):not(file-hover),
+  .menu-icon-container,      /* Hide undo/redo icons */
+  .cloud-icon,               /* Hide cloud icon */
+  .save-status,              /* Hide any save text/status */
+  .vr-white, 
+  .icon-box{ /* Hide other file hover elements */
+    display: none !important;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Keep file name visible and tidy */
+  .file-name {
+    font-size: 14px;
+    min-width: 0;
+  }
+
+  /* Style Share button smaller for mobile */
+  .share-btn {
+    padding: 2px 10px;
+    font-size: 12px;
+  }
 }
