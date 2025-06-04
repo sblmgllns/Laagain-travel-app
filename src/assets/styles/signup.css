@@ -16,6 +16,7 @@ html, body {
     border-radius: 46px !important; 
     background: #FFF;
     padding: 32px !important; /* Adjust padding for spacing */    width: 350px !important;
+    border: 0px !important;
 }
 
 
@@ -198,6 +199,11 @@ p.mt-3.text-start.text-danger {
 }
 
 .modal-header img{
+    height: 4rem; 
+    width: 4rem;
+}
+
+.logoHolder img{
     height: 4rem; 
     width: 4rem;
 }
