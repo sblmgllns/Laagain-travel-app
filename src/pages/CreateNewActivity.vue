@@ -932,6 +932,19 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 480px) {
+  .trip-edit-date {
+  flex: 1;
+  width: 150px; /* Fixed narrower width */
+  min-width: 90px; /* Minimum width */
+  padding: 10px 12px;
+  border: 1px solid #03aed2;
+  background-color: #fff;
+  color: #333;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  outline: none;
+}
   .custom-modal {
     width: 100%;
     max-height: 70vh;
@@ -968,6 +981,13 @@ input:checked + .slider:before {
     font-size: 18px;
     text-align: center;
     margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .trip-edit-date {
+    width: 150px; /* Fixed narrower width */
+  min-width: 80px; /* Minimum width */
   }
 }
 </style>

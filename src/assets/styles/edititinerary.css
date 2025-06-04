@@ -212,7 +212,7 @@ body {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-height: 90vh; /* You can adjust this to your layout */
+  max-height: 100vh; /* You can adjust this to your layout */
   overflow-y: auto;
   position: relative;
 }
@@ -1881,6 +1881,10 @@ input:checked + .slider:before {
 
 
 @media (max-width: 1366px) {
+  .activity-name {
+  width: 25px;
+  overflow: hidden;
+}
   .activity-list {
     flex-direction: row;
     flex-wrap: wrap;
@@ -1888,14 +1892,16 @@ input:checked + .slider:before {
     align-items: stretch;
     gap: 20px;
   }
-
-  .activity-card {
-    flex: 1 1 calc(33.333% - 40px); /* 3 cards per row with gap */
-    max-width: 400px;
-    min-width: 300px;
-    height: auto;
-  }
-
+  .left-section {
+  flex: 2.7; /* Takes 2x more space than siblings with flex: 1 */
+  
+}
+.activity-card {
+  flex: 1 1 calc(33.333% - 40px); /* Keep flexible growth */
+  max-width: 300px; /* Reduced from 350px */
+  min-width: 250px; /* Reduced from 300px */
+  height: auto;
+}
   .activity-modal {
     height: 55vh;
     max-height: 40vh;
@@ -1927,6 +1933,23 @@ input:checked + .slider:before {
   .custom-comment-btn i {
     font-size: 13px;
   }
+  .right-section {
+  flex: 3;
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  height: 100vh; /* Full viewport height */
+  overflow-y: auto; /* Adds scroll if content overflows */
+}
+.left-section {
+  height: 100vh; /* Full viewport height */
+  overflow-y: auto; /* Scrollable content */
+}
 }
 
 @media (max-width: 540px) {

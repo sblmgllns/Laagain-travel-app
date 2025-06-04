@@ -550,7 +550,7 @@ const switchInviteTab = (tab) => {
 }
 
 .circle1 {
-  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar1.png');
+  background-image: url("https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar1.png");
   background-size: cover;
   background-position: center;
   background-color: #ffc7e0; /* light pink */
@@ -560,9 +560,8 @@ const switchInviteTab = (tab) => {
   transform: rotate(-10deg); /* Slant to the left */
 }
 
-
 .circle2 {
-  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar2.png');
+  background-image: url("https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar2.png");
   background-size: cover;
   background-position: center;
   background-color: #c8f1ff; /* light blue */
@@ -571,7 +570,7 @@ const switchInviteTab = (tab) => {
 
 .circle3 {
   transform: rotate(10deg); /* Slant to the right */
-  background-image: url('https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar3.png');
+  background-image: url("https://hqhlhotapzwxyqsofqwz.supabase.co/storage/v1/object/public/gen-assets//avatar3.png");
   background-size: cover;
   background-position: center;
   background-color: #ffc0b8; /* peach */
@@ -905,7 +904,9 @@ textarea.field-input {
   .modal-footer button {
     width: 90%;
   }
-
+.tab-option span {color: black;
+    font-size: 10px;
+  }
   .modal-content {
     width: 90%; /* or try 100%, 95%, or a fixed value like 600px */
     max-width: none; /* remove Bootstrap's max-width limit if needed */
@@ -947,6 +948,9 @@ textarea.field-input {
 
 /* Small mobile styles (360px and below) */
 @media (max-width: 375px) {
+  .tab-option span {color: black;
+    font-size: 10px;
+  }
   .gray-rect {
     height: 38px;
     width: 95%;
