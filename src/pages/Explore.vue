@@ -86,7 +86,7 @@
       username: profileUsername.value,
       profile_pic_url: profilePicUrl.value,
       type: "attraction",
-      user_id: userId
+      user_id: userId.value
     };
 
     try {
