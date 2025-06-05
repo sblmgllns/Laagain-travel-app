@@ -85,7 +85,8 @@
       activity_pic_url: item.image,
       username: profileUsername.value,
       profile_pic_url: profilePicUrl.value,
-      type: "attraction"
+      type: "attraction",
+      user_id: userId
     };
 
     try {
@@ -304,6 +305,9 @@
   watch(activeTab, (newTab) => {
     if (newTab !== 'bookmarks') {
       fetchTripResults();
+    }
+    else if(newTab == 'bookmarks' && searchQuery!= ''){
+      
     }
   });
   
