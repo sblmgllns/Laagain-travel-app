@@ -100,24 +100,47 @@
         // Close modal
         const modalEl = document.getElementById("detailsModal");
         const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
+        // if (modalInstance) {
+        //   modalInstance.hide();
+        // }
+
+        // if (modalInstance) {
+        //   modalEl.addEventListener("hidden.bs.modal", () => {
+        //     // Show the alert *after* the modal is fully hidden
+        //     const alert = document.createElement("div");
+        //     alert.className = "alert alert-success position-fixed top-0 end-0 m-3";
+        //     alert.style.zIndex = 1055;
+        //     alert.setAttribute("tabindex", "-1");
+        //     alert.setAttribute("role", "alert");
+        //     alert.innerText = "Activity added successfully!";
+        //     document.body.appendChild(alert);
+
+        //     setTimeout(() => {
+        //       alert.remove();
+        //     }, 5000);
+        //   }, { once: true });
+
+        //   modalInstance.hide();
+        // }
+
+        
 
         // Show notification (simple toast or alert)
-        const alert = document.createElement("div");
-        alert.className = "alert alert-success position-fixed top-0 end-0 m-3";
-        alert.style.zIndex = 1055;
-        alert.innerText = "Activity added successfully!";
-        document.body.appendChild(alert);
+        // const alert = document.createElement("div");
+        // alert.className = "alert alert-success position-fixed top-0 end-0 m-3";
+        // alert.style.zIndex = 1055;
+        // alert.setAttribute("tabindex", "-1");         // Make sure it's not focusable
+        // alert.setAttribute("role", "alert");          // Accessibility role
+        // alert.innerText = "Activity added successfully!";
+        // document.body.appendChild(alert);
 
         // Auto-remove after 3 seconds
-        setTimeout(() => {
-          alert.remove();
-        }, 5000);
+        // setTimeout(() => {
+        //   alert.remove();
+        // }, 5000);
         // window.location.reload();
         // router.go();
-        router.replace('/temp').then(() => router.replace(current))
+        // router.replace('/temp').then(() => router.replace(current))
       }
     } catch (err) {
       console.error("Unexpected error inserting activity:", err);
