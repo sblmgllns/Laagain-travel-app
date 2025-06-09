@@ -1921,23 +1921,6 @@ const isChecked = ref(false); // Starts unchecked
 
 // Reactive all-day checkbox
 const isAllDay = ref(isChecked);
-// Watch isAllDay to update times when toggled
-watch(isAllDay, (val) => {
-  if (val) {
-    newActivity.startTime = "00:00";
-    newActivity.endTime = "23:59";
-  }
-});
-
-// Watch start and end time to update isAllDay if they match full-day values
-watch(
-  () => [activity.start_time, activity.end_time],
-  ([start, end]) => {
-    isAllDay.value =
-      (start === "00:00" || start === "00:00:00") &&
-      (end === "23:59" || end === "23:59:00");
-  }
-);
 
 watch(isAllDay, (val) => {
   if (val) {
