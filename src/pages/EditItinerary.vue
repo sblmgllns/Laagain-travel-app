@@ -227,8 +227,8 @@ function formatDate(dateString) {
 }
 
 const goToExplore = () => {
-  router.push('/explore')
-}
+  router.push("/explore");
+};
 
 ///TIME FORMAT
 function formatPotentialTime(timeStr) {
@@ -619,7 +619,7 @@ const addActivity = async (index) => {
 
   await fetchPotentialActivities();
   await fetchActivities();
-  window.location.reload()
+  window.location.reload();
 };
 
 //for getting exisiting activities from supabase, for calendar reflection
@@ -777,7 +777,7 @@ const deleteActivity = async () => {
     //console.log("Activity, votes, and comments deleted successfully");
     showAlert("Activity sucessfully deleted!");
     showActivityModal.value = false;
-    showAlert("Activity successfully deleted!")
+    showAlert("Activity successfully deleted!");
     window.location.reload();
   }
 };
@@ -935,8 +935,8 @@ const removeActivity = async (index) => {
 ///////EDIT POTENTIAL ACTIVITY//////////////////////////////////////////
 const editPotentialActivity = (activityId) => {
   // Find the activity by ID (works even if filtered)
-  const activity = potentialActivities.value.find(a => a.id === activityId);
-  
+  const activity = potentialActivities.value.find((a) => a.id === activityId);
+
   if (!activity) return; // Exit if not found
 
   // Update the editable activity data
@@ -956,7 +956,7 @@ const editPotentialActivity = (activityId) => {
   originalPotentialActivity.value = { ...newActivity.value };
 
   // Check if it's an all-day event
-  isChecked.value = 
+  isChecked.value =
     (activity.start_time === "00:00" || activity.start_time === "00:00:00") &&
     (activity.end_time === "23:59" || activity.end_time === "23:59:00");
 
@@ -2127,7 +2127,7 @@ function switchTab(tab) {
           style="
             border: 1px solid white;
             width: 28px;
-            margin-left:12px;
+            margin-left: 12px;
             height: 26px;
             cursor: pointer;
           "
@@ -2259,9 +2259,13 @@ function switchTab(tab) {
 
                         <div class="location-container">
                           <i class="bi bi-geo-alt icon"></i>
-                          <span class="activity-location">{{
-                            activity.location
-                          }}</span>
+                          <span class="activity-location">
+                            {{
+                              activity.location.length > 15
+                                ? activity.location.slice(0, 15) + "..."
+                                : activity.location
+                            }}
+                          </span>
                         </div>
                       </div>
                       <button class="add-btn" @click.stop="addActivity(index)">
@@ -2353,9 +2357,13 @@ function switchTab(tab) {
 
                         <div class="location-container">
                           <i class="bi bi-geo-alt icon"></i>
-                          <span class="activity-location">{{
-                            activity.location
-                          }}</span>
+                          <span class="activity-location">
+                            {{
+                              activity.location.length > 15
+                                ? activity.location.slice(0, 15) + "..."
+                                : activity.location
+                            }}
+                          </span>
                         </div>
                       </div>
                       <button class="add-btn" @click.stop="addActivity(index)">
@@ -2445,9 +2453,13 @@ function switchTab(tab) {
 
                         <div class="location-container">
                           <i class="bi bi-geo-alt icon"></i>
-                          <span class="activity-location">{{
-                            activity.location
-                          }}</span>
+                          <span class="activity-location">
+                            {{
+                              activity.location.length > 15
+                                ? activity.location.slice(0, 15) + "..."
+                                : activity.location
+                            }}
+                          </span>
                         </div>
                       </div>
                       <button class="add-btn" @click.stop="addActivity(index)">
@@ -2539,9 +2551,13 @@ function switchTab(tab) {
 
                         <div class="location-container">
                           <i class="bi bi-geo-alt icon"></i>
-                          <span class="activity-location">{{
-                            activity.location
-                          }}</span>
+                          <span class="activity-location">
+                            {{
+                              activity.location.length > 15
+                                ? activity.location.slice(0, 15) + "..."
+                                : activity.location
+                            }}
+                          </span>
                         </div>
                       </div>
                       <button class="add-btn" @click.stop="addActivity(index)">
