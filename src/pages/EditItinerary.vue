@@ -2713,13 +2713,12 @@ function switchTab(tab) {
                   <div class="textarea-wrapper">
                     <textarea
                       v-model="newActivity.description"
-                      maxlength="70"
                       class="field-input description-textarea"
                       rows="2"
                       placeholder="Enter description"
                     ></textarea>
                     <span class="char-counter"
-                      >{{ newActivity.description.length }}/70</span
+                      >{{ newActivity.description.length }}</span
                     >
                   </div>
                 </div>
