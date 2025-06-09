@@ -2261,8 +2261,8 @@ function switchTab(tab) {
                           <i class="bi bi-geo-alt icon"></i>
                           <span class="activity-location">
                             {{
-                              activity.location.length > 22
-                                ? activity.location.slice(0, 22) + "..."
+                              activity.location.length > 27
+                                ? activity.location.slice(0, 27) + "..."
                                 : activity.location
                             }}
                           </span>
@@ -2359,8 +2359,8 @@ function switchTab(tab) {
                           <i class="bi bi-geo-alt icon"></i>
                           <span class="activity-location">
                             {{
-                              activity.location.length > 22
-                                ? activity.location.slice(0, 22) + "..."
+                              activity.location.length > 27
+                                ? activity.location.slice(0, 27) + "..."
                                 : activity.location
                             }}
                           </span>
@@ -2455,8 +2455,8 @@ function switchTab(tab) {
                           <i class="bi bi-geo-alt icon"></i>
                           <span class="activity-location">
                             {{
-                              activity.location.length > 22
-                                ? activity.location.slice(0, 22) + "..."
+                              activity.location.length > 27
+                                ? activity.location.slice(0, 27) + "..."
                                 : activity.location
                             }}
                           </span>
@@ -2553,8 +2553,8 @@ function switchTab(tab) {
                           <i class="bi bi-geo-alt icon"></i>
                           <span class="activity-location">
                             {{
-                              activity.location.length > 22
-                                ? activity.location.slice(0, 22) + "..."
+                              activity.location.length > 27
+                                ? activity.location.slice(0, 27) + "..."
                                 : activity.location
                             }}
                           </span>
