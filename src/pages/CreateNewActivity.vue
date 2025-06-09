@@ -98,11 +98,10 @@
               <div class="textarea-wrapper">
                 <textarea
                   v-model="newActivity.description"
-                  maxlength="70"
                   placeholder="Description"
                 ></textarea>
                 <span class="char-counter">
-                  {{ newActivity.description.length }}/70
+                  {{ newActivity.description.length }}
                 </span>
               </div>
             </div>
