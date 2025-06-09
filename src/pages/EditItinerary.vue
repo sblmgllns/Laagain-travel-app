@@ -715,7 +715,7 @@ const saveEditedActivity = async () => {
     //console.log("Activity updated successfully!", newActivity);
     showActivityModal.value = false;
     await fetchActivities(); // Refresh the calendar
-    router.push("/edit-itinerary");
+    window.location.reload();
   }
 };
 
